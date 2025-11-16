@@ -1,0 +1,283 @@
+import React, { useRef, useEffect } from "react";
+import { motion, useInView } from "framer-motion";
+import {
+  UserPlus,
+  Share2,
+  MessageCircle,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import ImageWithFallback from "../shared/ImageWithFallback.jsx";
+
+const steps = [
+  {
+    id: 1,
+    number: "01",
+    title: "Create an Account With XK Trading Floor",
+    description:
+      "To get started with XK Trading Floor, the first step is to create an account on our website. This simple process will give you access to our range of trading resources, live sessions, and exclusive content tailored for traders at all levels.",
+    image: "/assets/create_account.jpg",
+    ctaText: "Get Started",
+    ctaLink: "/signup",
+    color: "blue",
+  },
+  {
+    id: 2,
+    number: "02",
+    title: "Follow up Our Socials To Stay Updated",
+    description:
+      "Stay ahead in the trading game by following XK Trading Floor on our social media channels. By keeping up with our socials, you'll be the first to know about new updates, exciting news, and valuable insights.",
+    image: "/assets/follow_socials.jpg",
+    ctaText: "Follow Us",
+    ctaLink: "/contact",
+    color: "green",
+  },
+  {
+    id: 3,
+    number: "03",
+    title: "Final Instruction",
+    description:
+      "Once you've joined our Discord group, please reach out to an admin or support team member and let them know, \"I want to join the online academy.\" From there, we'll arrange a call to discuss your previous trading experience.",
+    image: "/assets/join_academy.jpg",
+    ctaText: "Join Discord",
+    ctaLink: "/contact",
+    color: "purple",
+  },
+];
+
+function StepCard({ step, index, isInView }) {
+  const colorClasses = {
+    blue: {
+      gradient: "from-blue-600/80 to-transparent",
+      text: "text-blue-400",
+      button: "bg-blue-500 hover:bg-blue-600",
+    },
+    green: {
+      gradient: "from-green-600/80 to-transparent",
+      text: "text-green-400",
+      button: "bg-green-500 hover:bg-green-600",
+    },
+    purple: {
+      gradient: "from-purple-600/80 to-transparent",
+      text: "text-purple-400",
+      button: "bg-purple-500 hover:bg-purple-600",
+    },
+  };
+
+  const colors = colorClasses[step.color];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay: index * 0.15 }}
+      className="flex-shrink-0 w-full md:w-[450px] lg:w-[500px]"
+    >
+      <div className="relative h-[400px] rounded-xl overflow-hidden group cursor-pointer">
+        {/* Background Image */}
+        <ImageWithFallback
+          src={step.image}
+          fallback="/assets/placeholder.jpg"
+          alt={step.title}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+
+        {/* Gradient Overlay - Dark to Light from Left to Right */}
+        <div
+          className={`absolute inset-0 bg-gradient-to-r ${colors.gradient}`}
+        />
+
+        {/* Content */}
+        <div className="relative z-10 h-full flex flex-col justify-between p-6">
+          <div>
+            <div
+              className={`text-4xl font-bold ${colors.text} opacity-20 mb-2`}
+            >
+              {step.number}
+            </div>
+            <h3 className="text-xl font-bold mb-3 text-white">{step.title}</h3>
+            <p className="text-gray-200 text-sm leading-relaxed line-clamp-4">
+              {step.description}
+            </p>
+          </div>
+
+          <Link
+            to={step.ctaLink}
+            className={`${colors.button} text-white px-6 py-2 rounded-full text-sm font-medium w-fit transition-all hover:scale-105`}
+          >
+            {step.ctaText}
+          </Link>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function HowItWorks() {
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const scrollContainerRef = useRef(null);
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
+  const scrollToIndex = (index) => {
+    if (scrollContainerRef.current) {
+      const cardWidth =
+        scrollContainerRef.current.querySelector(".flex-shrink-0")
+          ?.offsetWidth || 500;
+      const scrollPosition = index * (cardWidth + 24);
+      scrollContainerRef.current.scrollTo({
+        left: scrollPosition,
+        behavior: "smooth",
+      });
+      setCurrentIndex(index);
+    }
+  };
+
+  const scrollLeft = () => {
+    if (currentIndex > 0) {
+      scrollToIndex(currentIndex - 1);
+    }
+  };
+
+  const scrollRight = () => {
+    if (currentIndex < steps.length - 1) {
+      scrollToIndex(currentIndex + 1);
+    }
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollContainerRef.current) {
+        const scrollLeft = scrollContainerRef.current.scrollLeft;
+        const cardWidth =
+          scrollContainerRef.current.querySelector(".flex-shrink-0")
+            ?.offsetWidth || 500;
+        const index = Math.round(scrollLeft / (cardWidth + 24));
+        setCurrentIndex(index);
+      }
+    };
+
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+      return () => container.removeEventListener("scroll", handleScroll);
+    }
+  }, []);
+
+  return (
+    <section
+      ref={sectionRef}
+      className="py-20 bg-gray-950 relative overflow-hidden"
+    >
+      {/* Background decorations */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <div className="inline-block px-6 py-2 rounded-full bg-blue-500/10 backdrop-blur-sm mb-4">
+            <h2 className="text-xl font-semibold text-blue-400">
+              How does it work?
+            </h2>
+          </div>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto mt-4">
+            Follow these simple steps to begin your trading journey with XK
+            Trading Floor
+          </p>
+        </motion.div>
+
+        {/* Desktop: Horizontal Scroll */}
+        <div className="hidden md:block relative">
+          {/* Navigation Arrows */}
+          <button
+            onClick={scrollLeft}
+            disabled={currentIndex === 0}
+            className={`absolute left-0 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-gray-800/90 backdrop-blur-sm border border-gray-700 flex items-center justify-center hover:bg-gray-700 transition-all ${
+              currentIndex === 0
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:scale-110"
+            }`}
+            aria-label="Previous step"
+          >
+            <ChevronLeft className="h-6 w-6 text-white" />
+          </button>
+          <button
+            onClick={scrollRight}
+            disabled={currentIndex === steps.length - 1}
+            className={`absolute right-0 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-gray-800/90 backdrop-blur-sm border border-gray-700 flex items-center justify-center hover:bg-gray-700 transition-all ${
+              currentIndex === steps.length - 1
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:scale-110"
+            }`}
+            aria-label="Next step"
+          >
+            <ChevronRight className="h-6 w-6 text-white" />
+          </button>
+
+          {/* Scrollable Container */}
+          <div
+            ref={scrollContainerRef}
+            className="flex gap-6 overflow-x-auto scrollbar-hide pb-6 scroll-smooth"
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+          >
+            {steps.map((step, index) => (
+              <StepCard
+                key={step.id}
+                step={step}
+                index={index}
+                isInView={isInView}
+              />
+            ))}
+          </div>
+
+          {/* Dots Indicator */}
+          <div className="flex justify-center gap-2 mt-6">
+            {steps.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => scrollToIndex(index)}
+                className={`h-2 rounded-full transition-all ${
+                  index === currentIndex
+                    ? "w-8 bg-blue-500"
+                    : "w-2 bg-gray-700 hover:bg-gray-600"
+                }`}
+                aria-label={`Go to step ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile: Vertical Stack */}
+        <div className="md:hidden space-y-6">
+          {steps.map((step, index) => (
+            <StepCard
+              key={step.id}
+              step={step}
+              index={index}
+              isInView={isInView}
+            />
+          ))}
+        </div>
+      </div>
+
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+    </section>
+  );
+}
+
+export default HowItWorks;

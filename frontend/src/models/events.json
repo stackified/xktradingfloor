@@ -1,0 +1,28 @@
+[
+  {
+    "id": "evt-1",
+    "title": "XKTF Campus Bootcamp - Mumbai",
+    "type": "campus",
+    "dateTime": "2025-12-10T12:30:00Z",
+    "location": "Mumbai, India",
+    "price": 1999,
+    "seats": 80,
+    "image": "/assets/event-1.jpg",
+    "freebiesIncluded": ["Trading Indicator", "Journal Template"],
+    "excerpt": "Hands-on campus workshop focused on practical trading setups."
+  },
+  {
+    "id": "evt-2",
+    "title": "Online Masterclass: Risk Management",
+    "type": "online",
+    "dateTime": "2025-11-25T15:00:00Z",
+    "location": "Online",
+    "price": 999,
+    "seats": 500,
+    "image": "/assets/event-2.jpg",
+    "freebiesIncluded": ["Risk Calculator"],
+    "excerpt": "Live online session covering risk frameworks and trade journaling."
+  }
+]
+
+

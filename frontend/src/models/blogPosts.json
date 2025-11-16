@@ -1,0 +1,22 @@
+[
+  {
+    "id": "post-1",
+    "title": "Why Risk Management Matters",
+    "slug": "why-risk-management-matters",
+    "excerpt": "A concise primer on risk and position sizing.",
+    "body": "<p>Risk management is the cornerstone of sustainable trading...</p>",
+    "tags": ["risk", "education"],
+    "publishedAt": "2025-10-12T00:00:00Z"
+  },
+  {
+    "id": "post-2",
+    "title": "Podcast: Market Microstructure 101",
+    "slug": "podcast-market-microstructure-101",
+    "excerpt": "We discuss liquidity, spreads and order flow.",
+    "body": "<p>Listen to the episode and learn about microstructure...</p>",
+    "tags": ["podcast"],
+    "publishedAt": "2025-10-20T00:00:00Z"
+  }
+]
+
+

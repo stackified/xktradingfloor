@@ -1,0 +1,22 @@
+[
+  {
+    "id": "prd-1",
+    "title": "XKTF Hoodie Black",
+    "description": "Premium cotton-blend hoodie with XKTF brand mark.",
+    "price": 2499,
+    "stock": 42,
+    "images": ["/assets/hoodie-1.jpg"],
+    "sku": "XK-HOOD-BLK-01"
+  },
+  {
+    "id": "prd-2",
+    "title": "XKTF Cap Blue",
+    "description": "Structured cap with embroidered logo and blue accent.",
+    "price": 899,
+    "stock": 150,
+    "images": ["/assets/cap-1.jpg"],
+    "sku": "XK-CAP-BLU-01"
+  }
+]
+
+
