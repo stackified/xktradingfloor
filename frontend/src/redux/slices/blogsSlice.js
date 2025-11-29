@@ -4,10 +4,31 @@ import { getUserCookie } from "../../utils/cookies.js";
 
 // Helper to get auth token from cookies
 function getAuthToken() {
-  // Token is stored in httpOnly cookie, backend will read it automatically
-  // But some endpoints may need Authorization header
+  // Token can be in:
+  // 1. User cookie (set after login) - for Authorization header
+  // 2. httpOnly cookie 'token' (set by backend) - sent automatically with withCredentials
   const user = getUserCookie();
-  return user?.token || null;
+  if (user?.token) {
+    return user.token;
+  }
+  // Try to get from cookie string as fallback
+  if (typeof window !== "undefined") {
+    try {
+      const userCookie = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("xktf_user="));
+      if (userCookie) {
+        const userString = decodeURIComponent(
+          userCookie.split("=").slice(1).join("=")
+        );
+        const parsedUser = JSON.parse(userString);
+        return parsedUser?.token || null;
+      }
+    } catch (error) {
+      // Silently fail
+    }
+  }
+  return null;
 }
 
 // Async thunks

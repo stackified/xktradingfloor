@@ -1,18 +1,19 @@
 module.exports = {
-    database: {
-        options: {
-            // useNewUrlParser: true,
-            // useUnifiedTopology: true,
-            // maxPoolSize: 10,
-            // bufferCommands: false,
-        },
+  database: {
+    options: {
+      // useNewUrlParser: true,
+      // useUnifiedTopology: true,
+      // maxPoolSize: 10,
+      // bufferCommands: false,
     },
-    user: {
-        roles: ["Admin", "User", "SubAdmin"],
-    },
-    roles: {
-        admin: "Admin",
-        user: "User",
-        subAdmin: "SubAdmin",
-    },
+  },
+  user: {
+    roles: ["Admin", "User", "SubAdmin", "Operator"],
+  },
+  roles: {
+    admin: "Admin",
+    user: "User",
+    subAdmin: "SubAdmin",
+    operator: "Operator",
+  },
 };

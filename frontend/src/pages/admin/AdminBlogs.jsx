@@ -7,12 +7,14 @@ import { BlogList } from "../../components/admin/blog/index.js";
 import {
   fetchAllBlogs,
   deleteBlog,
-  permanentDeleteBlog,
   flagBlog,
+  updateBlog,
   clearError,
 } from "../../redux/slices/blogsSlice.js";
 import { getUserCookie } from "../../utils/cookies.js";
 import ProtectedRoute from "../../components/dashboard/ProtectedRoute.jsx";
+import ConfirmModal from "../../components/shared/ConfirmModal.jsx";
+import FlagModal from "../../components/shared/FlagModal.jsx";
 
 function AdminBlogsContent() {
   const navigate = useNavigate();
@@ -23,6 +25,8 @@ function AdminBlogsContent() {
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
+  const [deleteModal, setDeleteModal] = React.useState({ isOpen: false, blogId: null });
+  const [flagModal, setFlagModal] = React.useState({ isOpen: false, blogId: null });
 
   React.useEffect(() => {
     dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
@@ -38,41 +42,38 @@ function AdminBlogsContent() {
     navigate(`/admin/blogs/edit/${blogId}`);
   };
 
-  const handleDelete = async (blogId) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this blog? This action can be undone."
-      )
-    ) {
-      try {
-        await dispatch(deleteBlog(blogId)).unwrap();
-      } catch (err) {
-        alert("Failed to delete blog: " + err);
-      }
-    }
+  const handleDelete = (blogId) => {
+    setDeleteModal({ isOpen: true, blogId });
   };
 
-  const handlePermanentDelete = async (blogId) => {
-    if (
-      window.confirm(
-        "Are you sure you want to permanently delete this blog? This action cannot be undone!"
-      )
-    ) {
-      try {
-        await dispatch(permanentDeleteBlog(blogId)).unwrap();
-      } catch (err) {
-        alert("Failed to permanently delete blog: " + err);
-      }
-    }
-  };
-
-  const handleFlag = async (blogId, flagType) => {
+  const confirmDelete = async () => {
+    if (!deleteModal.blogId) return;
     try {
-      await dispatch(flagBlog({ blogId, flagType })).unwrap();
+      await dispatch(deleteBlog(deleteModal.blogId)).unwrap();
+      dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
+    } catch (err) {
+      // Error will be shown via Redux state
+      console.error("Failed to delete blog:", err);
+    }
+  };
+
+  const handleFlag = (blogId) => {
+    setFlagModal({ isOpen: true, blogId });
+  };
+
+  const confirmFlag = async (reason, description) => {
+    if (!flagModal.blogId) return;
+    try {
+      // Combine reason and description for backend
+      const flagData = {
+        reason,
+        description: description || "",
+      };
+      await dispatch(flagBlog({ blogId: flagModal.blogId, flagType: reason, ...flagData })).unwrap();
       // Refresh the list
       dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
     } catch (err) {
-      alert("Failed to flag blog: " + err);
+      console.error("Failed to flag blog:", err);
     }
   };
 
@@ -83,7 +84,29 @@ function AdminBlogsContent() {
       // Refresh the list - the backend should handle unflagging
       dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
     } catch (err) {
-      alert("Failed to unflag blog: " + err);
+      console.error("Failed to unflag blog:", err);
+    }
+  };
+
+  const handlePublish = async (blogId) => {
+    try {
+      const formData = new FormData();
+      formData.append("status", "published");
+      await dispatch(updateBlog({ blogId, formData })).unwrap();
+      dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
+    } catch (err) {
+      console.error("Failed to publish blog:", err);
+    }
+  };
+
+  const handleUnpublish = async (blogId) => {
+    try {
+      const formData = new FormData();
+      formData.append("status", "draft");
+      await dispatch(updateBlog({ blogId, formData })).unwrap();
+      dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
+    } catch (err) {
+      console.error("Failed to unpublish blog:", err);
     }
   };
 
@@ -123,19 +146,39 @@ function AdminBlogsContent() {
           loading={loading}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          onPermanentDelete={handlePermanentDelete}
           onFlag={handleFlag}
           onUnflag={handleUnflag}
+          onPublish={handlePublish}
+          onUnpublish={handleUnpublish}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           statusFilter={statusFilter}
           onStatusFilterChange={setStatusFilter}
           canDelete
-          canPermanentDelete
           canFlag
           canUnflag
         />
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, blogId: null })}
+        onConfirm={confirmDelete}
+        title="Delete Blog"
+        message="Are you sure you want to delete this blog? This action can be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+      />
+
+      {/* Flag Modal */}
+      <FlagModal
+        isOpen={flagModal.isOpen}
+        onClose={() => setFlagModal({ isOpen: false, blogId: null })}
+        onConfirm={confirmFlag}
+        title="Flag Blog Post"
+      />
     </div>
   );
 }

@@ -1,15 +1,23 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { useParams, Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { getCompanyById } from "../controllers/companiesController.js";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
 import { getReviewsByCompanyId } from "../controllers/reviewsController.js";
 import StarRating from "../components/reviews/StarRating.jsx";
 import CompanyReviewCard from "../components/reviews/CompanyReviewCard.jsx";
 import CompanyReviewForm from "../components/reviews/CompanyReviewForm.jsx";
+import { getUserCookie } from "../utils/cookies.js";
 
 function CompanyDetails() {
   const { companyId } = useParams();
+  const reduxUser = useSelector((state) => state.auth.user);
+  const user = reduxUser || getUserCookie();
+  const userRole =
+    typeof user?.role === "string" ? user.role.toLowerCase() : null;
+  const userId = user?.id;
+  const canSubmitReview = userRole === "user";
   const [company, setCompany] = React.useState(null);
   const [reviews, setReviews] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -17,23 +25,25 @@ function CompanyDetails() {
   const [editingReview, setEditingReview] = React.useState(null);
   const [userReview, setUserReview] = React.useState(null);
 
-  const user = (() => {
-    const s = sessionStorage.getItem("xktf_user");
-    return s ? JSON.parse(s) : null;
-  })();
-
   React.useEffect(() => {
     loadData();
   }, [companyId]);
 
   React.useEffect(() => {
-    if (user && reviews.length > 0) {
-      const review = reviews.find((r) => r.userId === user.id);
+    if (canSubmitReview && userId && reviews.length > 0) {
+      const review = reviews.find((r) => r.userId === userId);
       setUserReview(review || null);
     } else {
       setUserReview(null);
     }
-  }, [user, reviews]);
+  }, [canSubmitReview, userId, reviews]);
+
+  React.useEffect(() => {
+    if (!canSubmitReview && showReviewForm) {
+      setShowReviewForm(false);
+      setEditingReview(null);
+    }
+  }, [canSubmitReview, showReviewForm]);
 
   async function loadData() {
     setLoading(true);
@@ -263,7 +273,12 @@ function CompanyDetails() {
           <div className="card-body">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold">User Reviews</h2>
-              {user ? (
+              {!user && (
+                <Link to="/login" className="btn btn-secondary">
+                  Login to Review
+                </Link>
+              )}
+              {user && canSubmitReview && (
                 !userReview ? (
                   <button
                     onClick={() => setShowReviewForm(true)}
@@ -276,15 +291,16 @@ function CompanyDetails() {
                     You've already reviewed this company
                   </div>
                 )
-              ) : (
-                <Link to="/login" className="btn btn-secondary">
-                  Login to Review
-                </Link>
+              )}
+              {user && !canSubmitReview && (
+                <div className="text-sm text-gray-400">
+                  Only trader accounts can publish reviews.
+                </div>
               )}
             </div>
 
             {/* Review Form */}
-            {showReviewForm && user && (
+            {showReviewForm && user && canSubmitReview && (
               <div className="mb-6">
                 <CompanyReviewForm
                   companyId={companyId}
@@ -309,7 +325,7 @@ function CompanyDetails() {
                   <CompanyReviewCard
                     key={review.id}
                     review={review}
-                    currentUserId={user?.id}
+                    currentUserId={userId}
                     onUpdate={handleEditReview}
                     onDelete={handleDeleteReview}
                   />

@@ -17,17 +17,18 @@ export default function Dashboard() {
   const { overview, weekly, categories, recent, status } = useSelector(s => s.analytics);
   const reduxUser = useSelector(s => s.auth.user);
   const user = reduxUser || getUserCookie();
+  const userRole = user?.role?.toLowerCase();
 
-  // Restrict access to admin and operators only - check early
-  if (!user || (user.role !== 'admin' && user.role !== 'operator')) {
+  // Restrict access to admin and operators only - check early (case-insensitive)
+  if (!user || (userRole !== 'admin' && userRole !== 'operator')) {
     return <Navigate to="/" replace />;
   }
 
   React.useEffect(() => { 
-    if (user && (user.role === 'admin' || user.role === 'operator')) {
+    if (user && (userRole === 'admin' || userRole === 'operator')) {
       dispatch(fetchAnalytics()); 
     }
-  }, [dispatch, user]);
+  }, [dispatch, user, userRole]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-white">
@@ -59,7 +60,7 @@ export default function Dashboard() {
         </div>
         <div className="lg:col-span-1">
           <QuickActions />
-          {user?.role === 'admin' && (
+          {userRole === 'admin' && (
             <div className="card bg-gray-900/60 border border-border mt-6">
               <div className="card-body">
                 <div className="text-sm text-gray-400 mb-2">Admin Preview</div>

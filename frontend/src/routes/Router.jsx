@@ -2,6 +2,10 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { syncUserFromCookie } from "../redux/slices/authSlice.js";
+import {
+  syncMockModeFromStorage,
+  fetchMockMode,
+} from "../redux/slices/mockSlice.js";
 import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
 import Home from "../pages/Home.jsx";
@@ -21,10 +25,15 @@ import AdminDashboard from "../pages/AdminDashboard.jsx";
 import Dashboard from "../pages/Dashboard.jsx";
 import Profile from "../pages/Profile.jsx";
 import OperatorDashboard from "../pages/OperatorDashboard.jsx";
-import CompanyForm from "../pages/CompanyForm.jsx";
+import OperatorCompanyForm from "../pages/CompanyForm.jsx";
 import AdminBlogs from "../pages/admin/AdminBlogs.jsx";
+import AdminCompanies from "../pages/admin/AdminCompanies.jsx";
+import AdminCompanyDetails from "../pages/admin/AdminCompanyDetails.jsx";
+import AdminCompanyForm from "../components/admin/companies/CompanyForm.jsx";
+import AboutEditor from "../pages/admin/AboutEditor.jsx";
 import MyBlogs from "../pages/MyBlogs.jsx";
 import OperatorBlogs from "../pages/operator/OperatorBlogs.jsx";
+import OperatorReviews from "../pages/operator/OperatorReviews.jsx";
 import { BlogForm } from "../components/admin/blog/index.js";
 import ProtectedRoute from "../components/dashboard/ProtectedRoute.jsx";
 
@@ -34,6 +43,32 @@ function Layout({ children }) {
   // Sync user from cookie on mount for cross-tab persistence
   React.useEffect(() => {
     dispatch(syncUserFromCookie());
+  }, [dispatch]);
+
+  // Sync mock mode from backend globally (so admin changes affect all users across all browsers/devices)
+  React.useEffect(() => {
+    // Fetch from backend on mount (will fallback to localStorage if backend not available)
+    dispatch(fetchMockMode());
+
+    // Listen for storage changes (when admin changes mock mode in another tab - fallback)
+    const handleStorageChange = (e) => {
+      if (e.key === "xk_mock_mode") {
+        dispatch(syncMockModeFromStorage());
+      }
+    };
+
+    // Poll backend periodically to catch admin changes (every 30 seconds to reduce spam)
+    // This will silently fail if backend endpoint doesn't exist yet
+    const interval = setInterval(() => {
+      dispatch(fetchMockMode());
+    }, 30000); // Check every 30 seconds (reduced from 5 to avoid spam)
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
   }, [dispatch]);
 
   return (
@@ -74,7 +109,7 @@ export default function AppRouter() {
           path="/reviews/company/new"
           element={
             <ProtectedRoute>
-              <CompanyForm />
+              <OperatorCompanyForm />
             </ProtectedRoute>
           }
         />
@@ -82,7 +117,7 @@ export default function AppRouter() {
           path="/reviews/company/edit/:companyId"
           element={
             <ProtectedRoute>
-              <CompanyForm />
+              <OperatorCompanyForm />
             </ProtectedRoute>
           }
         />
@@ -118,7 +153,14 @@ export default function AppRouter() {
           }
         />
         {/* Admin Blog Routes */}
-        <Route path="/admin/blogs" element={<AdminBlogs />} />
+        <Route
+          path="/admin/blogs"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminBlogs />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/admin/blogs/create"
           element={
@@ -132,6 +174,50 @@ export default function AppRouter() {
           element={
             <ProtectedRoute role="admin">
               <BlogForm redirectPath="/admin/blogs" />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Company Routes */}
+        <Route
+          path="/admin/companies"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminCompanies />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/companies/create"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminCompanyForm redirectPath="/admin/companies" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/companies/edit/:companyId"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminCompanyForm redirectPath="/admin/companies" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/companies/:companyId"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminCompanyDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin About Editor Route */}
+        <Route
+          path="/admin/about/edit"
+          element={
+            <ProtectedRoute role="admin">
+              <AboutEditor />
             </ProtectedRoute>
           }
         />
@@ -184,6 +270,16 @@ export default function AppRouter() {
           element={
             <ProtectedRoute>
               <BlogForm redirectPath="/operator/blogs" />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Operator Review Routes */}
+        <Route
+          path="/operator/reviews"
+          element={
+            <ProtectedRoute>
+              <OperatorReviews />
             </ProtectedRoute>
           }
         />

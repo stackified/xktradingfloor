@@ -1,33 +1,51 @@
-import React from 'react';
-import { Helmet } from 'react-helmet-async';
-import { useLocation } from 'react-router-dom';
-import { getAllCompanies } from '../controllers/companiesController.js';
-import CompanyCard from '../components/reviews/CompanyCard.jsx';
-import CompanyFilters from '../components/reviews/CompanyFilters.jsx';
-import Pagination from '../components/reviews/Pagination.jsx';
+import React from "react";
+import { Helmet } from "react-helmet-async";
+import { useLocation, Link } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { getAllCompanies } from "../controllers/companiesController.js";
+import CompanyCard from "../components/reviews/CompanyCard.jsx";
+import CompanyFilters from "../components/reviews/CompanyFilters.jsx";
+import Pagination from "../components/reviews/Pagination.jsx";
+import { getUserCookie } from "../utils/cookies.js";
+import {
+  updateMockMode,
+  syncMockModeFromStorage,
+} from "../redux/slices/mockSlice.js";
 
 // Map URL category to actual category value
 const categoryMap = {
-  broker: 'Broker',
-  propfirm: 'PropFirm',
-  crypto: 'Crypto'
+  broker: "Broker",
+  propfirm: "PropFirm",
+  crypto: "Crypto",
 };
 
 const categoryLabels = {
-  Broker: 'Brokers',
-  PropFirm: 'Prop Firms',
-  Crypto: 'Crypto Exchanges'
+  Broker: "Brokers",
+  PropFirm: "Prop Firms",
+  Crypto: "Crypto Exchanges",
 };
 
 const categoryDescriptions = {
-  Broker: 'Browse and compare forex and stock brokers. Read authentic reviews and find the best deals.',
-  PropFirm: 'Explore prop trading firms and funding programs. Compare evaluation processes and profit splits.',
-  Crypto: 'Review crypto exchanges and trading platforms. Find secure platforms with competitive fees.'
+  Broker:
+    "Browse and compare forex and stock brokers. Read authentic reviews and find the best deals.",
+  PropFirm:
+    "Explore prop trading firms and funding programs. Compare evaluation processes and profit splits.",
+  Crypto:
+    "Review crypto exchanges and trading platforms. Find secure platforms with competitive fees.",
 };
 
 export default function Reviews() {
   const location = useLocation();
   const pathname = location.pathname;
+  const dispatch = useDispatch();
+  const reduxUser = useSelector((state) => state.auth.user);
+  const user = reduxUser || getUserCookie();
+  const userRole =
+    typeof user?.role === "string" ? user.role.toLowerCase() : null;
+  const canSeePendingCompanies =
+    userRole === "admin" || userRole === "operator";
+  const isAdmin = userRole === "admin";
+  const mockMode = useSelector((state) => state.mock.enabled);
   const [allCompanies, setAllCompanies] = React.useState([]);
   const [companies, setCompanies] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -37,15 +55,20 @@ export default function Reviews() {
 
   // Extract category from URL pathname
   React.useEffect(() => {
-    const pathParts = pathname.split('/');
+    const pathParts = pathname.split("/");
     const categoryFromPath = pathParts[pathParts.length - 1]; // Get last part of path
-    
+
     // Check if it's a category route (broker, propfirm, crypto)
-    if (categoryFromPath && categoryFromPath !== 'reviews' && categoryFromPath !== 'operator' && !categoryFromPath.startsWith('company')) {
+    if (
+      categoryFromPath &&
+      categoryFromPath !== "reviews" &&
+      categoryFromPath !== "operator" &&
+      !categoryFromPath.startsWith("company")
+    ) {
       const mappedCategory = categoryMap[categoryFromPath.toLowerCase()];
       if (mappedCategory) {
         // Set category filter when URL has a category
-        setFilters(prev => {
+        setFilters((prev) => {
           // Only update if it's different to avoid infinite loops
           if (prev.category !== mappedCategory) {
             return { ...prev, category: mappedCategory };
@@ -53,7 +76,7 @@ export default function Reviews() {
           return prev;
         });
       }
-    } else if (pathname === '/reviews') {
+    } else if (pathname === "/reviews") {
       // On main reviews page, don't force a category
       // But keep existing filters if user set them manually
     }
@@ -62,9 +85,38 @@ export default function Reviews() {
   // Get category from filters
   const activeCategory = filters.category || null;
 
+  // Sync mock mode from localStorage (for cross-tab and admin-controlled changes)
+  React.useEffect(() => {
+    // Sync on mount
+    dispatch(syncMockModeFromStorage());
+
+    // Listen for storage changes (when admin changes mock mode in another tab)
+    const handleStorageChange = (e) => {
+      if (e.key === "xk_mock_mode") {
+        dispatch(syncMockModeFromStorage());
+      }
+    };
+
+    // Also poll localStorage periodically to catch changes from same tab
+    const interval = setInterval(() => {
+      const stored = localStorage.getItem("xk_mock_mode");
+      const currentMockMode = stored === "true";
+      if (currentMockMode !== mockMode) {
+        dispatch(syncMockModeFromStorage());
+      }
+    }, 1000); // Check every second
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [dispatch, mockMode]);
+
   React.useEffect(() => {
     loadCompanies();
-  }, [filters]);
+  }, [filters, mockMode]); // Reload when mock mode changes
 
   React.useEffect(() => {
     updatePaginatedCompanies();
@@ -84,19 +136,14 @@ export default function Reviews() {
   async function loadCompanies() {
     setLoading(true);
     try {
-      const { data } = await getAllCompanies(filters);
-      // Only show approved companies to regular users
-      const user = (() => {
-        const s = sessionStorage.getItem('xktf_user');
-        return s ? JSON.parse(s) : null;
-      })();
-      const filtered = user?.role === 'operator' || user?.role === 'admin'
-        ? data
-        : data.filter(c => c.status === 'approved');
+      const { data: companiesData } = await getAllCompanies(filters);
+      const filtered = canSeePendingCompanies
+        ? companiesData
+        : companiesData.filter((c) => c.status === "approved");
       setAllCompanies(filtered);
       setCurrentPage(1); // Reset to first page when filters change
     } catch (error) {
-      console.error('Error loading companies:', error);
+      console.error("Error loading companies:", error);
     } finally {
       setLoading(false);
     }
@@ -104,7 +151,7 @@ export default function Reviews() {
 
   function handlePageChange(page) {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function handleItemsPerPageChange(items) {
@@ -116,17 +163,17 @@ export default function Reviews() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, allCompanies.length);
 
-  const pageTitle = activeCategory 
+  const pageTitle = activeCategory
     ? `${categoryLabels[activeCategory]} Reviews | XK Trading Floor`
-    : 'Company Reviews | XK Trading Floor';
-  
-  const heroTitle = activeCategory 
+    : "Company Reviews | XK Trading Floor";
+
+  const heroTitle = activeCategory
     ? `Compare ${categoryLabels[activeCategory]}`
-    : 'Compare Trading Companies';
-  
-  const heroDescription = activeCategory 
+    : "Compare Trading Companies";
+
+  const heroDescription = activeCategory
     ? categoryDescriptions[activeCategory]
-    : 'Browse brokers, prop firms, and crypto exchanges. Read authentic reviews from traders and find the best deals with promo codes.';
+    : "Browse brokers, prop firms, and crypto exchanges. Read authentic reviews from traders and find the best deals with promo codes.";
 
   return (
     <div className="bg-gray-950 text-white min-h-screen">
@@ -134,18 +181,51 @@ export default function Reviews() {
         <title>{pageTitle}</title>
         <meta name="description" content={heroDescription} />
       </Helmet>
-      
+
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-green-500/10 via-transparent to-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8 text-center">
           <h1 className="font-display font-extrabold text-3xl sm:text-5xl mb-3">
             {heroTitle}
           </h1>
-          <p className="text-gray-300 max-w-2xl mx-auto">
-            {heroDescription}
-          </p>
+          <p className="text-gray-300 max-w-2xl mx-auto">{heroDescription}</p>
         </div>
       </section>
+
+      {isAdmin && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-end gap-4">
+            {/* Modern Mock Data Toggle */}
+            <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-gray-800/50 border border-white/10">
+              <span className="text-sm font-medium text-gray-300 whitespace-nowrap">
+                Mock Data
+              </span>
+              <button
+                type="button"
+                onClick={() => dispatch(updateMockMode(!mockMode))}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${
+                  mockMode ? "bg-blue-600" : "bg-gray-600"
+                }`}
+                role="switch"
+                aria-checked={mockMode}
+                aria-label="Toggle mock data mode"
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    mockMode ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+              <span className="text-xs text-gray-500 whitespace-nowrap">
+                {mockMode ? "ON" : "OFF"}
+              </span>
+            </div>
+            <Link to="/admin/companies/create" className="btn btn-primary">
+              + Add Company
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Main Content */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -164,7 +244,9 @@ export default function Reviews() {
             ) : companies.length === 0 ? (
               <div className="card">
                 <div className="card-body text-center py-12">
-                  <div className="text-gray-400 mb-4">No companies found matching your filters.</div>
+                  <div className="text-gray-400 mb-4">
+                    No companies found matching your filters.
+                  </div>
                   <button
                     onClick={() => setFilters({})}
                     className="btn btn-secondary"
@@ -177,11 +259,12 @@ export default function Reviews() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-gray-400">
-                    Showing {startIndex + 1}-{endIndex} of {allCompanies.length} {allCompanies.length === 1 ? 'company' : 'companies'}
+                    Showing {startIndex + 1}-{endIndex} of {allCompanies.length}{" "}
+                    {allCompanies.length === 1 ? "company" : "companies"}
                   </div>
                 </div>
                 <div className="space-y-4">
-                  {companies.map(company => (
+                  {companies.map((company) => (
                     <CompanyCard key={company.id} company={company} />
                   ))}
                 </div>
@@ -202,5 +285,3 @@ export default function Reviews() {
     </div>
   );
 }
-
-

@@ -1,14 +1,37 @@
-import api from './api.js';
+import api from "./api.js";
+
+// Helper to check if mock mode is enabled
+// TODO: Replace with backend API call once backend is ready
+// Backend endpoint: GET /api/public/settings/mock-mode
+async function isMockModeEnabled() {
+  // Try to fetch from backend first (when backend is ready)
+  try {
+    const response = await api.get("/public/settings/mock-mode");
+    if (response?.data?.enabled !== undefined) {
+      return response.data.enabled;
+    }
+  } catch (error) {
+    // Backend not available or endpoint not implemented yet
+    // Fall back to localStorage for now
+  }
+
+  // Fallback to localStorage (current implementation)
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem("xk_mock_mode");
+    return stored === "true";
+  }
+  return false;
+}
 
 // Helper to get current user from session
 function getCurrentUser() {
-  const s = sessionStorage.getItem('xktf_user');
+  const s = sessionStorage.getItem("xktf_user");
   return s ? JSON.parse(s) : null;
 }
 
 // Helper to load companies from JSON
 async function loadCompanies() {
-  const { default: companies } = await import('../models/companies.json');
+  const { default: companies } = await import("../models/companies.json");
   return companies;
 }
 
@@ -16,44 +39,86 @@ async function loadCompanies() {
 async function saveCompanies(companies) {
   // In a real app, this would be: return api.put('/companies', companies);
   // For now, we'll use localStorage as a mock persistence layer
-  localStorage.setItem('xktf_companies', JSON.stringify(companies));
+  localStorage.setItem("xktf_companies", JSON.stringify(companies));
   return { data: companies };
 }
 
 // Get all companies (with optional filters)
 export async function getAllCompanies(filters = {}) {
-  // return api.get('/companies', { params: filters });
+  const mockMode = await isMockModeEnabled();
+
+  // Backend API call (ready for integration)
+  // Uncomment when backend is ready:
+  /*
+  try {
+    const response = await api.get('/public/companies', { params: filters });
+    if (mockMode) {
+      // If mock mode is ON, merge with mock data
+      const mockCompanies = await loadCompanies();
+      const stored = localStorage.getItem('xktf_companies');
+      let allMock = stored ? JSON.parse(stored) : mockCompanies;
+      // Merge backend data with mock data
+      return { data: [...response.data, ...allMock] };
+    }
+    return response;
+  } catch (error) {
+    // If backend fails and mock mode is ON, fall back to mock data
+    if (mockMode) {
+      console.warn('Backend unavailable, using mock data');
+    } else {
+      throw error;
+    }
+  }
+  */
+
+  // If mock mode is OFF, return empty array (no mock data)
+  if (!mockMode) {
+    // Try to fetch from backend if available, otherwise return empty
+    try {
+      const response = await api.get("/public/companies", { params: filters });
+      return response;
+    } catch (error) {
+      // Backend not available and mock mode is OFF, return empty
+      // Expected 404 if endpoint not implemented - silently return empty
+      return { data: [] };
+    }
+  }
+
+  // Mock data implementation (only when mock mode is ON)
   let companies = await loadCompanies();
-  
+
   // Check localStorage for any updates
-  const stored = localStorage.getItem('xktf_companies');
+  const stored = localStorage.getItem("xktf_companies");
   if (stored) {
     try {
       companies = JSON.parse(stored);
     } catch (e) {
-      console.error('Error parsing stored companies:', e);
+      console.error("Error parsing stored companies:", e);
     }
   }
 
   // Apply filters
   if (filters.category) {
-    companies = companies.filter(c => c.category === filters.category);
+    companies = companies.filter((c) => c.category === filters.category);
   }
   if (filters.status) {
-    companies = companies.filter(c => c.status === filters.status);
+    companies = companies.filter((c) => c.status === filters.status);
   }
   if (filters.operatorId) {
-    companies = companies.filter(c => c.operatorId === filters.operatorId);
+    companies = companies.filter((c) => c.operatorId === filters.operatorId);
   }
   if (filters.minRating) {
-    companies = companies.filter(c => c.ratingsAggregate >= filters.minRating);
+    companies = companies.filter(
+      (c) => c.ratingsAggregate >= filters.minRating
+    );
   }
   if (filters.search) {
     const searchLower = filters.search.toLowerCase();
-    companies = companies.filter(c => 
-      c.name.toLowerCase().includes(searchLower) ||
-      c.details?.toLowerCase().includes(searchLower) ||
-      c.description?.toLowerCase().includes(searchLower)
+    companies = companies.filter(
+      (c) =>
+        c.name.toLowerCase().includes(searchLower) ||
+        c.details?.toLowerCase().includes(searchLower) ||
+        c.description?.toLowerCase().includes(searchLower)
     );
   }
 
@@ -62,48 +127,120 @@ export async function getAllCompanies(filters = {}) {
 
 // Get company by ID
 export async function getCompanyById(companyId) {
-  // return api.get(`/companies/${companyId}`);
+  const mockMode = await isMockModeEnabled();
+
+  // Backend API call (ready for integration)
+  // Uncomment when backend is ready:
+  /*
+  try {
+    const response = await api.get(`/public/companies/${companyId}`);
+    if (mockMode) {
+      // If mock mode is ON, try to get from mock data as fallback
+      const companies = await loadCompanies();
+      const stored = localStorage.getItem('xktf_companies');
+      let allCompanies = stored ? JSON.parse(stored) : companies;
+      const mockCompany = allCompanies.find(c => c.id === companyId);
+      if (mockCompany) {
+        // Merge backend data with mock data if both exist
+        return { data: { ...response.data, ...mockCompany } };
+      }
+    }
+    return response;
+  } catch (error) {
+    if (mockMode) {
+      console.warn('Backend unavailable, using mock data');
+    } else {
+      throw error;
+    }
+  }
+  */
+
+  // Mock data implementation
   const companies = await loadCompanies();
-  const stored = localStorage.getItem('xktf_companies');
+  const stored = localStorage.getItem("xktf_companies");
   let allCompanies = companies;
-  
+
   if (stored) {
     try {
       allCompanies = JSON.parse(stored);
     } catch (e) {
-      console.error('Error parsing stored companies:', e);
+      console.error("Error parsing stored companies:", e);
     }
   }
 
-  const company = allCompanies.find(c => c.id === companyId);
+  const company = allCompanies.find((c) => c.id === companyId);
   if (!company) {
-    throw new Error('Company not found');
+    throw new Error("Company not found");
   }
   return { data: company };
 }
 
-// Create company (operator only)
+// Create company (admin only)
 export async function createCompany(companyData) {
-  // return api.post('/companies', companyData);
+  const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
-  if (!user || user.role !== 'operator') {
-    throw new Error('Only operators can create companies');
+
+  if (!user || (user.role !== "admin" && user.role !== "operator")) {
+    throw new Error("Only admins and operators can create companies");
   }
 
+  // Backend API call (ready for integration)
+  // Uncomment when backend is ready:
+  /*
+  try {
+    const formData = new FormData();
+    Object.keys(companyData).forEach(key => {
+      if (key === 'logo' && companyData[key] instanceof File) {
+        formData.append('logo', companyData[key]);
+      } else if (key === 'images' && Array.isArray(companyData[key])) {
+        companyData[key].forEach((img, idx) => {
+          if (img instanceof File) {
+            formData.append(`images`, img);
+          }
+        });
+      } else if (key !== 'logo' && key !== 'images') {
+        formData.append(key, typeof companyData[key] === 'object' ? JSON.stringify(companyData[key]) : companyData[key]);
+      }
+    });
+    
+    const response = await api.post('/admin/companies', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    
+    if (mockMode) {
+      // Also save to mock data if mock mode is ON
+      const companies = await loadCompanies();
+      const stored = localStorage.getItem('xktf_companies');
+      let allCompanies = stored ? JSON.parse(stored) : companies;
+      allCompanies.push(response.data);
+      await saveCompanies(allCompanies);
+    }
+    
+    return response;
+  } catch (error) {
+    if (mockMode) {
+      console.warn('Backend unavailable, using mock data');
+    } else {
+      throw error;
+    }
+  }
+  */
+
+  // Mock data implementation
   const companies = await loadCompanies();
-  const stored = localStorage.getItem('xktf_companies');
+  const stored = localStorage.getItem("xktf_companies");
   let allCompanies = stored ? JSON.parse(stored) : companies;
 
   const newCompany = {
     id: `cmp-${Date.now()}`,
     ...companyData,
-    operatorId: user.id,
-    status: 'pending', // Can be set to 'approved' by admin
+    operatorId: user.role === "operator" ? user.id : companyData.operatorId,
+    status: user.role === "admin" ? "approved" : "pending",
     ratingsAggregate: 0,
     totalReviews: 0,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    promoCodes: companyData.promoCodes || []
+    promoCodes: companyData.promoCodes || [],
   };
 
   allCompanies.push(newCompany);
@@ -111,60 +248,132 @@ export async function createCompany(companyData) {
   return { data: newCompany };
 }
 
-// Update company (operator can only update their own)
+// Update company (admin can update any, operator can only update their own)
 export async function updateCompany(companyId, updates) {
-  // return api.put(`/companies/${companyId}`, updates);
+  const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
+
+  if (!user || (user.role !== "operator" && user.role !== "admin")) {
+    throw new Error("Only operators and admins can update companies");
+  }
+
+  // Backend API call (ready for integration)
+  // Uncomment when backend is ready:
+  /*
+  try {
+    const formData = new FormData();
+    Object.keys(updates).forEach(key => {
+      if (key === 'logo' && updates[key] instanceof File) {
+        formData.append('logo', updates[key]);
+      } else if (key === 'images' && Array.isArray(updates[key])) {
+        updates[key].forEach((img) => {
+          if (img instanceof File) {
+            formData.append(`images`, img);
+          }
+        });
+      } else if (key !== 'logo' && key !== 'images') {
+        formData.append(key, typeof updates[key] === 'object' ? JSON.stringify(updates[key]) : updates[key]);
+      }
+    });
+    
+    const response = await api.put(`/admin/companies/${companyId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    
+    if (mockMode) {
+      // Also update mock data if mock mode is ON
+      const companies = await loadCompanies();
+      const stored = localStorage.getItem('xktf_companies');
+      let allCompanies = stored ? JSON.parse(stored) : companies;
+      const companyIndex = allCompanies.findIndex(c => c.id === companyId);
+      if (companyIndex !== -1) {
+        allCompanies[companyIndex] = { ...allCompanies[companyIndex], ...response.data };
+        await saveCompanies(allCompanies);
+      }
+    }
+    
+    return response;
+  } catch (error) {
+    if (mockMode) {
+      console.warn('Backend unavailable, using mock data');
+    } else {
+      throw error;
+    }
+  }
+  */
+
+  // Mock data implementation
   const companies = await loadCompanies();
-  const stored = localStorage.getItem('xktf_companies');
+  const stored = localStorage.getItem("xktf_companies");
   let allCompanies = stored ? JSON.parse(stored) : companies;
 
-  const companyIndex = allCompanies.findIndex(c => c.id === companyId);
+  const companyIndex = allCompanies.findIndex((c) => c.id === companyId);
   if (companyIndex === -1) {
-    throw new Error('Company not found');
+    throw new Error("Company not found");
   }
 
   const company = allCompanies[companyIndex];
-  
+
   // Operators can only update their own companies, admins can update any
-  if (user?.role === 'operator' && company.operatorId !== user.id) {
-    throw new Error('You can only update your own companies');
-  }
-  if (!user || (user.role !== 'operator' && user.role !== 'admin')) {
-    throw new Error('Only operators and admins can update companies');
+  if (user?.role === "operator" && company.operatorId !== user.id) {
+    throw new Error("You can only update your own companies");
   }
 
   allCompanies[companyIndex] = {
     ...company,
     ...updates,
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   };
 
   await saveCompanies(allCompanies);
   return { data: allCompanies[companyIndex] };
 }
 
-// Delete company (operator can only delete their own)
+// Delete company (admin only)
 export async function deleteCompany(companyId) {
-  // return api.delete(`/companies/${companyId}`);
+  const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
+
+  if (!user || user.role !== "admin") {
+    throw new Error("Only admins can delete companies");
+  }
+
+  // Backend API call (ready for integration)
+  // Uncomment when backend is ready:
+  /*
+  try {
+    const response = await api.delete(`/admin/companies/${companyId}`);
+    
+    if (mockMode) {
+      // Also delete from mock data if mock mode is ON
+      const companies = await loadCompanies();
+      const stored = localStorage.getItem('xktf_companies');
+      let allCompanies = stored ? JSON.parse(stored) : companies;
+      const companyIndex = allCompanies.findIndex(c => c.id === companyId);
+      if (companyIndex !== -1) {
+        allCompanies.splice(companyIndex, 1);
+        await saveCompanies(allCompanies);
+      }
+    }
+    
+    return response;
+  } catch (error) {
+    if (mockMode) {
+      console.warn('Backend unavailable, using mock data');
+    } else {
+      throw error;
+    }
+  }
+  */
+
+  // Mock data implementation
   const companies = await loadCompanies();
-  const stored = localStorage.getItem('xktf_companies');
+  const stored = localStorage.getItem("xktf_companies");
   let allCompanies = stored ? JSON.parse(stored) : companies;
 
-  const companyIndex = allCompanies.findIndex(c => c.id === companyId);
+  const companyIndex = allCompanies.findIndex((c) => c.id === companyId);
   if (companyIndex === -1) {
-    throw new Error('Company not found');
-  }
-
-  const company = allCompanies[companyIndex];
-  
-  // Operators can only delete their own companies, admins can delete any
-  if (user?.role === 'operator' && company.operatorId !== user.id) {
-    throw new Error('You can only delete your own companies');
-  }
-  if (!user || (user.role !== 'operator' && user.role !== 'admin')) {
-    throw new Error('Only operators and admins can delete companies');
+    throw new Error("Company not found");
   }
 
   allCompanies.splice(companyIndex, 1);
@@ -172,32 +381,87 @@ export async function deleteCompany(companyId) {
   return { data: { success: true } };
 }
 
+// Toggle company active/blocked status (admin only)
+export async function toggleCompanyStatus(companyId) {
+  const mockMode = await isMockModeEnabled();
+  const user = getCurrentUser();
+
+  if (!user || user.role !== "admin") {
+    throw new Error("Only admins can toggle company status");
+  }
+
+  // Backend API call (ready for integration)
+  // Uncomment when backend is ready:
+  /*
+  try {
+    const response = await api.patch(`/admin/companies/${companyId}/toggle`);
+    
+    if (mockMode) {
+      // Also update mock data if mock mode is ON
+      const companies = await loadCompanies();
+      const stored = localStorage.getItem('xktf_companies');
+      let allCompanies = stored ? JSON.parse(stored) : companies;
+      const companyIndex = allCompanies.findIndex(c => c.id === companyId);
+      if (companyIndex !== -1) {
+        allCompanies[companyIndex].status = allCompanies[companyIndex].status === 'approved' ? 'blocked' : 'approved';
+        allCompanies[companyIndex].updatedAt = new Date().toISOString();
+        await saveCompanies(allCompanies);
+      }
+    }
+    
+    return response;
+  } catch (error) {
+    if (mockMode) {
+      console.warn('Backend unavailable, using mock data');
+    } else {
+      throw error;
+    }
+  }
+  */
+
+  // Mock data implementation
+  const companies = await loadCompanies();
+  const stored = localStorage.getItem("xktf_companies");
+  let allCompanies = stored ? JSON.parse(stored) : companies;
+  const companyIndex = allCompanies.findIndex((c) => c.id === companyId);
+
+  if (companyIndex === -1) {
+    throw new Error("Company not found");
+  }
+
+  allCompanies[companyIndex].status =
+    allCompanies[companyIndex].status === "approved" ? "blocked" : "approved";
+  allCompanies[companyIndex].updatedAt = new Date().toISOString();
+  await saveCompanies(allCompanies);
+  return { data: allCompanies[companyIndex] };
+}
+
 // Add promo code to company
 export async function addPromoCode(companyId, promoData) {
   // return api.post(`/companies/${companyId}/promo-codes`, promoData);
   const user = getCurrentUser();
   const companies = await loadCompanies();
-  const stored = localStorage.getItem('xktf_companies');
+  const stored = localStorage.getItem("xktf_companies");
   let allCompanies = stored ? JSON.parse(stored) : companies;
 
-  const companyIndex = allCompanies.findIndex(c => c.id === companyId);
+  const companyIndex = allCompanies.findIndex((c) => c.id === companyId);
   if (companyIndex === -1) {
-    throw new Error('Company not found');
+    throw new Error("Company not found");
   }
 
   const company = allCompanies[companyIndex];
-  
-  if (user?.role === 'operator' && company.operatorId !== user.id) {
-    throw new Error('You can only add promo codes to your own companies');
+
+  if (user?.role === "operator" && company.operatorId !== user.id) {
+    throw new Error("You can only add promo codes to your own companies");
   }
-  if (!user || (user.role !== 'operator' && user.role !== 'admin')) {
-    throw new Error('Only operators and admins can add promo codes');
+  if (!user || (user.role !== "operator" && user.role !== "admin")) {
+    throw new Error("Only operators and admins can add promo codes");
   }
 
   const newPromo = {
     id: `promo-${Date.now()}`,
     ...promoData,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   };
 
   company.promoCodes = company.promoCodes || [];
@@ -214,31 +478,31 @@ export async function updatePromoCode(companyId, promoId, updates) {
   // return api.put(`/companies/${companyId}/promo-codes/${promoId}`, updates);
   const user = getCurrentUser();
   const companies = await loadCompanies();
-  const stored = localStorage.getItem('xktf_companies');
+  const stored = localStorage.getItem("xktf_companies");
   let allCompanies = stored ? JSON.parse(stored) : companies;
 
-  const companyIndex = allCompanies.findIndex(c => c.id === companyId);
+  const companyIndex = allCompanies.findIndex((c) => c.id === companyId);
   if (companyIndex === -1) {
-    throw new Error('Company not found');
+    throw new Error("Company not found");
   }
 
   const company = allCompanies[companyIndex];
-  
-  if (user?.role === 'operator' && company.operatorId !== user.id) {
-    throw new Error('You can only update promo codes for your own companies');
+
+  if (user?.role === "operator" && company.operatorId !== user.id) {
+    throw new Error("You can only update promo codes for your own companies");
   }
-  if (!user || (user.role !== 'operator' && user.role !== 'admin')) {
-    throw new Error('Only operators and admins can update promo codes');
+  if (!user || (user.role !== "operator" && user.role !== "admin")) {
+    throw new Error("Only operators and admins can update promo codes");
   }
 
-  const promoIndex = company.promoCodes.findIndex(p => p.id === promoId);
+  const promoIndex = company.promoCodes.findIndex((p) => p.id === promoId);
   if (promoIndex === -1) {
-    throw new Error('Promo code not found');
+    throw new Error("Promo code not found");
   }
 
   company.promoCodes[promoIndex] = {
     ...company.promoCodes[promoIndex],
-    ...updates
+    ...updates,
   };
   company.updatedAt = new Date().toISOString();
 
@@ -252,28 +516,27 @@ export async function deletePromoCode(companyId, promoId) {
   // return api.delete(`/companies/${companyId}/promo-codes/${promoId}`);
   const user = getCurrentUser();
   const companies = await loadCompanies();
-  const stored = localStorage.getItem('xktf_companies');
+  const stored = localStorage.getItem("xktf_companies");
   let allCompanies = stored ? JSON.parse(stored) : companies;
 
-  const companyIndex = allCompanies.findIndex(c => c.id === companyId);
+  const companyIndex = allCompanies.findIndex((c) => c.id === companyId);
   if (companyIndex === -1) {
-    throw new Error('Company not found');
+    throw new Error("Company not found");
   }
 
   const company = allCompanies[companyIndex];
-  
-  if (user?.role === 'operator' && company.operatorId !== user.id) {
-    throw new Error('You can only delete promo codes from your own companies');
+
+  if (user?.role === "operator" && company.operatorId !== user.id) {
+    throw new Error("You can only delete promo codes from your own companies");
   }
-  if (!user || (user.role !== 'operator' && user.role !== 'admin')) {
-    throw new Error('Only operators and admins can delete promo codes');
+  if (!user || (user.role !== "operator" && user.role !== "admin")) {
+    throw new Error("Only operators and admins can delete promo codes");
   }
 
-  company.promoCodes = company.promoCodes.filter(p => p.id !== promoId);
+  company.promoCodes = company.promoCodes.filter((p) => p.id !== promoId);
   company.updatedAt = new Date().toISOString();
 
   allCompanies[companyIndex] = company;
   await saveCompanies(allCompanies);
   return { data: { success: true } };
 }
-

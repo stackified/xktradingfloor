@@ -9,24 +9,32 @@ import {
   clearCurrentBlog,
   clearError,
 } from "../../../redux/slices/blogsSlice.js";
+import RichTextEditor from "../../shared/RichTextEditor.jsx";
+import ChipInput from "../../shared/ChipInput.jsx";
+
+const BLOG_CATEGORIES = [
+  "Trading",
+  "Stocks",
+  "Forex",
+  "Crypto",
+  "Options",
+  "Personal Finance",
+  "Technical Analysis",
+  "Market News",
+];
+
+const MIN_SUMMARY_LENGTH = 20;
 
 const defaultState = {
   title: "",
   excerpt: "",
   content: "",
   status: "draft",
-  categories: "",
-  tags: "",
-  seoKeywords: "",
+  category: "",
+  tags: [],
+  seoKeywords: [],
   isFeatured: false,
 };
-
-function parseList(value = "") {
-  return value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
 
 function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
   const dispatch = useDispatch();
@@ -41,6 +49,7 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
   const [featuredImageFile, setFeaturedImageFile] = React.useState(null);
   const [featuredImagePreview, setFeaturedImagePreview] = React.useState("");
   const [localError, setLocalError] = React.useState("");
+  const [summaryError, setSummaryError] = React.useState("");
 
   React.useEffect(() => {
     if (isEditing) {
@@ -57,14 +66,18 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
 
   React.useEffect(() => {
     if (currentBlog && isEditing) {
+      // Extract first category if multiple exist, or use first from array
+      const categories = currentBlog.categories || [];
+      const category = Array.isArray(categories) ? categories[0] || "" : categories || "";
+      
       setFormState({
         title: currentBlog.title || "",
         excerpt: currentBlog.excerpt || "",
         content: currentBlog.content || "",
         status: currentBlog.status || "draft",
-        categories: (currentBlog.categories || []).join(", "),
-        tags: (currentBlog.tags || []).join(", "),
-        seoKeywords: (currentBlog.seoKeywords || []).join(", "),
+        category: category,
+        tags: Array.isArray(currentBlog.tags) ? currentBlog.tags : [],
+        seoKeywords: Array.isArray(currentBlog.seoKeywords) ? currentBlog.seoKeywords : [],
         isFeatured: Boolean(currentBlog.isFeatured),
       });
       setFeaturedImagePreview(currentBlog.featuredImage || "");
@@ -76,6 +89,22 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
     setFormState((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
+    }));
+
+    // Validate summary length
+    if (name === "excerpt") {
+      if (value.trim().length > 0 && value.trim().length < MIN_SUMMARY_LENGTH) {
+        setSummaryError(`Summary must be at least ${MIN_SUMMARY_LENGTH} characters.`);
+      } else {
+        setSummaryError("");
+      }
+    }
+  };
+
+  const handleContentChange = (content) => {
+    setFormState((prev) => ({
+      ...prev,
+      content: content,
     }));
   };
 
@@ -94,10 +123,27 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLocalError("");
+    setSummaryError("");
     dispatch(clearError());
 
-    if (!formState.title.trim() || !formState.content.trim()) {
-      setLocalError("Title and content are required.");
+    // Validation
+    if (!formState.title.trim()) {
+      setLocalError("Title is required.");
+      return;
+    }
+
+    if (!formState.content.trim() || formState.content.trim() === "<p><br></p>") {
+      setLocalError("Content is required.");
+      return;
+    }
+
+    if (formState.excerpt.trim() && formState.excerpt.trim().length < MIN_SUMMARY_LENGTH) {
+      setSummaryError(`Summary must be at least ${MIN_SUMMARY_LENGTH} characters.`);
+      return;
+    }
+
+    if (!formState.category) {
+      setLocalError("Please select a category.");
       return;
     }
 
@@ -107,14 +153,15 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
     payload.append("content", formState.content.trim());
     payload.append("status", formState.status);
     payload.append("isFeatured", formState.isFeatured ? "true" : "false");
+    payload.append("categories", formState.category);
 
-    parseList(formState.categories).forEach((value) =>
-      payload.append("categories", value)
-    );
-    parseList(formState.tags).forEach((value) => payload.append("tags", value));
-    parseList(formState.seoKeywords).forEach((value) =>
-      payload.append("seoKeywords", value)
-    );
+    // Append tags and SEO keywords as arrays
+    formState.tags.forEach((tag) => {
+      payload.append("tags", tag);
+    });
+    formState.seoKeywords.forEach((keyword) => {
+      payload.append("seoKeywords", keyword);
+    });
 
     if (featuredImageFile) {
       payload.append("featuredImage", featuredImageFile);
@@ -133,6 +180,9 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
       );
     }
   };
+
+  const summaryLength = formState.excerpt.trim().length;
+  const summaryRemaining = Math.max(0, MIN_SUMMARY_LENGTH - summaryLength);
 
   return (
     <div className="bg-gray-950 text-white min-h-screen">
@@ -183,37 +233,66 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300">
                 Summary
+                {formState.excerpt.trim() && (
+                  <span className="ml-2 text-xs text-gray-500">
+                    ({summaryLength} / {MIN_SUMMARY_LENGTH} min characters)
+                  </span>
+                )}
               </label>
               <textarea
                 name="excerpt"
                 value={formState.excerpt}
                 onChange={handleChange}
                 rows={3}
-                placeholder="Short elevator pitch for your blog."
-                className="textarea textarea-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500"
+                placeholder="Short elevator pitch for your blog (minimum 20 characters)."
+                className={`textarea textarea-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500 ${
+                  summaryError ? "border-red-500/50" : ""
+                }`}
               />
+              {summaryError && (
+                <p className="text-xs text-red-400">{summaryError}</p>
+              )}
+              {formState.excerpt.trim() && summaryRemaining > 0 && (
+                <p className="text-xs text-yellow-400">
+                  {summaryRemaining} more characters required
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300">
                 Content<span className="text-red-400">*</span>
               </label>
-              <textarea
-                name="content"
+              <RichTextEditor
                 value={formState.content}
-                onChange={handleChange}
-                rows={12}
+                onChange={handleContentChange}
                 placeholder="Share your ideas..."
-                className="textarea textarea-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500"
-                required
               />
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-300">
-                  Status
+                  Category<span className="text-red-400">*</span>
                 </label>
+                <select
+                  name="category"
+                  value={formState.category}
+                  onChange={handleChange}
+                  className="select select-bordered w-full border-white/10 bg-gray-950/40 text-white"
+                  required
+                >
+                  <option value="">Select a category...</option>
+                  {BLOG_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Status</label>
                 <select
                   name="status"
                   value={formState.status}
@@ -225,57 +304,34 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
                   <option value="archived">Archived</option>
                 </select>
               </div>
-
-              <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-gray-950/40 px-4 py-3 text-sm text-gray-300">
-                <input
-                  type="checkbox"
-                  name="isFeatured"
-                  checked={formState.isFeatured}
-                  onChange={handleChange}
-                  className="checkbox checkbox-primary"
-                />
-                Feature this blog on landing pages
-              </label>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">
-                Categories (comma separated)
-              </label>
+            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-gray-950/40 px-4 py-3 text-sm text-gray-300">
               <input
-                name="categories"
-                value={formState.categories}
+                type="checkbox"
+                name="isFeatured"
+                checked={formState.isFeatured}
                 onChange={handleChange}
-                className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500"
-                placeholder="News, Strategy, Psychology"
+                className="checkbox checkbox-primary"
               />
-            </div>
+              Feature this blog on landing pages
+            </label>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">
-                Tags (comma separated)
-              </label>
-              <input
-                name="tags"
-                value={formState.tags}
-                onChange={handleChange}
-                className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500"
-                placeholder="swing, forex, mindset"
-              />
-            </div>
+            <ChipInput
+              label="Tags"
+              value={formState.tags}
+              onChange={(tags) => setFormState((prev) => ({ ...prev, tags }))}
+              placeholder="Type tag and press comma (e.g., swing, forex, mindset)"
+            />
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">
-                SEO Keywords
-              </label>
-              <input
-                name="seoKeywords"
-                value={formState.seoKeywords}
-                onChange={handleChange}
-                className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500"
-                placeholder="pro trading journal, prop firm evaluation"
-              />
-            </div>
+            <ChipInput
+              label="SEO Keywords"
+              value={formState.seoKeywords}
+              onChange={(keywords) =>
+                setFormState((prev) => ({ ...prev, seoKeywords: keywords }))
+              }
+              placeholder="Type keyword and press comma (e.g., pro trading journal, prop firm evaluation)"
+            />
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300">
@@ -344,4 +400,3 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
 }
 
 export default BlogForm;
-

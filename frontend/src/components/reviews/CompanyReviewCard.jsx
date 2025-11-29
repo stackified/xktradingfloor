@@ -1,11 +1,20 @@
 import React from "react";
+import { Flag } from "lucide-react";
 import StarRating from "./StarRating.jsx";
-import { deleteReview } from "../../controllers/reviewsController.js";
+import { deleteReview, reportReview } from "../../controllers/reviewsController.js";
 import { getAssetPath } from "../../utils/assets.js";
+import { useSelector } from "react-redux";
+import { getUserCookie } from "../../utils/cookies.js";
 
 function CompanyReviewCard({ review, currentUserId, onUpdate, onDelete }) {
   const [deleting, setDeleting] = React.useState(false);
+  const [reporting, setReporting] = React.useState(false);
   const isOwner = review.userId === currentUserId;
+  const reduxUser = useSelector((state) => state.auth.user);
+  const user = reduxUser || getUserCookie();
+  const userRole = user?.role?.toLowerCase();
+  // Only operator and admin can report reviews
+  const canReport = userRole === "operator" || userRole === "admin";
 
   async function handleDelete() {
     if (!confirm("Are you sure you want to delete this review?")) {
@@ -20,6 +29,24 @@ function CompanyReviewCard({ review, currentUserId, onUpdate, onDelete }) {
       alert(error.message || "Failed to delete review");
     } finally {
       setDeleting(false);
+    }
+  }
+
+  async function handleReport() {
+    const reason = window.prompt(
+      "Please provide a reason for reporting this review:",
+      "suspicious content"
+    );
+    if (!reason?.trim()) return;
+
+    setReporting(true);
+    try {
+      await reportReview(review.id, reason.trim());
+      alert("Review reported successfully. Our team will review it.");
+    } catch (error) {
+      alert(error.message || "Failed to report review");
+    } finally {
+      setReporting(false);
     }
   }
 
@@ -51,31 +78,65 @@ function CompanyReviewCard({ review, currentUserId, onUpdate, onDelete }) {
                 )}
               </div>
             </div>
-            {isOwner && (
-              <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {isOwner && (
+                <>
+                  <button
+                    onClick={() => onUpdate?.(review)}
+                    className="text-xs text-accent hover:text-accent/80"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="text-xs text-red-400 hover:text-red-300 disabled:opacity-50"
+                  >
+                    {deleting ? "Deleting..." : "Delete"}
+                  </button>
+                </>
+              )}
+              {!isOwner && canReport && (
                 <button
-                  onClick={() => onUpdate?.(review)}
-                  className="text-xs text-accent hover:text-accent/80"
+                  onClick={handleReport}
+                  disabled={reporting}
+                  className="text-xs text-amber-400 hover:text-amber-300 disabled:opacity-50 flex items-center gap-1"
+                  title="Report suspicious content"
                 >
-                  Edit
+                  <Flag className="h-3 w-3" />
+                  {reporting ? "Reporting..." : "Report"}
                 </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="text-xs text-red-400 hover:text-red-300 disabled:opacity-50"
-                >
-                  {deleting ? "Deleting..." : "Delete"}
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
       <div className="mb-2">
         <StarRating value={review.rating} size={16} />
       </div>
-      <h4 className="font-semibold mb-2">{review.title}</h4>
-      <p className="text-gray-300 text-sm leading-relaxed">{review.body}</p>
+      {review.title && <h4 className="font-semibold mb-2">{review.title}</h4>}
+      {review.pros && (
+        <div className="text-sm mb-2">
+          <span className="text-green-400 font-semibold">Pros:</span>{" "}
+          <span className="text-gray-300">{review.pros}</span>
+        </div>
+      )}
+      {review.cons && (
+        <div className="text-sm mb-2">
+          <span className="text-red-400 font-semibold">Cons:</span>{" "}
+          <span className="text-gray-300">{review.cons}</span>
+        </div>
+      )}
+      <p className="text-gray-300 text-sm leading-relaxed">
+        {review.description || review.body}
+      </p>
+      {review.screenshot && (
+        <img
+          src={review.screenshot}
+          alt="Review screenshot"
+          className="mt-3 max-w-xs rounded-lg"
+        />
+      )}
     </div>
   );
 }

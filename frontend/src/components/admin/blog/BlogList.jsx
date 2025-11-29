@@ -2,10 +2,11 @@ import React from "react";
 import {
   Edit,
   Loader2,
-  ShieldAlert,
   ShieldCheck,
   Trash2,
   Flag,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 const statusStyles = {
@@ -25,32 +26,15 @@ function BlogList({
   onStatusFilterChange = noop,
   onEdit = noop,
   onDelete = noop,
-  onPermanentDelete = noop,
   onFlag = noop,
   onUnflag = noop,
+  onPublish = noop,
+  onUnpublish = noop,
   canDelete = true,
-  canPermanentDelete = false,
   canFlag = false,
   canUnflag = false,
 }) {
   const hasBlogs = Array.isArray(blogs) && blogs.length > 0;
-
-  const handleFlag = (blogId) => {
-    const flagType =
-      window.prompt(
-        "Enter a flag reason (spam, inappropriate, misinformation...):",
-        "spam"
-      ) || "";
-    if (!flagType.trim()) return;
-    onFlag(blogId, flagType.trim());
-  };
-
-  const handleUnflag = (blogId) => {
-    const flagType =
-      window.prompt("Enter the flag type you want to remove:", "spam") || "";
-    if (!flagType.trim()) return;
-    onUnflag(blogId, flagType.trim());
-  };
 
   const formatDate = (value) => {
     if (!value) return "—";
@@ -158,39 +142,51 @@ function BlogList({
                     >
                       {blog.status || "unknown"}
                     </div>
-                    <div className="text-xs text-gray-400">
-                      Flags:{" "}
-                      <span className="font-semibold text-gray-200">
-                        {flags.length}
-                      </span>
-                    </div>
+                    {flags.length > 0 && (
+                      <div className="text-xs text-gray-400">
+                        Flags:{" "}
+                        <span className="font-semibold text-red-300">
+                          {flags.length}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
-                        onClick={() => onEdit(blog._id)}
+                        onClick={() => onEdit(blog._id || blog.id)}
                         className="btn btn-sm btn-outline border-white/20 text-white hover:bg-white/10"
                       >
                         <Edit className="h-4 w-4" />
                         Edit
                       </button>
+                      {blog.status === "draft" && (
+                        <button
+                          type="button"
+                          onClick={() => onPublish(blog._id || blog.id)}
+                          className="btn btn-sm btn-outline border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10"
+                        >
+                          <Eye className="h-4 w-4" />
+                          Publish
+                        </button>
+                      )}
+                      {blog.status === "published" && (
+                        <button
+                          type="button"
+                          onClick={() => onUnpublish(blog._id || blog.id)}
+                          className="btn btn-sm btn-outline border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/10"
+                        >
+                          <EyeOff className="h-4 w-4" />
+                          Unpublish
+                        </button>
+                      )}
                       {canDelete && (
                         <button
                           type="button"
-                          onClick={() => onDelete(blog._id)}
+                          onClick={() => onDelete(blog._id || blog.id)}
                           className="btn btn-sm btn-outline border-red-500/40 text-red-300 hover:bg-red-500/10"
                         >
                           <Trash2 className="h-4 w-4" />
                           Delete
-                        </button>
-                      )}
-                      {canPermanentDelete && (
-                        <button
-                          type="button"
-                          onClick={() => onPermanentDelete(blog._id)}
-                          className="btn btn-sm btn-outline border-red-700/40 text-red-400 hover:bg-red-700/10"
-                        >
-                          <ShieldAlert className="h-4 w-4" />
-                          Purge
                         </button>
                       )}
                     </div>
@@ -199,7 +195,7 @@ function BlogList({
                         {canFlag && (
                           <button
                             type="button"
-                            onClick={() => handleFlag(blog._id)}
+                            onClick={() => onFlag(blog._id || blog.id)}
                             className="btn btn-xs btn-outline border-amber-500/40 text-amber-300 hover:bg-amber-500/10"
                           >
                             <Flag className="h-4 w-4" />
@@ -209,7 +205,7 @@ function BlogList({
                         {canUnflag && flags.length > 0 && (
                           <button
                             type="button"
-                            onClick={() => handleUnflag(blog._id)}
+                            onClick={() => onUnflag(blog._id || blog.id, flags[0])}
                             className="btn btn-xs btn-outline border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10"
                           >
                             <ShieldCheck className="h-4 w-4" />

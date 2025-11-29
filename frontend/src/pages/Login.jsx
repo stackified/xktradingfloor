@@ -22,16 +22,23 @@ function Login() {
     try {
       const res = await login(form);
       if (res.data) {
+        // Store user data with token in Redux and cookies
+        // The backend sets httpOnly cookie 'token' automatically
+        // We also store token in user cookie for Authorization header
         dispatch(loginSuccess(res.data));
-        // Redirect based on user role
-        if (res.data.role === 'admin' || res.data.role === 'operator') {
-          navigate("/dashboard");
+        // Redirect based on user role (case-insensitive)
+        const userRole = res.data.role?.toLowerCase();
+        if (userRole === 'admin' || userRole === 'subadmin' || userRole === 'supervisor') {
+          navigate("/admin/blogs");
+        } else if (userRole === 'operator') {
+          navigate("/operator/blogs");
         } else {
-          navigate("/");
+          navigate("/dashboard");
         }
       }
     } catch (error) {
-      setError("Invalid credentials. Please try again.");
+      const errorMessage = error.response?.data?.message || error.message || "Invalid credentials. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

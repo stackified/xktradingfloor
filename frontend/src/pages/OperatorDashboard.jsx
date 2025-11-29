@@ -3,29 +3,33 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ProtectedRoute from "../components/dashboard/ProtectedRoute.jsx";
-import { getAllCompanies } from "../controllers/companiesController.js";
-import { deleteCompany } from "../controllers/companiesController.js";
+import { getAllCompanies, deleteCompany } from "../controllers/companiesController.js";
 import CompanyCard from "../components/reviews/CompanyCard.jsx";
 import { getUserCookie } from "../utils/cookies.js";
 
 function OperatorDashboard() {
   const [companies, setCompanies] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const [showCreateForm, setShowCreateForm] = React.useState(false);
   const reduxUser = useSelector((state) => state.auth.user);
   const user = reduxUser || getUserCookie();
+  const normalizedRole =
+    typeof user?.role === "string" ? user.role.toLowerCase() : null;
+  const isAdmin =
+    normalizedRole === "admin" || normalizedRole === "subadmin";
+  const isOperator = normalizedRole === "operator";
+  const canManageCompanies = isAdmin;
 
   React.useEffect(() => {
-    if (user?.role === "operator" || user?.role === "admin") {
+    if (isOperator || isAdmin) {
       loadCompanies();
     }
-  }, [user]);
+  }, [isOperator, isAdmin]);
 
   async function loadCompanies() {
     setLoading(true);
     try {
       const { data } = await getAllCompanies({
-        operatorId: user?.role === "admin" ? undefined : user?.id,
+        operatorId: canManageCompanies ? undefined : user?.id,
       });
       setCompanies(data || []);
     } catch (error) {
@@ -36,6 +40,9 @@ function OperatorDashboard() {
   }
 
   async function handleDelete(companyId) {
+    if (!canManageCompanies) {
+      return;
+    }
     if (
       !confirm(
         "Are you sure you want to delete this company? This action cannot be undone."
@@ -52,7 +59,7 @@ function OperatorDashboard() {
     }
   }
 
-  if (!user || (user.role !== "operator" && user.role !== "admin")) {
+  if (!user || (!isOperator && !isAdmin)) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="card">
@@ -71,7 +78,7 @@ function OperatorDashboard() {
   }
 
   return (
-    <ProtectedRoute role={user.role === "admin" ? "admin" : "operator"}>
+    <ProtectedRoute role={isAdmin ? "admin" : "operator"}>
       <div className="bg-gray-950 text-white min-h-screen">
         <Helmet>
           <title>Manage Companies | XK Trading Floor</title>
@@ -86,18 +93,37 @@ function OperatorDashboard() {
             <div>
               <h1 className="text-3xl font-bold mb-2">Manage Companies</h1>
               <p className="text-gray-400">
-                {user.role === "admin"
-                  ? "Manage all company listings"
-                  : "Create and manage your company listings"}
+                {canManageCompanies
+                  ? "Full control over every company listing and its status."
+                  : "View your assigned companies and monitor their review health."}
               </p>
+              {!canManageCompanies && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Need a change? Contact an administrator so they can update the listing for you.
+                </p>
+              )}
             </div>
-            <div className="flex gap-3">
-              <Link to="/operator/blogs" className="btn btn-secondary">
-                Manage Blogs
-              </Link>
-              <Link to="/reviews/company/new" className="btn btn-primary">
-                + Add New Company
-              </Link>
+            <div className="flex gap-3 flex-wrap justify-end">
+              {isOperator && (
+                <>
+                  <Link to="/operator/blogs" className="btn btn-secondary">
+                    Manage Blogs
+                  </Link>
+                  <Link to="/operator/reviews" className="btn btn-primary">
+                    Flag Reviews
+                  </Link>
+                </>
+              )}
+              {canManageCompanies && (
+                <>
+                  <Link to="/admin/companies" className="btn btn-secondary">
+                    Company Dashboard
+                  </Link>
+                  <Link to="/admin/companies/create" className="btn btn-primary">
+                    + Add Company
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -109,9 +135,15 @@ function OperatorDashboard() {
             <div className="card">
               <div className="card-body text-center py-12">
                 <div className="text-gray-400 mb-4">No companies found.</div>
-                <Link to="/reviews/company/new" className="btn btn-primary">
-                  Create Your First Company
-                </Link>
+                {canManageCompanies ? (
+                  <Link to="/admin/companies/create" className="btn btn-primary">
+                    Create a Company
+                  </Link>
+                ) : (
+                  <Link to="/operator/reviews" className="btn btn-secondary">
+                    Review Feedback
+                  </Link>
+                )}
               </div>
             </div>
           ) : (
@@ -119,20 +151,22 @@ function OperatorDashboard() {
               {companies.map((company) => (
                 <div key={company.id} className="relative">
                   <CompanyCard company={company} />
-                  <div className="absolute top-4 right-4 flex gap-2">
-                    <Link
-                      to={`/reviews/company/edit/${company.id}`}
-                      className="btn btn-secondary btn-sm"
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(company.id)}
-                      className="btn btn-danger btn-sm"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  {canManageCompanies && (
+                    <div className="absolute top-4 right-4 flex gap-2">
+                      <Link
+                        to={`/admin/companies/edit/${company.id}`}
+                        className="btn btn-secondary btn-sm"
+                      >
+                        Edit
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(company.id)}
+                        className="btn btn-danger btn-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

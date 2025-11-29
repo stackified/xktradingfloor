@@ -1,5 +1,14 @@
 import api from './api.js';
 
+// Helper to check if mock mode is enabled
+function isMockModeEnabled() {
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('xk_mock_mode');
+    return stored === 'true';
+  }
+  return false;
+}
+
 // Helper to get current user from session
 function getCurrentUser() {
   const s = sessionStorage.getItem('xktf_user');
@@ -69,7 +78,29 @@ export async function getAllReviews(filters = {}) {
 
 // Get reviews by company ID
 export async function getReviewsByCompanyId(companyId) {
-  // return api.get(`/companies/${companyId}/reviews`);
+  const mockMode = isMockModeEnabled();
+  
+  // Backend API call (ready for integration)
+  // Uncomment when backend is ready:
+  /*
+  try {
+    const response = await api.get(`/public/reviews/company/${companyId}`);
+    if (mockMode) {
+      // If mock mode is ON, merge with mock data
+      const { data: mockData } = await getAllReviews({ companyId });
+      return { data: [...response.data, ...mockData] };
+    }
+    return response;
+  } catch (error) {
+    if (mockMode) {
+      console.warn('Backend unavailable, using mock data');
+    } else {
+      throw error;
+    }
+  }
+  */
+  
+  // Mock data implementation
   const { data } = await getAllReviews({ companyId });
   return { data };
 }
@@ -97,12 +128,50 @@ export async function getReviewById(reviewId) {
 
 // Create review (authenticated users only)
 export async function createReview(reviewData) {
-  // return api.post('/reviews', reviewData);
+  const mockMode = isMockModeEnabled();
   const user = getCurrentUser();
+  
   if (!user) {
     throw new Error('You must be logged in to create a review');
   }
 
+  // Backend API call (ready for integration)
+  // Uncomment when backend is ready:
+  /*
+  try {
+    const formData = new FormData();
+    formData.append('rating', reviewData.rating);
+    formData.append('pros', reviewData.pros || '');
+    formData.append('cons', reviewData.cons || '');
+    formData.append('description', reviewData.description || reviewData.body || '');
+    if (reviewData.screenshot && reviewData.screenshot instanceof File) {
+      formData.append('screenshot', reviewData.screenshot);
+    }
+    
+    const response = await api.post(`/protected/reviews/${reviewData.companyId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    
+    if (mockMode) {
+      // Also save to mock data if mock mode is ON
+      const reviews = await loadReviews();
+      const stored = localStorage.getItem('xktf_reviews');
+      let allReviews = stored ? JSON.parse(stored) : reviews;
+      allReviews.push(response.data);
+      await saveReviews(allReviews);
+    }
+    
+    return response;
+  } catch (error) {
+    if (mockMode) {
+      console.warn('Backend unavailable, using mock data');
+    } else {
+      throw error;
+    }
+  }
+  */
+  
+  // Mock data implementation
   const reviews = await loadReviews();
   const stored = localStorage.getItem('xktf_reviews');
   let allReviews = stored ? JSON.parse(stored) : reviews;
@@ -122,8 +191,14 @@ export async function createReview(reviewData) {
     userName: user.name || user.email.split('@')[0],
     userAvatar: user.avatar || '/assets/users/default-avatar.jpg',
     rating: reviewData.rating,
-    title: reviewData.title,
-    body: reviewData.body,
+    pros: reviewData.pros || '',
+    cons: reviewData.cons || '',
+    description: reviewData.description || reviewData.body || '',
+    screenshot: reviewData.screenshot || null,
+    isVerified: false,
+    isPinned: false,
+    isHidden: false,
+    flags: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -227,6 +302,338 @@ export async function deleteReview(reviewId) {
   }
 
   return { data: { success: true } };
+}
+
+// Report review (users can report suspicious content)
+export async function reportReview(reviewId, reason) {
+  const mockMode = isMockModeEnabled();
+  const user = getCurrentUser();
+  
+  if (!user) {
+    throw new Error('You must be logged in to report a review');
+  }
+
+  // Backend API call (ready for integration)
+  // Uncomment when backend is ready:
+  /*
+  try {
+    const response = await api.post(`/protected/reviews/${reviewId}/report`, { reason });
+    
+    if (mockMode) {
+      // Also update mock data if mock mode is ON
+      const reviews = await loadReviews();
+      const stored = localStorage.getItem('xktf_reviews');
+      let allReviews = stored ? JSON.parse(stored) : reviews;
+      const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
+      if (reviewIndex !== -1) {
+        if (!allReviews[reviewIndex].reports) {
+          allReviews[reviewIndex].reports = [];
+        }
+        allReviews[reviewIndex].reports.push({
+          userId: user.id,
+          reason,
+          createdAt: new Date().toISOString()
+        });
+        await saveReviews(allReviews);
+      }
+    }
+    
+    return response;
+  } catch (error) {
+    if (mockMode) {
+      console.warn('Backend unavailable, using mock data');
+    } else {
+      throw error;
+    }
+  }
+  */
+  
+  // Mock data implementation
+  const reviews = await loadReviews();
+  const stored = localStorage.getItem('xktf_reviews');
+  let allReviews = stored ? JSON.parse(stored) : reviews;
+  const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
+  
+  if (reviewIndex === -1) {
+    throw new Error('Review not found');
+  }
+  
+  if (!allReviews[reviewIndex].reports) {
+    allReviews[reviewIndex].reports = [];
+  }
+  allReviews[reviewIndex].reports.push({
+    userId: user.id,
+    reason,
+    createdAt: new Date().toISOString()
+  });
+  await saveReviews(allReviews);
+  
+  return { data: { success: true, message: 'Review reported successfully' } };
+}
+
+// Get reviews for operator moderation
+export async function getOperatorReviews(filters = {}) {
+  const mockMode = isMockModeEnabled();
+  const user = getCurrentUser();
+  
+  if (!user || user.role !== 'operator') {
+    throw new Error('Only operators can access this endpoint');
+  }
+
+  // Backend API call (ready for integration)
+  // Uncomment when backend is ready:
+  /*
+  try {
+    const response = await api.get('/operator/reviews', { params: filters });
+    if (mockMode) {
+      // If mock mode is ON, merge with mock data
+      const { data: mockData } = await getAllReviews(filters);
+      return { data: [...response.data, ...mockData] };
+    }
+    return response;
+  } catch (error) {
+    if (mockMode) {
+      console.warn('Backend unavailable, using mock data');
+    } else {
+      throw error;
+    }
+  }
+  */
+  
+  // Mock data implementation - return all reviews for now
+  return await getAllReviews(filters);
+}
+
+// Flag review (operator only)
+export async function flagReview(reviewId, flagType) {
+  const mockMode = isMockModeEnabled();
+  const user = getCurrentUser();
+  
+  if (!user || user.role !== 'operator') {
+    throw new Error('Only operators can flag reviews');
+  }
+
+  // Backend API call (ready for integration)
+  // Uncomment when backend is ready:
+  /*
+  try {
+    const response = await api.patch(`/operator/reviews/${reviewId}/flag`, { flagType });
+    
+    if (mockMode) {
+      // Also update mock data if mock mode is ON
+      const reviews = await loadReviews();
+      const stored = localStorage.getItem('xktf_reviews');
+      let allReviews = stored ? JSON.parse(stored) : reviews;
+      const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
+      if (reviewIndex !== -1) {
+        if (!allReviews[reviewIndex].flags) {
+          allReviews[reviewIndex].flags = [];
+        }
+        if (!allReviews[reviewIndex].flags.includes(flagType)) {
+          allReviews[reviewIndex].flags.push(flagType);
+        }
+        allReviews[reviewIndex].updatedAt = new Date().toISOString();
+        await saveReviews(allReviews);
+      }
+    }
+    
+    return response;
+  } catch (error) {
+    if (mockMode) {
+      console.warn('Backend unavailable, using mock data');
+    } else {
+      throw error;
+    }
+  }
+  */
+  
+  // Mock data implementation
+  const reviews = await loadReviews();
+  const stored = localStorage.getItem('xktf_reviews');
+  let allReviews = stored ? JSON.parse(stored) : reviews;
+  const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
+  
+  if (reviewIndex === -1) {
+    throw new Error('Review not found');
+  }
+  
+  if (!allReviews[reviewIndex].flags) {
+    allReviews[reviewIndex].flags = [];
+  }
+  if (!allReviews[reviewIndex].flags.includes(flagType)) {
+    allReviews[reviewIndex].flags.push(flagType);
+  }
+  allReviews[reviewIndex].updatedAt = new Date().toISOString();
+  await saveReviews(allReviews);
+  
+  return { data: allReviews[reviewIndex] };
+}
+
+// Approve/unhide review (operator only)
+export async function approveReview(reviewId) {
+  const mockMode = isMockModeEnabled();
+  const user = getCurrentUser();
+  
+  if (!user || user.role !== 'operator') {
+    throw new Error('Only operators can approve reviews');
+  }
+
+  // Backend API call (ready for integration)
+  // Uncomment when backend is ready:
+  /*
+  try {
+    const response = await api.patch(`/operator/reviews/${reviewId}/approve`);
+    
+    if (mockMode) {
+      // Also update mock data if mock mode is ON
+      const reviews = await loadReviews();
+      const stored = localStorage.getItem('xktf_reviews');
+      let allReviews = stored ? JSON.parse(stored) : reviews;
+      const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
+      if (reviewIndex !== -1) {
+        allReviews[reviewIndex].isHidden = false;
+        allReviews[reviewIndex].flags = [];
+        allReviews[reviewIndex].updatedAt = new Date().toISOString();
+        await saveReviews(allReviews);
+      }
+    }
+    
+    return response;
+  } catch (error) {
+    if (mockMode) {
+      console.warn('Backend unavailable, using mock data');
+    } else {
+      throw error;
+    }
+  }
+  */
+  
+  // Mock data implementation
+  const reviews = await loadReviews();
+  const stored = localStorage.getItem('xktf_reviews');
+  let allReviews = stored ? JSON.parse(stored) : reviews;
+  const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
+  
+  if (reviewIndex === -1) {
+    throw new Error('Review not found');
+  }
+  
+  allReviews[reviewIndex].isHidden = false;
+  allReviews[reviewIndex].flags = [];
+  allReviews[reviewIndex].updatedAt = new Date().toISOString();
+  await saveReviews(allReviews);
+  
+  return { data: allReviews[reviewIndex] };
+}
+
+// Hide review (admin only)
+export async function hideReview(reviewId) {
+  const mockMode = isMockModeEnabled();
+  const user = getCurrentUser();
+  
+  if (!user || user.role !== 'admin') {
+    throw new Error('Only admins can hide reviews');
+  }
+
+  // Backend API call (ready for integration)
+  // Uncomment when backend is ready:
+  /*
+  try {
+    const response = await api.patch(`/admin/reviews/${reviewId}/hide`);
+    
+    if (mockMode) {
+      // Also update mock data if mock mode is ON
+      const reviews = await loadReviews();
+      const stored = localStorage.getItem('xktf_reviews');
+      let allReviews = stored ? JSON.parse(stored) : reviews;
+      const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
+      if (reviewIndex !== -1) {
+        allReviews[reviewIndex].isHidden = true;
+        allReviews[reviewIndex].updatedAt = new Date().toISOString();
+        await saveReviews(allReviews);
+      }
+    }
+    
+    return response;
+  } catch (error) {
+    if (mockMode) {
+      console.warn('Backend unavailable, using mock data');
+    } else {
+      throw error;
+    }
+  }
+  */
+  
+  // Mock data implementation
+  const reviews = await loadReviews();
+  const stored = localStorage.getItem('xktf_reviews');
+  let allReviews = stored ? JSON.parse(stored) : reviews;
+  const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
+  
+  if (reviewIndex === -1) {
+    throw new Error('Review not found');
+  }
+  
+  allReviews[reviewIndex].isHidden = true;
+  allReviews[reviewIndex].updatedAt = new Date().toISOString();
+  await saveReviews(allReviews);
+  
+  return { data: allReviews[reviewIndex] };
+}
+
+// Pin review (admin only)
+export async function pinReview(reviewId) {
+  const mockMode = isMockModeEnabled();
+  const user = getCurrentUser();
+  
+  if (!user || user.role !== 'admin') {
+    throw new Error('Only admins can pin reviews');
+  }
+
+  // Backend API call (ready for integration)
+  // Uncomment when backend is ready:
+  /*
+  try {
+    const response = await api.patch(`/admin/reviews/${reviewId}/pin`);
+    
+    if (mockMode) {
+      // Also update mock data if mock mode is ON
+      const reviews = await loadReviews();
+      const stored = localStorage.getItem('xktf_reviews');
+      let allReviews = stored ? JSON.parse(stored) : reviews;
+      const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
+      if (reviewIndex !== -1) {
+        allReviews[reviewIndex].isPinned = !allReviews[reviewIndex].isPinned;
+        allReviews[reviewIndex].updatedAt = new Date().toISOString();
+        await saveReviews(allReviews);
+      }
+    }
+    
+    return response;
+  } catch (error) {
+    if (mockMode) {
+      console.warn('Backend unavailable, using mock data');
+    } else {
+      throw error;
+    }
+  }
+  */
+  
+  // Mock data implementation
+  const reviews = await loadReviews();
+  const stored = localStorage.getItem('xktf_reviews');
+  let allReviews = stored ? JSON.parse(stored) : reviews;
+  const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
+  
+  if (reviewIndex === -1) {
+    throw new Error('Review not found');
+  }
+  
+  allReviews[reviewIndex].isPinned = !allReviews[reviewIndex].isPinned;
+  allReviews[reviewIndex].updatedAt = new Date().toISOString();
+  await saveReviews(allReviews);
+  
+  return { data: allReviews[reviewIndex] };
 }
 
 // Legacy function for backward compatibility

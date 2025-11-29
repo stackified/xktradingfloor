@@ -368,22 +368,28 @@ function Header() {
                     className="absolute right-0 top-12 w-48 border border-gray-800 bg-gray-900/95 backdrop-blur-xl rounded-lg shadow-2xl overflow-hidden"
                     role="menu"
                   >
-                    {(user?.role === "admin" || user?.role === "operator") && (
-                      <button
-                        onClick={() => {
-                          setMenuOpen(false);
-                          // Use navigate with a small delay to ensure menu closes first
-                          setTimeout(() => {
-                            navigate("/dashboard");
-                          }, 100);
-                        }}
-                        className="block w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-gray-800/50 transition-colors border-b border-gray-800"
+                    {(user?.role === "admin" || user?.role === "Admin") && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-200 hover:bg-gray-800/50 transition-colors border-b border-gray-800"
                         role="menuitem"
                       >
                         Dashboard
-                      </button>
+                      </Link>
                     )}
-                    {user?.role === "admin" && (
+                    {(user?.role === "operator" ||
+                      user?.role === "Operator") && (
+                      <Link
+                        to="/reviews/operator"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-200 hover:bg-gray-800/50 transition-colors border-b border-gray-800"
+                        role="menuitem"
+                      >
+                        Dashboard
+                      </Link>
+                    )}
+                    {(user?.role === "admin" || user?.role === "Admin") && (
                       <Link
                         to="/admin/blogs"
                         onClick={() => setMenuOpen(false)}
@@ -391,6 +397,16 @@ function Header() {
                         role="menuitem"
                       >
                         Manage Blogs
+                      </Link>
+                    )}
+                    {(user?.role === "admin" || user?.role === "Admin") && (
+                      <Link
+                        to="/admin/about/edit"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-200 hover:bg-gray-800/50 transition-colors border-b border-gray-800"
+                        role="menuitem"
+                      >
+                        Edit About Section
                       </Link>
                     )}
                     {user?.role === "operator" && (
@@ -554,20 +570,26 @@ function Header() {
               <div className="pt-4 mt-2 border-t border-gray-800 flex flex-col gap-2">
                 {user ? (
                   <>
-                    {(user?.role === "admin" || user?.role === "operator") && (
-                      <button
-                        onClick={() => {
-                          setOpen(false);
-                          setTimeout(() => {
-                            navigate("/dashboard");
-                          }, 100);
-                        }}
-                        className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
+                    {(user?.role === "admin" || user?.role === "Admin") && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setOpen(false)}
+                        className="px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
                       >
                         Dashboard
-                      </button>
+                      </Link>
                     )}
-                    {user?.role === "admin" && (
+                    {(user?.role === "operator" ||
+                      user?.role === "Operator") && (
+                      <Link
+                        to="/reviews/operator"
+                        onClick={() => setOpen(false)}
+                        className="px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
+                      >
+                        Dashboard
+                      </Link>
+                    )}
+                    {(user?.role === "admin" || user?.role === "Admin") && (
                       <Link
                         to="/admin/blogs"
                         onClick={() => setOpen(false)}
