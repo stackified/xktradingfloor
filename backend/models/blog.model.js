@@ -20,21 +20,29 @@ const BlogPostSchema = new Schema(
         },
         publishedAt: { type: Date },
         views: { type: Number, default: 0 },
-        viewedBy: [{ 
+        viewedBy: [{
             // Track unique viewers - can be user ID or IP address
             identifier: { type: String, required: true },
             viewedAt: { type: Date, default: Date.now }
         }],
         isFeatured: { type: Boolean, default: false },
         seoKeywords: [String],
-        isDeleted: { type: Boolean, default: false }
+        isDeleted: { type: Boolean, default: false },
+        isFlagged: { type: Boolean, default: false },
+        flagReason: {
+            type: String,
+            enum: ['spam', 'inappropriate', 'misinformation', 'duplicate', 'other'],
+            default: null
+        },
+        flagAdditionalDetails: { type: String, trim: true },
+        flaggedAt: { type: Date },
+        flaggedBy: { type: Schema.Types.ObjectId, ref: 'user' }
     },
     {
         timestamps: true,
         versionKey: false,
     }
 );
-
 
 const BlogPostModel = mongoose.model('blogpost', BlogPostSchema);
 module.exports = BlogPostModel;
