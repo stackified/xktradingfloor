@@ -275,6 +275,30 @@ exports.updateBlog = async (req, res) => {
             updateData.publishedAt = new Date();
         }
 
+        // Handle flagging fields
+        if (updateData.flagReason !== undefined) {
+            // Validate flag reason if provided
+            if (updateData.flagReason) {
+                const validReasons = ['Spam', 'Inappropriate Content', 'Misinformation', 'Duplicate Content', 'Other'];
+                if (!validReasons.includes(updateData.flagReason)) {
+                    return sendErrorResponse(res, `Invalid flag reason. Must be one of: ${validReasons.join(', ')}`, 400, true, true);
+                }
+                // Set flagging information
+                updateData.isFlagged = true;
+                updateData.flaggedAt = new Date();
+                if (req.user && req.user._id) {
+                    updateData.flaggedBy = req.user._id;
+                }
+            } else {
+                // If flagReason is set to null/empty, unflag the blog
+                updateData.isFlagged = false;
+                updateData.flagReason = null;
+                updateData.flagAdditionalDetails = null;
+                updateData.flaggedAt = null;
+                updateData.flaggedBy = null;
+            }
+        }
+
         Object.assign(blog, updateData);
         const updatedBlog = await blog.save();
 
