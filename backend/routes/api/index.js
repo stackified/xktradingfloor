@@ -1,10 +1,10 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
 const authRoutes = require("./auth.routes");
-const { authorization } = require('../../middleware/authorization.middleware');
+const { authorization } = require("../../middleware/authorization.middleware");
 const authentication = require("../../middleware/authentication.middleware");
 const adminRoutes = require("./admin/index");
-const constants = require('../../utils/constants');
+const constants = require("../../utils/constants");
 const publicRoutes = require("./public/index");
 const protectedRoutes = require("./protected/index");
 
@@ -21,6 +21,14 @@ router.use(authentication);
 router.use(protectedRoutes);
 
 // Admin Routes
-router.use("/admin", authorization([constants.roles.admin, constants.roles.supervisor, constants.roles.subAdmin]), adminRoutes);
+router.use(
+  "/admin",
+  authorization([
+    constants.roles.admin,
+    constants.roles.supervisor,
+    constants.roles.subAdmin,
+  ]),
+  adminRoutes
+);
 
 module.exports = router;

@@ -10,7 +10,7 @@ import BlogSidebar from "../components/blog/BlogSidebar.jsx";
 import BlogCard from "../components/blog/BlogCard.jsx";
 import { getAllBlogs } from "../controllers/blogsController.js";
 import { getUserCookie } from "../utils/cookies.js";
-import { updateMockMode } from "../redux/slices/mockSlice.js";
+import { updateMockMode, fetchMockMode } from "../redux/slices/mockSlice.js";
 
 function Blog() {
   const [all, setAll] = React.useState([]);
@@ -27,6 +27,21 @@ function Blog() {
   const userRole =
     typeof user?.role === "string" ? user.role.toLowerCase() : null;
   const isAdmin = userRole === "admin";
+
+  // Fetch and sync mock mode from backend (for global sync across all users)
+  React.useEffect(() => {
+    // Fetch from backend on mount
+    dispatch(fetchMockMode());
+
+    // Poll backend periodically to sync mock mode globally (every 5 seconds)
+    const pollInterval = setInterval(() => {
+      dispatch(fetchMockMode());
+    }, 5000);
+
+    return () => {
+      clearInterval(pollInterval);
+    };
+  }, [dispatch]);
 
   React.useEffect(() => {
     (async () => setAll(await getAllBlogs()))();

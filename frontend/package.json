@@ -11,7 +11,9 @@
     "build:prod": "cross-env VITE_BASE_PATH=/ vite build",
     "preview": "vite preview --port 5173",
     "predeploy": "npm install && npm run build:gith",
-    "deploy": "gh-pages -d docs"
+    "deploy": "gh-pages -d docs",
+    "clean": "rm -rf node_modules/.vite",
+    "clean:win": "if exist node_modules\\.vite rmdir /s /q node_modules\\.vite"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.5",

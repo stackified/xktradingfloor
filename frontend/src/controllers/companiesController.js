@@ -79,15 +79,40 @@ export async function getAllCompanies(filters = {}) {
         params: { search: filters.search, page: filters.page, size: filters.size }
       });
       // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
+      // Transform to expected format: { data: [...] }
+      if (response.data?.success && response.data?.data?.docs) {
+        return { data: response.data.data.docs };
+      }
+      // If response is already in expected format
+      if (Array.isArray(response.data?.data)) {
+        return { data: response.data.data };
+      }
+      // If response.data is already an array
+      if (Array.isArray(response.data)) {
+        return { data: response.data };
+      }
       return response;
     } catch (error) {
-      // Backend not available and mock mode is OFF, return empty
+      // Backend not available and mock mode is OFF
       // Expected 404 if endpoint not implemented - silently return empty
       if (error.response?.status === 401) {
         // Unauthorized - user needs to login
         throw error;
       }
-      return { data: [] };
+      // If backend fails, try public endpoint as fallback
+      try {
+        const publicResponse = await api.get("/public/companies", { params: filters });
+        if (Array.isArray(publicResponse.data?.data)) {
+          return { data: publicResponse.data.data };
+        }
+        if (Array.isArray(publicResponse.data)) {
+          return { data: publicResponse.data };
+        }
+        return publicResponse;
+      } catch (publicError) {
+        // Both endpoints failed, return empty array
+        return { data: [] };
+      }
     }
   }
 

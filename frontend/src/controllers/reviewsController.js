@@ -1,23 +1,40 @@
-import api from './api.js';
+import api from "./api.js";
 
 // Helper to check if mock mode is enabled
-function isMockModeEnabled() {
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('xk_mock_mode');
-    return stored === 'true';
+// Checks backend first, then falls back to localStorage (synced by Redux)
+async function isMockModeEnabled() {
+  // Try to fetch from backend first (for global sync)
+  try {
+    const response = await api.get("/public/settings/mock-mode");
+    if (response?.data?.enabled !== undefined) {
+      // Sync to localStorage for backward compatibility
+      if (typeof window !== "undefined") {
+        localStorage.setItem("xk_mock_mode", response.data.enabled.toString());
+      }
+      return response.data.enabled;
+    }
+  } catch (error) {
+    // Backend not available or endpoint not implemented yet
+    // Fall back to localStorage (synced by Redux)
+  }
+
+  // Fallback to localStorage (current implementation, synced by Redux)
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem("xk_mock_mode");
+    return stored === "true";
   }
   return false;
 }
 
 // Helper to get current user from session
 function getCurrentUser() {
-  const s = sessionStorage.getItem('xktf_user');
+  const s = sessionStorage.getItem("xktf_user");
   return s ? JSON.parse(s) : null;
 }
 
 // Helper to load reviews from JSON
 async function loadReviews() {
-  const { default: reviews } = await import('../models/reviews.json');
+  const { default: reviews } = await import("../models/reviews.json");
   return reviews;
 }
 
@@ -25,52 +42,75 @@ async function loadReviews() {
 async function saveReviews(reviews) {
   // In a real app, this would be: return api.put('/reviews', reviews);
   // For now, we'll use localStorage as a mock persistence layer
-  localStorage.setItem('xktf_reviews', JSON.stringify(reviews));
+  localStorage.setItem("xktf_reviews", JSON.stringify(reviews));
   return { data: reviews };
 }
 
 // Helper to recalculate aggregated rating for a company
 async function recalculateCompanyRating(companyId) {
-  const { getAllCompanies } = await import('./companiesController.js');
+  const { getAllCompanies } = await import("./companiesController.js");
   const reviews = await loadReviews();
-  const stored = localStorage.getItem('xktf_reviews');
+  const stored = localStorage.getItem("xktf_reviews");
   const allReviews = stored ? JSON.parse(stored) : reviews;
-  
-  const companyReviews = allReviews.filter(r => r.companyId === companyId);
+
+  const companyReviews = allReviews.filter((r) => r.companyId === companyId);
   if (companyReviews.length === 0) {
     return { ratingsAggregate: 0, totalReviews: 0 };
   }
 
   const totalRating = companyReviews.reduce((sum, r) => sum + r.rating, 0);
   const ratingsAggregate = totalRating / companyReviews.length;
-  
+
   return { ratingsAggregate, totalReviews: companyReviews.length };
 }
 
 // Get all reviews (with optional filters)
 export async function getAllReviews(filters = {}) {
-  // return api.get('/reviews', { params: filters });
+  const mockMode = await isMockModeEnabled();
+
+  // If mock mode is OFF, try to fetch from backend
+  if (!mockMode) {
+    try {
+      const response = await api.get("/public/reviews", { params: filters });
+      // Handle different response structures
+      if (Array.isArray(response.data?.data)) {
+        return { data: response.data.data };
+      }
+      if (Array.isArray(response.data)) {
+        return { data: response.data };
+      }
+      return response;
+    } catch (error) {
+      // Backend not available and mock mode is OFF, return empty
+      if (error.response?.status === 401) {
+        throw error;
+      }
+      return { data: [] };
+    }
+  }
+
+  // Mock data implementation (only when mock mode is ON)
   let reviews = await loadReviews();
-  
+
   // Check localStorage for any updates
-  const stored = localStorage.getItem('xktf_reviews');
+  const stored = localStorage.getItem("xktf_reviews");
   if (stored) {
     try {
       reviews = JSON.parse(stored);
     } catch (e) {
-      console.error('Error parsing stored reviews:', e);
+      console.error("Error parsing stored reviews:", e);
     }
   }
 
   // Apply filters
   if (filters.companyId) {
-    reviews = reviews.filter(r => r.companyId === filters.companyId);
+    reviews = reviews.filter((r) => r.companyId === filters.companyId);
   }
   if (filters.userId) {
-    reviews = reviews.filter(r => r.userId === filters.userId);
+    reviews = reviews.filter((r) => r.userId === filters.userId);
   }
   if (filters.rating) {
-    reviews = reviews.filter(r => r.rating === filters.rating);
+    reviews = reviews.filter((r) => r.rating === filters.rating);
   }
 
   return { data: reviews };
@@ -78,8 +118,8 @@ export async function getAllReviews(filters = {}) {
 
 // Get reviews by company ID
 export async function getReviewsByCompanyId(companyId) {
-  const mockMode = isMockModeEnabled();
-  
+  const mockMode = await isMockModeEnabled();
+
   // Backend API call (ready for integration)
   // Uncomment when backend is ready:
   /*
@@ -99,7 +139,7 @@ export async function getReviewsByCompanyId(companyId) {
     }
   }
   */
-  
+
   // Mock data implementation
   const { data } = await getAllReviews({ companyId });
   return { data };
@@ -116,23 +156,23 @@ export async function getReviewsByUserId(userId) {
 export async function getReviewById(reviewId) {
   // return api.get(`/reviews/${reviewId}`);
   const reviews = await loadReviews();
-  const stored = localStorage.getItem('xktf_reviews');
+  const stored = localStorage.getItem("xktf_reviews");
   const allReviews = stored ? JSON.parse(stored) : reviews;
 
-  const review = allReviews.find(r => r.id === reviewId);
+  const review = allReviews.find((r) => r.id === reviewId);
   if (!review) {
-    throw new Error('Review not found');
+    throw new Error("Review not found");
   }
   return { data: review };
 }
 
 // Create review (authenticated users only)
 export async function createReview(reviewData) {
-  const mockMode = isMockModeEnabled();
+  const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
-  
+
   if (!user) {
-    throw new Error('You must be logged in to create a review');
+    throw new Error("You must be logged in to create a review");
   }
 
   // Backend API call (ready for integration)
@@ -170,49 +210,51 @@ export async function createReview(reviewData) {
     }
   }
   */
-  
+
   // Mock data implementation
   const reviews = await loadReviews();
-  const stored = localStorage.getItem('xktf_reviews');
+  const stored = localStorage.getItem("xktf_reviews");
   let allReviews = stored ? JSON.parse(stored) : reviews;
 
   // Check if user already reviewed this company
   const existingReview = allReviews.find(
-    r => r.companyId === reviewData.companyId && r.userId === user.id
+    (r) => r.companyId === reviewData.companyId && r.userId === user.id
   );
   if (existingReview) {
-    throw new Error('You have already reviewed this company. Please edit your existing review instead.');
+    throw new Error(
+      "You have already reviewed this company. Please edit your existing review instead."
+    );
   }
 
   const newReview = {
     id: `rvw-${Date.now()}`,
     companyId: reviewData.companyId,
     userId: user.id,
-    userName: user.name || user.email.split('@')[0],
-    userAvatar: user.avatar || '/assets/users/default-avatar.jpg',
+    userName: user.name || user.email.split("@")[0],
+    userAvatar: user.avatar || "/assets/users/default-avatar.jpg",
     rating: reviewData.rating,
-    pros: reviewData.pros || '',
-    cons: reviewData.cons || '',
-    description: reviewData.description || reviewData.body || '',
+    pros: reviewData.pros || "",
+    cons: reviewData.cons || "",
+    description: reviewData.description || reviewData.body || "",
     screenshot: reviewData.screenshot || null,
     isVerified: false,
     isPinned: false,
     isHidden: false,
     flags: [],
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   };
 
   allReviews.push(newReview);
   await saveReviews(allReviews);
 
   // Recalculate company rating
-  const { updateCompany } = await import('./companiesController.js');
+  const { updateCompany } = await import("./companiesController.js");
   const ratingData = await recalculateCompanyRating(reviewData.companyId);
   try {
     await updateCompany(reviewData.companyId, ratingData);
   } catch (e) {
-    console.error('Error updating company rating:', e);
+    console.error("Error updating company rating:", e);
   }
 
   return { data: newReview };
@@ -223,41 +265,41 @@ export async function updateReview(reviewId, updates) {
   // return api.put(`/reviews/${reviewId}`, updates);
   const user = getCurrentUser();
   if (!user) {
-    throw new Error('You must be logged in to update a review');
+    throw new Error("You must be logged in to update a review");
   }
 
   const reviews = await loadReviews();
-  const stored = localStorage.getItem('xktf_reviews');
+  const stored = localStorage.getItem("xktf_reviews");
   let allReviews = stored ? JSON.parse(stored) : reviews;
 
-  const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
+  const reviewIndex = allReviews.findIndex((r) => r.id === reviewId);
   if (reviewIndex === -1) {
-    throw new Error('Review not found');
+    throw new Error("Review not found");
   }
 
   const review = allReviews[reviewIndex];
-  
+
   // Users can only update their own reviews
   if (review.userId !== user.id) {
-    throw new Error('You can only update your own reviews');
+    throw new Error("You can only update your own reviews");
   }
 
   allReviews[reviewIndex] = {
     ...review,
     ...updates,
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   };
 
   await saveReviews(allReviews);
 
   // Recalculate company rating if rating changed
   if (updates.rating !== undefined) {
-    const { updateCompany } = await import('./companiesController.js');
+    const { updateCompany } = await import("./companiesController.js");
     const ratingData = await recalculateCompanyRating(review.companyId);
     try {
       await updateCompany(review.companyId, ratingData);
     } catch (e) {
-      console.error('Error updating company rating:', e);
+      console.error("Error updating company rating:", e);
     }
   }
 
@@ -269,23 +311,23 @@ export async function deleteReview(reviewId) {
   // return api.delete(`/reviews/${reviewId}`);
   const user = getCurrentUser();
   if (!user) {
-    throw new Error('You must be logged in to delete a review');
+    throw new Error("You must be logged in to delete a review");
   }
 
   const reviews = await loadReviews();
-  const stored = localStorage.getItem('xktf_reviews');
+  const stored = localStorage.getItem("xktf_reviews");
   let allReviews = stored ? JSON.parse(stored) : reviews;
 
-  const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
+  const reviewIndex = allReviews.findIndex((r) => r.id === reviewId);
   if (reviewIndex === -1) {
-    throw new Error('Review not found');
+    throw new Error("Review not found");
   }
 
   const review = allReviews[reviewIndex];
-  
+
   // Users can only delete their own reviews (admins can delete any)
-  if (review.userId !== user.id && user.role !== 'admin') {
-    throw new Error('You can only delete your own reviews');
+  if (review.userId !== user.id && user.role !== "admin") {
+    throw new Error("You can only delete your own reviews");
   }
 
   const companyId = review.companyId;
@@ -293,12 +335,12 @@ export async function deleteReview(reviewId) {
   await saveReviews(allReviews);
 
   // Recalculate company rating
-  const { updateCompany } = await import('./companiesController.js');
+  const { updateCompany } = await import("./companiesController.js");
   const ratingData = await recalculateCompanyRating(companyId);
   try {
     await updateCompany(companyId, ratingData);
   } catch (e) {
-    console.error('Error updating company rating:', e);
+    console.error("Error updating company rating:", e);
   }
 
   return { data: { success: true } };
@@ -306,11 +348,11 @@ export async function deleteReview(reviewId) {
 
 // Report review (users can report suspicious content)
 export async function reportReview(reviewId, reason) {
-  const mockMode = isMockModeEnabled();
+  const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
-  
+
   if (!user) {
-    throw new Error('You must be logged in to report a review');
+    throw new Error("You must be logged in to report a review");
   }
 
   // Backend API call (ready for integration)
@@ -347,37 +389,37 @@ export async function reportReview(reviewId, reason) {
     }
   }
   */
-  
+
   // Mock data implementation
   const reviews = await loadReviews();
-  const stored = localStorage.getItem('xktf_reviews');
+  const stored = localStorage.getItem("xktf_reviews");
   let allReviews = stored ? JSON.parse(stored) : reviews;
-  const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
-  
+  const reviewIndex = allReviews.findIndex((r) => r.id === reviewId);
+
   if (reviewIndex === -1) {
-    throw new Error('Review not found');
+    throw new Error("Review not found");
   }
-  
+
   if (!allReviews[reviewIndex].reports) {
     allReviews[reviewIndex].reports = [];
   }
   allReviews[reviewIndex].reports.push({
     userId: user.id,
     reason,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   });
   await saveReviews(allReviews);
-  
-  return { data: { success: true, message: 'Review reported successfully' } };
+
+  return { data: { success: true, message: "Review reported successfully" } };
 }
 
 // Get reviews for operator moderation
 export async function getOperatorReviews(filters = {}) {
-  const mockMode = isMockModeEnabled();
+  const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
-  
-  if (!user || user.role !== 'operator') {
-    throw new Error('Only operators can access this endpoint');
+
+  if (!user || user.role !== "operator") {
+    throw new Error("Only operators can access this endpoint");
   }
 
   // Backend API call (ready for integration)
@@ -399,18 +441,18 @@ export async function getOperatorReviews(filters = {}) {
     }
   }
   */
-  
+
   // Mock data implementation - return all reviews for now
   return await getAllReviews(filters);
 }
 
 // Flag review (operator only)
 export async function flagReview(reviewId, flagType) {
-  const mockMode = isMockModeEnabled();
+  const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
-  
-  if (!user || user.role !== 'operator') {
-    throw new Error('Only operators can flag reviews');
+
+  if (!user || user.role !== "operator") {
+    throw new Error("Only operators can flag reviews");
   }
 
   // Backend API call (ready for integration)
@@ -446,17 +488,17 @@ export async function flagReview(reviewId, flagType) {
     }
   }
   */
-  
+
   // Mock data implementation
   const reviews = await loadReviews();
-  const stored = localStorage.getItem('xktf_reviews');
+  const stored = localStorage.getItem("xktf_reviews");
   let allReviews = stored ? JSON.parse(stored) : reviews;
-  const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
-  
+  const reviewIndex = allReviews.findIndex((r) => r.id === reviewId);
+
   if (reviewIndex === -1) {
-    throw new Error('Review not found');
+    throw new Error("Review not found");
   }
-  
+
   if (!allReviews[reviewIndex].flags) {
     allReviews[reviewIndex].flags = [];
   }
@@ -465,17 +507,17 @@ export async function flagReview(reviewId, flagType) {
   }
   allReviews[reviewIndex].updatedAt = new Date().toISOString();
   await saveReviews(allReviews);
-  
+
   return { data: allReviews[reviewIndex] };
 }
 
 // Approve/unhide review (operator only)
 export async function approveReview(reviewId) {
-  const mockMode = isMockModeEnabled();
+  const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
-  
-  if (!user || user.role !== 'operator') {
-    throw new Error('Only operators can approve reviews');
+
+  if (!user || user.role !== "operator") {
+    throw new Error("Only operators can approve reviews");
   }
 
   // Backend API call (ready for integration)
@@ -507,32 +549,32 @@ export async function approveReview(reviewId) {
     }
   }
   */
-  
+
   // Mock data implementation
   const reviews = await loadReviews();
-  const stored = localStorage.getItem('xktf_reviews');
+  const stored = localStorage.getItem("xktf_reviews");
   let allReviews = stored ? JSON.parse(stored) : reviews;
-  const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
-  
+  const reviewIndex = allReviews.findIndex((r) => r.id === reviewId);
+
   if (reviewIndex === -1) {
-    throw new Error('Review not found');
+    throw new Error("Review not found");
   }
-  
+
   allReviews[reviewIndex].isHidden = false;
   allReviews[reviewIndex].flags = [];
   allReviews[reviewIndex].updatedAt = new Date().toISOString();
   await saveReviews(allReviews);
-  
+
   return { data: allReviews[reviewIndex] };
 }
 
 // Hide review (admin only)
 export async function hideReview(reviewId) {
-  const mockMode = isMockModeEnabled();
+  const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
-  
-  if (!user || user.role !== 'admin') {
-    throw new Error('Only admins can hide reviews');
+
+  if (!user || user.role !== "admin") {
+    throw new Error("Only admins can hide reviews");
   }
 
   // Backend API call (ready for integration)
@@ -563,31 +605,31 @@ export async function hideReview(reviewId) {
     }
   }
   */
-  
+
   // Mock data implementation
   const reviews = await loadReviews();
-  const stored = localStorage.getItem('xktf_reviews');
+  const stored = localStorage.getItem("xktf_reviews");
   let allReviews = stored ? JSON.parse(stored) : reviews;
-  const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
-  
+  const reviewIndex = allReviews.findIndex((r) => r.id === reviewId);
+
   if (reviewIndex === -1) {
-    throw new Error('Review not found');
+    throw new Error("Review not found");
   }
-  
+
   allReviews[reviewIndex].isHidden = true;
   allReviews[reviewIndex].updatedAt = new Date().toISOString();
   await saveReviews(allReviews);
-  
+
   return { data: allReviews[reviewIndex] };
 }
 
 // Pin review (admin only)
 export async function pinReview(reviewId) {
-  const mockMode = isMockModeEnabled();
+  const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
-  
-  if (!user || user.role !== 'admin') {
-    throw new Error('Only admins can pin reviews');
+
+  if (!user || user.role !== "admin") {
+    throw new Error("Only admins can pin reviews");
   }
 
   // Backend API call (ready for integration)
@@ -618,21 +660,21 @@ export async function pinReview(reviewId) {
     }
   }
   */
-  
+
   // Mock data implementation
   const reviews = await loadReviews();
-  const stored = localStorage.getItem('xktf_reviews');
+  const stored = localStorage.getItem("xktf_reviews");
   let allReviews = stored ? JSON.parse(stored) : reviews;
-  const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
-  
+  const reviewIndex = allReviews.findIndex((r) => r.id === reviewId);
+
   if (reviewIndex === -1) {
-    throw new Error('Review not found');
+    throw new Error("Review not found");
   }
-  
+
   allReviews[reviewIndex].isPinned = !allReviews[reviewIndex].isPinned;
   allReviews[reviewIndex].updatedAt = new Date().toISOString();
   await saveReviews(allReviews);
-  
+
   return { data: allReviews[reviewIndex] };
 }
 
@@ -641,6 +683,3 @@ export async function getReviewsByRating(rating) {
   const { data } = await getAllReviews({ rating: parseInt(rating) });
   return data;
 }
-
-
-

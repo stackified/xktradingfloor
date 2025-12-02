@@ -34,7 +34,7 @@ import {
   deleteReview,
 } from "../controllers/reviewsController.js";
 import { getAllBlogs } from "../controllers/blogsController.js";
-import { updateMockMode } from "../redux/slices/mockSlice.js";
+import { updateMockMode, fetchMockMode } from "../redux/slices/mockSlice.js";
 import { fetchAllBlogs } from "../redux/slices/blogsSlice.js";
 import ConfirmModal from "../components/shared/ConfirmModal.jsx";
 import { Trash2, Flag } from "lucide-react";
@@ -95,6 +95,21 @@ function AdminDashboard() {
     isOpen: false,
     reviewId: null,
   });
+
+  // Fetch and sync mock mode from backend (for global sync across all users)
+  React.useEffect(() => {
+    // Fetch from backend on mount
+    dispatch(fetchMockMode());
+
+    // Poll backend periodically to sync mock mode globally (every 5 seconds)
+    const pollInterval = setInterval(() => {
+      dispatch(fetchMockMode());
+    }, 5000);
+
+    return () => {
+      clearInterval(pollInterval);
+    };
+  }, [dispatch]);
 
   React.useEffect(() => {
     loadStats();

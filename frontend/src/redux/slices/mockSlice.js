@@ -16,7 +16,12 @@ export const fetchMockMode = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get("/public/settings/mock-mode");
-      return response.data?.enabled || false;
+      const enabled = response.data?.enabled || false;
+      // Sync to localStorage for backward compatibility
+      if (typeof window !== "undefined") {
+        localStorage.setItem("xk_mock_mode", enabled.toString());
+      }
+      return enabled;
     } catch (error) {
       // Expected 404 if backend endpoint not implemented yet - silently fallback to localStorage
       if (error.response?.status === 404 || error.code === "ERR_NETWORK") {
@@ -98,10 +103,7 @@ const mockSlice = createSlice({
       .addCase(fetchMockMode.fulfilled, (state, action) => {
         state.loading = false;
         state.enabled = action.payload;
-        // Sync to localStorage
-        if (typeof window !== "undefined") {
-          localStorage.setItem("xk_mock_mode", action.payload.toString());
-        }
+        // localStorage is already synced in the thunk
       })
       .addCase(fetchMockMode.rejected, (state, action) => {
         state.loading = false;

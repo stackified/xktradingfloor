@@ -7,10 +7,7 @@ import CompanyCard from "../components/reviews/CompanyCard.jsx";
 import CompanyFilters from "../components/reviews/CompanyFilters.jsx";
 import Pagination from "../components/reviews/Pagination.jsx";
 import { getUserCookie } from "../utils/cookies.js";
-import {
-  updateMockMode,
-  syncMockModeFromStorage,
-} from "../redux/slices/mockSlice.js";
+import { updateMockMode, fetchMockMode } from "../redux/slices/mockSlice.js";
 
 // Map URL category to actual category value
 const categoryMap = {
@@ -85,34 +82,30 @@ export default function Reviews() {
   // Get category from filters
   const activeCategory = filters.category || null;
 
-  // Sync mock mode from localStorage (for cross-tab and admin-controlled changes)
+  // Fetch and sync mock mode from backend (for global sync across all users)
   React.useEffect(() => {
-    // Sync on mount
-    dispatch(syncMockModeFromStorage());
+    // Fetch from backend on mount
+    dispatch(fetchMockMode());
 
-    // Listen for storage changes (when admin changes mock mode in another tab)
+    // Poll backend periodically to sync mock mode globally (every 5 seconds)
+    const pollInterval = setInterval(() => {
+      dispatch(fetchMockMode());
+    }, 5000);
+
+    // Also listen for localStorage changes (for cross-tab sync on same device)
     const handleStorageChange = (e) => {
       if (e.key === "xk_mock_mode") {
         dispatch(syncMockModeFromStorage());
       }
     };
 
-    // Also poll localStorage periodically to catch changes from same tab
-    const interval = setInterval(() => {
-      const stored = localStorage.getItem("xk_mock_mode");
-      const currentMockMode = stored === "true";
-      if (currentMockMode !== mockMode) {
-        dispatch(syncMockModeFromStorage());
-      }
-    }, 1000); // Check every second
-
     window.addEventListener("storage", handleStorageChange);
 
     return () => {
+      clearInterval(pollInterval);
       window.removeEventListener("storage", handleStorageChange);
-      clearInterval(interval);
     };
-  }, [dispatch, mockMode]);
+  }, [dispatch]);
 
   React.useEffect(() => {
     loadCompanies();
@@ -136,7 +129,17 @@ export default function Reviews() {
   async function loadCompanies() {
     setLoading(true);
     try {
-      const { data: companiesData } = await getAllCompanies(filters);
+      const response = await getAllCompanies(filters);
+      // Handle different response structures
+      let companiesData = [];
+      if (Array.isArray(response.data)) {
+        companiesData = response.data;
+      } else if (response.data?.docs && Array.isArray(response.data.docs)) {
+        companiesData = response.data.docs;
+      } else if (response.data?.data && Array.isArray(response.data.data)) {
+        companiesData = response.data.data;
+      }
+
       const filtered = canSeePendingCompanies
         ? companiesData
         : companiesData.filter((c) => c.status === "approved");
@@ -144,6 +147,8 @@ export default function Reviews() {
       setCurrentPage(1); // Reset to first page when filters change
     } catch (error) {
       console.error("Error loading companies:", error);
+      // Set empty array on error to prevent page from breaking
+      setAllCompanies([]);
     } finally {
       setLoading(false);
     }
