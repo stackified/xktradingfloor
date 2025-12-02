@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const blogRoutes = require('./blog.routes.js');
 const companyRoutes = require('./company.routes.js');
+const reviewRoutes = require('./review.routes.js');
 
 // Controllers
-// const reviewController = require('../../../controllers/review.controller');
 // const productController = require('../../../controllers/product.controller');
 // const eventController = require('../../../controllers/event.controller');
 // const podcastController = require('../../../controllers/podcast.controller');
@@ -23,12 +23,7 @@ router.use('/blogs', blogRoutes);
 router.use('/company', companyRoutes);
 
 // Review Routes
-// router.get('/reviews', reviewController.getAllReviews);
-// router.get('/reviews/:id', reviewController.getReviewById);
-// router.put('/reviews/:id', reviewController.updateReview);
-// router.put('/reviews/:id/status', reviewController.updateReviewStatus);
-// router.post('/reviews/:id/response', reviewController.addReviewResponse);
-// router.delete('/reviews/:id', reviewController.deleteReview);
+router.use('/review', reviewRoutes);
 
 // Product Routes
 // router.post('/products', productController.createProduct);

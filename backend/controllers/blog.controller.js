@@ -252,6 +252,18 @@ exports.updateBlog = async (req, res) => {
         const { blogid } = req.params;
         const updateData = req.body;
 
+        let featuredImage = "";
+        if (req?.files?.featuredImage) {
+            featuredImage = req.files.featuredImage[0];
+            const pathN = featuredImage?.path;
+            const npathN = pathN.replaceAll("\\", "/");
+            featuredImage.path = npathN;
+
+            // Upload to Cloudflare R2
+            const url = await r2.uploadPublic(featuredImage?.path, `${featuredImage?.filename}`, `Blogs`);
+            updateData.featuredImage = url;
+        }
+
         const blog = await BlogModel.findOne({ _id: blogid, isDeleted: false });
 
         if (!blog) {
@@ -261,6 +273,30 @@ exports.updateBlog = async (req, res) => {
         // If status is being changed to published, set publishedAt
         if (updateData.status === 'published' && blog.status !== 'published') {
             updateData.publishedAt = new Date();
+        }
+
+        // Handle flagging fields
+        if (updateData.flagReason !== undefined) {
+            // Validate flag reason if provided
+            if (updateData.flagReason) {
+                const validReasons = ['Spam', 'Inappropriate Content', 'Misinformation', 'Duplicate Content', 'Other'];
+                if (!validReasons.includes(updateData.flagReason)) {
+                    return sendErrorResponse(res, `Invalid flag reason. Must be one of: ${validReasons.join(', ')}`, 400, true, true);
+                }
+                // Set flagging information
+                updateData.isFlagged = true;
+                updateData.flaggedAt = new Date();
+                if (req.user && req.user._id) {
+                    updateData.flaggedBy = req.user._id;
+                }
+            } else {
+                // If flagReason is set to null/empty, unflag the blog
+                updateData.isFlagged = false;
+                updateData.flagReason = null;
+                updateData.flagAdditionalDetails = null;
+                updateData.flaggedAt = null;
+                updateData.flaggedBy = null;
+            }
         }
 
         Object.assign(blog, updateData);
