@@ -52,7 +52,7 @@ export const fetchAllBlogs = createAsyncThunk(
       // Note: Backend controller reads status from req.body (line 66), but GET requests
       // don't typically have bodies. Frontend sends status in query params.
       // Backend should be updated to read from req.query.status for consistency.
-      const response = await api.post("/admin/blogs/getallblogs", config);
+      const response = await api.get("/admin/blogs/getallblogs", config);
 
       return response.data;
     } catch (error) {
@@ -347,7 +347,7 @@ export const fetchUserBlogs = createAsyncThunk(
       };
 
       // Using admin endpoint with userId filter
-      const response = await api.post("/admin/blogs/getallblogs", {
+      const response = await api.get("/admin/blogs/getallblogs", {
         ...config,
         params: { ...config.params, ...(status && { status }), userId },
       });
@@ -402,7 +402,7 @@ export const fetchOperatorBlogs = createAsyncThunk(
       };
 
       // Fetch all blogs for operators (they can see all but only edit/delete their own)
-      const response = await api.post("/admin/blogs/getallblogs", {
+      const response = await api.get("/admin/blogs/getallblogs", {
         ...config,
         params: { ...config.params, ...(status && { status }) },
       });
@@ -494,7 +494,7 @@ export const fetchPublishedBlogs = createAsyncThunk(
 
         // Use admin endpoint with published status filter
         // Backend route: GET /admin/blogs/getallblogs
-        const response = await api.post("/admin/blogs/getallblogs", config);
+        const response = await api.get("/admin/blogs/getallblogs", config);
 
         // Handle different response structures
         let blogs = [];
