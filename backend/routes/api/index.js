@@ -11,8 +11,8 @@ const protectedRoutes = require("./protected/index");
 // Auth APIs
 router.use("/auth", authRoutes);
 
-// Motor Insurance Routes
-router.use(publicRoutes);
+// Public Routes (no authentication required)
+router.use("/public", publicRoutes);
 
 // Middleware to check token
 router.use(authentication);
