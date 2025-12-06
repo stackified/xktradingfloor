@@ -59,9 +59,8 @@ XK Trading Floor is a modern full-stack web application designed to empower trad
 
 **🔄 Partially Implemented:**
 
-- Company management (update/delete controllers ready, routes missing)
 - Review system (public submission endpoint pending)
-- Promo code management (controllers ready, routes missing)
+- Blog slug functionality (slug field commented in model, controller and route exist)
 
 **⚠️ Pending Implementation:**
 
@@ -847,7 +846,19 @@ All admin company endpoints require authentication and admin/operator role:
 | POST   | `/api/admin/company/getallcompanies`           | Get all companies (with filters) | ✅ Admin/Operator               |
 | GET    | `/api/admin/company/:companyId/getcompanybyid` | Get company by ID                | ✅ Admin/Operator               |
 
-**Note:** Update and delete endpoints exist in controller but routes are not yet connected. Controllers ready: `updateCompany()`, `deleteCompany()`, `addPromoCode()`, `updatePromoCode()`, `deletePromoCode()`.
+**Company Management Endpoints:**
+
+| Method | Endpoint                                       | Description                      | Authentication                  |
+| ------ | ---------------------------------------------- | -------------------------------- | ------------------------------- |
+| POST   | `/api/admin/company/addcompany`                | Create company                   | ✅ Admin/Operator + File Upload |
+| POST   | `/api/admin/company/getallcompanies`           | Get all companies (with filters) | ✅ Admin/Operator               |
+| GET    | `/api/admin/company/:companyId/getcompanybyid`  | Get company by ID                | ✅ Admin/Operator               |
+| DELETE | `/api/admin/company/:companyId/deletecompany`  | Delete company                   | ✅ Admin/Operator               |
+| POST   | `/api/admin/company/:companyId/addpromocode`   | Add promo code                   | ✅ Admin/Operator               |
+| PUT    | `/api/admin/company/:companyId/updatepromocode/:promoId` | Update promo code        | ✅ Admin/Operator               |
+| DELETE | `/api/admin/company/:companyId/deletepromocode/:promoId` | Delete promo code        | ✅ Admin/Operator               |
+
+**Note:** Update endpoint (`updateCompany()`) exists in controller but route is not yet connected.
 
 ### Public Company Endpoints
 
@@ -1414,10 +1425,11 @@ The application supports multiple deployment environments:
     - View tracking
     - Public API endpoints for published blogs
   - **Company Management System** (Admin/Operator):
-    - Create and read operations
+    - Create, read, and delete operations
+    - Update operation (controller ready, route pending)
     - Public API endpoint for approved companies
     - Rating aggregation (auto-calculated)
-    - Promo code management (controllers ready)
+    - Promo code management (full CRUD - routes connected)
     - File upload for logos
   - **Review Management System** (Admin):
     - Create reviews
@@ -1457,7 +1469,7 @@ The application supports multiple deployment environments:
 
   - **Admin API endpoints:**
     - ✅ Blog management - Fully implemented
-    - ✅ Company management - Partially implemented (create, read; update/delete controllers ready but routes missing)
+    - ✅ Company management - Mostly implemented (create, read, delete, promo codes; update controller ready but route missing)
     - ✅ Review management - Partially implemented (create, read by user, delete)
     - ✅ Settings management - Implemented (mock mode)
     - ⚠️ Events management - Controllers exist, routes commented out
@@ -1490,13 +1502,11 @@ The application supports multiple deployment environments:
 
 1. **Supervisor Role Reference**: The file `backend/routes/api/index.js` references `constants.roles.supervisor` in the admin route authorization, but this role is not defined in `backend/utils/constants.js`. The defined roles are: Admin, User, SubAdmin, Operator. This may cause runtime errors. Consider removing the supervisor reference or adding it to constants.
 
-2. **Company Update/Delete Routes**: The company controller has `updateCompany()` and `deleteCompany()` methods implemented, but the routes are not connected in `backend/routes/api/admin/company.routes.js`. These endpoints need to be added:
+2. **Company Update Route**: The company controller has `updateCompany()` method implemented, but the route is not connected in `backend/routes/api/admin/company.routes.js`. This endpoint needs to be added:
 
    - `PUT /api/admin/company/:companyId/updatecompany` - Update company
-   - `DELETE /api/admin/company/:companyId/deletecompany` - Delete company
-   - `POST /api/admin/company/:companyId/promocodes` - Add promo code
-   - `PUT /api/admin/company/:companyId/promocodes/:promoId` - Update promo code
-   - `DELETE /api/admin/company/:companyId/promocodes/:promoId` - Delete promo code
+
+   **Note:** Delete and promo code routes are already implemented and connected.
 
 3. **Blog Slug Field**: The slug field in the blog model (`backend/models/blog.model.js`) is commented out. The `getBlogBySlug` controller method and route exist but cannot function until the slug field is enabled in the model.
 
