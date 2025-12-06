@@ -216,8 +216,8 @@ export const updateBlog = createAsyncThunk(
 
       return rejectWithValue(
         error.response?.data?.message ||
-          error.message ||
-          "Failed to update blog"
+        error.message ||
+        "Failed to update blog"
       );
     }
   }
@@ -270,8 +270,8 @@ export const deleteBlog = createAsyncThunk(
 
       return rejectWithValue(
         error.response?.data?.message ||
-          error.message ||
-          "Failed to delete blog"
+        error.message ||
+        "Failed to delete blog"
       );
     }
   }
@@ -323,8 +323,8 @@ export const permanentDeleteBlog = createAsyncThunk(
 
       return rejectWithValue(
         error.response?.data?.message ||
-          error.message ||
-          "Failed to permanently delete blog"
+        error.message ||
+        "Failed to permanently delete blog"
       );
     }
   }
@@ -538,10 +538,10 @@ export const fetchPublishedBlogs = createAsyncThunk(
           data: blogs,
           pagination: response.data?.pagination ||
             response.data?.data?.pagination || {
-              page: 1,
-              totalPages: 1,
-              totalItems: blogs.length,
-            },
+            page: 1,
+            totalPages: 1,
+            totalItems: blogs.length,
+          },
         };
       } catch (error) {
         // Handle connection refused gracefully
@@ -704,8 +704,8 @@ export const unflagBlog = createAsyncThunk(
 
       return rejectWithValue(
         error.response?.data?.message ||
-          error.message ||
-          "Failed to unflag blog"
+        error.message ||
+        "Failed to unflag blog"
       );
     }
   }
