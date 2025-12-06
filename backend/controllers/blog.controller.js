@@ -58,6 +58,39 @@ exports.createBlog = async (req, res) => {
 };
 
 // Admin: Get all blogs (with filters)
+exports.getAllPublishedBlogs = async (req, res) => {
+    try {
+        let { page, size, search } = req.query;
+
+        const { limit, offset } = getPagination(page, size);
+        search = escapeRegex(search);
+
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: 'i' } },
+                { excerpt: { $regex: search, $options: 'i' } },
+                { content: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const blogs = await BlogModel.find({ status: 'published', isDeleted: false })
+            .populate('author', 'fullName email profileImage')
+            .sort({ createdAt: -1 })
+            .skip(offset)
+            .limit(limit);
+
+        const totalItems = await BlogModel.countDocuments({ status: 'published', isDeleted: false });
+
+        return sendSuccessResponse(res,
+            getPaginationData({ count: totalItems, docs: blogs }, page, limit)
+        );
+
+    } catch (error) {
+        return sendErrorResponse(res, error);
+    }
+};
+
+// Admin: Get all blogs (with filters)
 exports.getAllBlogs = async (req, res) => {
     try {
         const { _id: adminId, role } = req.user;
