@@ -135,73 +135,67 @@ export async function getAllCompanies(filters = {}) {
 
   // Always try to fetch from backend first (only if mock mode is OFF)
   if (!mockMode) {
-    // Try admin endpoint for all authenticated users
-    // For non-admin users, we'll filter to only approved companies
-    // If backend returns 403, we'll handle it gracefully
-    if (authenticated) {
-      try {
-        // Backend expects POST for getAllCompanies with filters in body and query params
-        const { search, page, size, ...bodyFilters } = filters;
+    try {
+      // Backend expects POST for getAllCompanies with filters in body and query params
+      const { search, page, size, ...bodyFilters } = filters;
 
-        // For non-admin users, always filter to approved companies only
-        // For admin users, use the status filter if provided, otherwise show all
-        const requestBody = { ...bodyFilters };
-        if (!userIsAdmin) {
-          // Non-admin users can only see approved companies
-          requestBody.status = "approved";
-        } else if (!requestBody.status && !filters.status) {
-          // Admin users: default to approved if no status specified (for public view)
+      // Determine which endpoint to use
+      let endpoint = "/companies/getallcompanies"; // Public endpoint
+      let requestBody = { ...bodyFilters };
+
+      if (authenticated && userIsAdmin) {
+        // Admin users can use admin endpoint to see all companies (including pending)
+        endpoint = "/admin/company/getallcompanies";
+        // Admin users: use status filter if provided, otherwise show all
+        if (!requestBody.status && !filters.status) {
+          // Default to approved for public view, but admin can override
           requestBody.status = "approved";
         }
-
-        const response = await api.post(
-          "/admin/company/getallcompanies",
-          requestBody,
-          {
-            params: { search, page, size },
-          }
-        );
-        // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
-        // Transform to expected format: { data: [...] }
-        if (response.data?.success && response.data?.data?.docs) {
-          // Map _id to id for frontend compatibility
-          backendCompanies = response.data.data.docs.map((company) => ({
-            ...company,
-            id: company._id || company.id,
-          }));
-          backendRequestSucceeded = true;
-        } else if (Array.isArray(response.data?.data)) {
-          backendCompanies = response.data.data.map((company) => ({
-            ...company,
-            id: company._id || company.id,
-          }));
-          backendRequestSucceeded = true;
-        } else if (Array.isArray(response.data)) {
-          backendCompanies = response.data;
-          backendRequestSucceeded = true;
-        }
-      } catch (error) {
-        // If we get 401 (unauthorized) or 403 (forbidden), user doesn't have access
-        // This is expected for non-admin users trying to access admin endpoint
-        if (error.response?.status === 401 || error.response?.status === 403) {
-          backendRequestSucceeded = false;
-        } else if (
-          error.code === "ERR_NETWORK" ||
-          error.message?.includes("ERR_CONNECTION_REFUSED") ||
-          error.code === "ECONNREFUSED"
-        ) {
-          // Backend server is down - return empty array
-          backendRequestSucceeded = false;
-        } else {
-          // Other errors - backend might be down
-          backendRequestSucceeded = false;
-        }
+      } else {
+        // Non-admin users and unauthenticated users use public endpoint
+        // Public endpoint only returns approved companies
+        // Always filter to approved companies only
+        requestBody.status = "approved";
       }
-    }
 
-    // For unauthenticated users, no endpoint exists - return empty array
-    if (!authenticated) {
-      return { data: [] };
+      const response = await api.post(endpoint, requestBody, {
+        params: { search, page, size },
+      });
+      // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
+      // Transform to expected format: { data: [...] }
+      if (response.data?.success && response.data?.data?.docs) {
+        // Map _id to id for frontend compatibility
+        backendCompanies = response.data.data.docs.map((company) => ({
+          ...company,
+          id: company._id || company.id,
+        }));
+        backendRequestSucceeded = true;
+      } else if (Array.isArray(response.data?.data)) {
+        backendCompanies = response.data.data.map((company) => ({
+          ...company,
+          id: company._id || company.id,
+        }));
+        backendRequestSucceeded = true;
+      } else if (Array.isArray(response.data)) {
+        backendCompanies = response.data;
+        backendRequestSucceeded = true;
+      }
+    } catch (error) {
+      // If we get 401 (unauthorized) or 403 (forbidden), user doesn't have access
+      // This is expected for non-admin users trying to access admin endpoint
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        backendRequestSucceeded = false;
+      } else if (
+        error.code === "ERR_NETWORK" ||
+        error.message?.includes("ERR_CONNECTION_REFUSED") ||
+        error.code === "ECONNREFUSED"
+      ) {
+        // Backend server is down - return empty array
+        backendRequestSucceeded = false;
+      } else {
+        // Other errors - backend might be down
+        backendRequestSucceeded = false;
+      }
     }
   }
 

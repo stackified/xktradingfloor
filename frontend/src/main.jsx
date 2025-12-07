@@ -6,6 +6,7 @@ import App from "./App.jsx";
 import store from "./redux/store.js";
 import "./index.css";
 import { HelmetProvider } from "react-helmet-async";
+import { ToastProvider } from "./contexts/ToastContext.jsx";
 
 // Get base path from environment variables
 // VITE_BASE_PATH is set via environment variable during build
@@ -58,7 +59,9 @@ root.render(
     <Provider store={store}>
       <HelmetProvider>
         <BrowserRouter basename={basePath}>
-          <App />
+          <ToastProvider>
+            <App />
+          </ToastProvider>
         </BrowserRouter>
       </HelmetProvider>
     </Provider>

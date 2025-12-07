@@ -7,10 +7,12 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { login } from "../controllers/authController.js";
 import { loginSuccess } from "../redux/slices/authSlice.js";
+import { useToast } from "../contexts/ToastContext.jsx";
 
 function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const toast = useToast();
   const [form, setForm] = React.useState({ email: "", password: "" });
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -26,19 +28,29 @@ function Login() {
         // The backend sets httpOnly cookie 'token' automatically
         // We also store token in user cookie for Authorization header
         dispatch(loginSuccess(res.data));
-        // Redirect based on user role (case-insensitive)
-        const userRole = res.data.role?.toLowerCase();
-        if (userRole === 'admin' || userRole === 'subadmin' || userRole === 'supervisor') {
-          navigate("/admin/blogs");
-        } else if (userRole === 'operator') {
-          navigate("/operator/blogs");
-        } else {
-          navigate("/dashboard");
-        }
+        
+        // Show success toast with personalized message
+        const userName = res.data.fullName || res.data.name || res.data.email?.split("@")[0] || "User";
+        toast.success(`Welcome back, ${userName}!`, 4000);
+        
+        // Small delay to show toast before navigation
+        setTimeout(() => {
+          // Redirect based on user role (case-insensitive)
+          const userRole = res.data.role?.toLowerCase();
+          if (userRole === 'admin' || userRole === 'subadmin' || userRole === 'supervisor') {
+            navigate("/admin/blogs");
+          } else if (userRole === 'operator') {
+            navigate("/operator/blogs");
+          } else {
+            navigate("/dashboard");
+          }
+        }, 500);
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || "Invalid credentials. Please try again.";
       setError(errorMessage);
+      // Show error toast
+      toast.error(errorMessage, 5000);
     } finally {
       setLoading(false);
     }

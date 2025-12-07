@@ -31,6 +31,7 @@ import AdminCompanies from "../pages/admin/AdminCompanies.jsx";
 import AdminCompanyDetails from "../pages/admin/AdminCompanyDetails.jsx";
 import AdminCompanyForm from "../components/admin/companies/CompanyForm.jsx";
 import AboutEditor from "../pages/admin/AboutEditor.jsx";
+import AdminSettings from "../pages/admin/AdminSettings.jsx";
 import MyBlogs from "../pages/MyBlogs.jsx";
 import OperatorBlogs from "../pages/operator/OperatorBlogs.jsx";
 import OperatorReviews from "../pages/operator/OperatorReviews.jsx";
@@ -74,9 +75,7 @@ function Layout({ children }) {
   return (
     <div className="min-h-screen flex flex-col bg-black text-foreground">
       <Header />
-      <main className="flex-1 pt-20 bg-black text-foreground">
-        {children}
-      </main>
+      <main className="flex-1 pt-20 bg-black text-foreground">{children}</main>
       <Footer />
     </div>
   );
@@ -218,6 +217,16 @@ export default function AppRouter() {
           element={
             <ProtectedRoute role="admin">
               <AboutEditor />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Settings Route */}
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminSettings />
             </ProtectedRoute>
           }
         />

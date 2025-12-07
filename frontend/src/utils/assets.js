@@ -1,10 +1,21 @@
+import { getCdnAssetUrl, getCdnBaseUrl } from "./cdn.js";
+
 /**
- * Utility function to get asset paths that work with GitHub Pages base path
+ * Utility function to get asset paths
+ * Now uses Cloudflare CDN if configured, otherwise falls back to local paths
  * @param {string} path - Asset path (e.g., "/assets/logo.png")
- * @returns {string} - Path with base URL prepended if needed
+ * @returns {string} - CDN URL or local path with base URL prepended if needed
  */
 export const getAssetPath = (path) => {
   if (!path) return path;
+
+  // If CDN is configured, use CDN URL
+  const cdnBaseUrl = getCdnBaseUrl();
+  if (cdnBaseUrl) {
+    return getCdnAssetUrl(path);
+  }
+
+  // Fallback to local path handling (for development)
   // If path already starts with base URL, return as is
   if (path.startsWith(import.meta.env.BASE_URL)) return path;
   // If path starts with /, prepend base URL
@@ -18,8 +29,9 @@ export const getAssetPath = (path) => {
 /**
  * Generate company logo path from company name
  * Converts company name to slug format (e.g., "Alpha Brokers" -> "alpha-brokers.png")
+ * Now uses CDN if configured
  * @param {string} companyName - Company name (e.g., "Alpha Brokers")
- * @returns {string} - Logo path with base URL prepended (e.g., "/xktrading/assets/companies/alpha-brokers.png" or "/assets/companies/alpha-brokers.png")
+ * @returns {string} - Logo path with CDN URL or base URL prepended
  */
 export const getCompanyLogoPath = (companyName) => {
   if (!companyName) return getAssetPath("/assets/placeholder.jpg");

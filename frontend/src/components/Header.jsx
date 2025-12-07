@@ -7,6 +7,7 @@ import { logout, syncUserFromCookie } from "../redux/slices/authSlice.js";
 import { getUserCookie } from "../utils/cookies.js";
 import { getAssetPath } from "../utils/assets.js";
 import ImageWithFallback from "./shared/ImageWithFallback.jsx";
+import { useToast } from "../contexts/ToastContext.jsx";
 
 // Merch page is hidden but kept in code for quick re-enabling
 // To re-enable: uncomment the merch item below and ensure route is active
@@ -68,6 +69,7 @@ function HamburgerIcon({ isOpen, onClick }) {
 function Header() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const toast = useToast();
   const [open, setOpen] = React.useState(false);
   const location = useLocation();
   const reduxUser = useSelector((state) => state.auth.user);
@@ -415,6 +417,16 @@ function Header() {
                         Edit About Section
                       </Link>
                     )}
+                    {(user?.role === "admin" || user?.role === "Admin") && (
+                      <Link
+                        to="/admin/settings"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-200 hover:bg-gray-800/50 transition-colors border-b border-gray-800"
+                        role="menuitem"
+                      >
+                        Settings
+                      </Link>
+                    )}
                     {user?.role === "operator" && (
                       <Link
                         to="/operator/blogs"
@@ -447,7 +459,13 @@ function Header() {
                       onClick={() => {
                         dispatch(logout());
                         setMenuOpen(false);
-                        navigate("/");
+                        toast.success(
+                          "You've been logged out successfully.",
+                          3000
+                        );
+                        setTimeout(() => {
+                          navigate("/");
+                        }, 500);
                       }}
                       className="block w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
                       role="menuitem"
@@ -613,6 +631,15 @@ function Header() {
                         Manage Companies
                       </Link>
                     )}
+                    {(user?.role === "admin" || user?.role === "Admin") && (
+                      <Link
+                        to="/admin/settings"
+                        onClick={() => setOpen(false)}
+                        className="px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
+                      >
+                        Settings
+                      </Link>
+                    )}
                     {user?.role === "operator" && (
                       <Link
                         to="/operator/blogs"
@@ -642,7 +669,13 @@ function Header() {
                       onClick={() => {
                         dispatch(logout());
                         setOpen(false);
-                        navigate("/");
+                        toast.success(
+                          "You've been logged out successfully.",
+                          3000
+                        );
+                        setTimeout(() => {
+                          navigate("/");
+                        }, 500);
                       }}
                       className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                     >

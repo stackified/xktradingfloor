@@ -79,28 +79,16 @@ export async function getAllReviews(filters = {}) {
   const mockMode = await isMockModeEnabled();
 
   // If mock mode is OFF, try to fetch from backend
-  // Note: Backend doesn't have a public reviews endpoint in Postman collection
-  // Reviews are accessed via admin endpoints or company-specific endpoints
+  // Note: Backend doesn't have a public GET /api/reviews endpoint
+  // Reviews are accessed via:
+  // - Admin endpoint: GET /api/admin/review/:userId/getreviewsbyusers (for specific user)
+  // - Company-specific reviews should use getReviewsByCompanyId instead
+  // This function is primarily for mock mode or when fetching all reviews for admin dashboard
   if (!mockMode) {
-    try {
-      // This endpoint may not exist - backend doesn't show it in Postman
-      // Keeping for backward compatibility but it will likely fail
-      const response = await api.get("/reviews", { params: filters });
-      // Handle different response structures
-      if (Array.isArray(response.data?.data)) {
-        return { data: response.data.data };
-      }
-      if (Array.isArray(response.data)) {
-        return { data: response.data };
-      }
-      return response;
-    } catch (error) {
-      // Backend not available and mock mode is OFF, return empty
-      if (error.response?.status === 401) {
-        throw error;
-      }
-      return { data: [] };
-    }
+    // No public endpoint exists for getting all reviews
+    // Return empty array - use getReviewsByCompanyId or getReviewsByUserId for specific queries
+    // This prevents calling invalid endpoints
+    return { data: [] };
   }
 
   // Mock data implementation (only when mock mode is ON)

@@ -1,5 +1,6 @@
 import React from "react";
 import { getAssetPath } from "../../utils/assets.js";
+import { getCdnAssetUrl, getCdnAssetWithFallback } from "../../utils/cdn.js";
 
 /**
  * Generate a dynamic fallback image with text (blog title)
@@ -72,15 +73,29 @@ export default function ImageWithFallback({
   alt = "",
   className = "",
   useDynamicFallback = false,
+  useCdn = true, // Enable CDN by default
   ...props
 }) {
-  const [imgSrc, setImgSrc] = React.useState(getAssetPath(src));
+  // Get CDN URLs with fallback
+  const { cdnUrl, fallbackUrl } = React.useMemo(() => {
+    if (useCdn && src) {
+      return getCdnAssetWithFallback(src, fallback);
+    }
+    return {
+      cdnUrl: getAssetPath(src),
+      fallbackUrl: getAssetPath(fallback),
+    };
+  }, [src, fallback, useCdn]);
+
+  const [imgSrc, setImgSrc] = React.useState(cdnUrl);
   const [hasError, setHasError] = React.useState(false);
   const [dynamicFallback, setDynamicFallback] = React.useState(null);
+  const [errorCount, setErrorCount] = React.useState(0);
 
   React.useEffect(() => {
-    setImgSrc(getAssetPath(src));
+    setImgSrc(cdnUrl);
     setHasError(false);
+    setErrorCount(0);
     // Generate dynamic fallback if alt text is provided and useDynamicFallback is true
     if (useDynamicFallback && alt && typeof window !== "undefined") {
       try {
@@ -91,17 +106,27 @@ export default function ImageWithFallback({
         setDynamicFallback(null);
       }
     }
-  }, [src, alt, useDynamicFallback]);
+  }, [src, alt, useDynamicFallback, cdnUrl]);
 
   const handleError = () => {
-    if (!hasError) {
-      setHasError(true);
-      // Use dynamic fallback if available, otherwise use static fallback
-      if (useDynamicFallback && dynamicFallback) {
-        setImgSrc(dynamicFallback);
-      } else {
-        setImgSrc(getAssetPath(fallback));
-      }
+    // Prevent infinite error loops
+    if (errorCount >= 2) {
+      return;
+    }
+
+    setErrorCount((prev) => prev + 1);
+    setHasError(true);
+
+    // Fallback chain: CDN -> Local -> Dynamic -> Static placeholder
+    if (errorCount === 0 && useCdn && imgSrc === cdnUrl) {
+      // First error: try local fallback
+      setImgSrc(fallbackUrl);
+    } else if (useDynamicFallback && dynamicFallback) {
+      // Second error: use dynamic fallback if available
+      setImgSrc(dynamicFallback);
+    } else {
+      // Final fallback: static placeholder
+      setImgSrc(fallbackUrl);
     }
   };
 
