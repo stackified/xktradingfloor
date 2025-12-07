@@ -25,8 +25,8 @@ router.use(
   "/admin",
   authorization([
     constants.roles.admin,
-    constants.roles.supervisor,
-    constants.roles.subAdmin,
+    constants.roles.operator,
+    constants.roles.user,
   ]),
   adminRoutes
 );
