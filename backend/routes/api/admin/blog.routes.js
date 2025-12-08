@@ -18,7 +18,9 @@ router.post('/addblog',
         ]
     ),
     blogController.createBlog);
-router.get('/getallblogs', blogController.getAllBlogs);
+// Note: Using POST because controller reads status from req.body
+// GET requests don't typically have request bodies in Express
+router.post('/getallblogs', blogController.getAllBlogs);
 router.get('/:blogid/getblogbyid', blogController.getBlogById);
 router.put('/:blogid/updateblog',
     pdfUpload.fileUpload(
