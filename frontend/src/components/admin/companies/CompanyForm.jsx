@@ -2,7 +2,14 @@ import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Upload, XCircle, Loader2, Edit } from "lucide-react";
 import { useSelector } from "react-redux";
-import { getCompanyById, createCompany, updateCompany, addPromoCode, updatePromoCode, deletePromoCode } from "../../../controllers/companiesController.js";
+import {
+  getCompanyById,
+  createCompany,
+  updateCompany,
+  addPromoCode,
+  updatePromoCode,
+  deletePromoCode,
+} from "../../../controllers/companiesController.js";
 import { getUserCookie } from "../../../utils/cookies.js";
 import RichTextEditor from "../../shared/RichTextEditor.jsx";
 
@@ -36,13 +43,13 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
   const [showPromoForm, setShowPromoForm] = React.useState(false);
   const [editingPromo, setEditingPromo] = React.useState(null);
   const [promoForm, setPromoForm] = React.useState({
-    code: '',
-    discount: '',
-    discountType: 'percentage',
-    validFrom: '',
-    validTo: '',
-    terms: '',
-    featured: false
+    code: "",
+    discount: "",
+    discountType: "percentage",
+    validFrom: "",
+    validTo: "",
+    terms: "",
+    featured: false,
   });
   const [promoSubmitting, setPromoSubmitting] = React.useState(false);
 
@@ -128,17 +135,24 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
       const finalData = {
         ...companyData,
         logo: logoFile || form.logo,
-        images: imageFiles.length > 0 ? imageFiles : images.map((img) => img.url),
+        images:
+          imageFiles.length > 0 ? imageFiles : images.map((img) => img.url),
       };
 
       if (isEditing) {
-        await updateCompany(companyId, finalData);
+        // When updating, set status to pending (unless admin explicitly sets it)
+        const updateData = {
+          ...finalData,
+          // Only change status to pending if it's not explicitly set by admin
+          status: user?.role === "admin" ? finalData.status : "pending",
+        };
+        await updateCompany(companyId, updateData);
         navigate(redirectPath);
       } else {
         // Create company first
         const result = await createCompany(finalData);
         const newCompanyId = result?.data?._id || result?.data?.id;
-        
+
         if (newCompanyId) {
           // After creating company, add all promo codes that were added during creation
           if (promoCodesToAdd.length > 0) {
@@ -146,20 +160,27 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
               // Add all promo codes one by one
               for (const promo of promoCodesToAdd) {
                 const promoData = {
-                  code: promo.code?.toUpperCase() || '',
-                  discount: typeof promo.discount === 'number' ? promo.discount : parseFloat(promo.discount) || 0,
-                  discountType: promo.discountType || 'percentage',
+                  code: promo.code?.toUpperCase() || "",
+                  discount:
+                    typeof promo.discount === "number"
+                      ? promo.discount
+                      : parseFloat(promo.discount) || 0,
+                  discountType: promo.discountType || "percentage",
                   validFrom: promo.validFrom || new Date().toISOString(),
-                  validTo: promo.validTo ? new Date(promo.validTo).toISOString() : new Date().toISOString(),
-                  terms: promo.terms || '',
-                  featured: promo.featured || false
+                  validTo: promo.validTo
+                    ? new Date(promo.validTo).toISOString()
+                    : new Date().toISOString(),
+                  terms: promo.terms || "",
+                  featured: promo.featured || false,
                 };
                 await addPromoCode(newCompanyId, promoData);
               }
             } catch (promoError) {
               // If promo codes fail, still navigate but show warning
               console.error("Failed to add some promo codes:", promoError);
-              setError("Company created successfully, but some promo codes failed to save. You can add them manually.");
+              setError(
+                "Company created successfully, but some promo codes failed to save. You can add them manually."
+              );
               setTimeout(() => navigate(redirectPath), 2000);
               return;
             }
@@ -178,28 +199,32 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
 
   async function handleSavePromoCode() {
     if (!promoForm.code || !promoForm.discount || !promoForm.validTo) {
-      setError('Please fill in promo code, discount, and expiry date');
+      setError("Please fill in promo code, discount, and expiry date");
       return;
     }
 
     // If editing existing company, save immediately via API
     if (isEditing && companyId) {
       setPromoSubmitting(true);
-      setError('');
+      setError("");
 
       try {
         const promoData = {
           code: promoForm.code.toUpperCase(),
           discount: parseFloat(promoForm.discount),
-          discountType: promoForm.discountType || 'percentage',
+          discountType: promoForm.discountType || "percentage",
           validFrom: promoForm.validFrom || new Date().toISOString(),
           validTo: new Date(promoForm.validTo).toISOString(),
-          terms: promoForm.terms || '',
-          featured: promoForm.featured || false
+          terms: promoForm.terms || "",
+          featured: promoForm.featured || false,
         };
 
         if (editingPromo) {
-          await updatePromoCode(companyId, editingPromo.id || editingPromo._id, promoData);
+          await updatePromoCode(
+            companyId,
+            editingPromo.id || editingPromo._id,
+            promoData
+          );
         } else {
           await addPromoCode(companyId, promoData);
         }
@@ -208,16 +233,16 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
         setShowPromoForm(false);
         setEditingPromo(null);
         setPromoForm({
-          code: '',
-          discount: '',
-          discountType: 'percentage',
-          validFrom: '',
-          validTo: '',
-          terms: '',
-          featured: false
+          code: "",
+          discount: "",
+          discountType: "percentage",
+          validFrom: "",
+          validTo: "",
+          terms: "",
+          featured: false,
         });
       } catch (error) {
-        setError(error.message || 'Failed to save promo code');
+        setError(error.message || "Failed to save promo code");
       } finally {
         setPromoSubmitting(false);
       }
@@ -226,10 +251,10 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
       const newPromo = {
         code: promoForm.code.toUpperCase(),
         discount: parseFloat(promoForm.discount),
-        discountType: promoForm.discountType || 'percentage',
+        discountType: promoForm.discountType || "percentage",
         validFrom: promoForm.validFrom || new Date().toISOString(),
         validTo: new Date(promoForm.validTo).toISOString(),
-        terms: promoForm.terms || '',
+        terms: promoForm.terms || "",
         featured: promoForm.featured || false,
         // Temporary ID for local state
         tempId: `temp-${Date.now()}`,
@@ -243,32 +268,32 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
       setShowPromoForm(false);
       setEditingPromo(null);
       setPromoForm({
-        code: '',
-        discount: '',
-        discountType: 'percentage',
-        validFrom: '',
-        validTo: '',
-        terms: '',
-        featured: false
+        code: "",
+        discount: "",
+        discountType: "percentage",
+        validFrom: "",
+        validTo: "",
+        terms: "",
+        featured: false,
       });
     }
   }
 
   async function handleDeletePromoCode(promoId) {
-    if (!confirm('Are you sure you want to delete this promo code?')) {
+    if (!confirm("Are you sure you want to delete this promo code?")) {
       return;
     }
 
     // If editing existing company, delete via API
-    if (isEditing && companyId && !promoId.startsWith('temp-')) {
+    if (isEditing && companyId && !promoId.startsWith("temp-")) {
       setPromoSubmitting(true);
-      setError('');
+      setError("");
 
       try {
         await deletePromoCode(companyId, promoId);
         await loadCompany();
       } catch (error) {
-        setError(error.message || 'Failed to delete promo code');
+        setError(error.message || "Failed to delete promo code");
       } finally {
         setPromoSubmitting(false);
       }
@@ -285,13 +310,17 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
 
   function handleEditPromoCode(promo) {
     setPromoForm({
-      code: promo.code || '',
-      discount: promo.discount?.toString() || '',
-      discountType: promo.discountType || 'percentage',
-      validFrom: promo.validFrom ? new Date(promo.validFrom).toISOString().split('T')[0] : '',
-      validTo: promo.validTo ? new Date(promo.validTo).toISOString().split('T')[0] : '',
-      terms: promo.terms || '',
-      featured: promo.featured || false
+      code: promo.code || "",
+      discount: promo.discount?.toString() || "",
+      discountType: promo.discountType || "percentage",
+      validFrom: promo.validFrom
+        ? new Date(promo.validFrom).toISOString().split("T")[0]
+        : "",
+      validTo: promo.validTo
+        ? new Date(promo.validTo).toISOString().split("T")[0]
+        : "",
+      terms: promo.terms || "",
+      featured: promo.featured || false,
     });
     setEditingPromo(promo);
     setShowPromoForm(true);
@@ -357,7 +386,9 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                 </label>
                 <select
                   value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, category: e.target.value })
+                  }
                   className="select select-bordered w-full border-white/10 bg-gray-950/40 text-white"
                   required
                 >
@@ -369,10 +400,14 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
 
               {user?.role === "admin" && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">Status</label>
+                  <label className="text-sm font-medium text-gray-300">
+                    Status
+                  </label>
                   <select
                     value={form.status}
-                    onChange={(e) => setForm({ ...form, status: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, status: e.target.value })
+                    }
                     className="select select-bordered w-full border-white/10 bg-gray-950/40 text-white"
                   >
                     <option value="pending">Pending</option>
@@ -397,7 +432,9 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">Company Logo</label>
+              <label className="text-sm font-medium text-gray-300">
+                Company Logo
+              </label>
               <div className="rounded-2xl border border-dashed border-white/20 bg-gray-950/30 p-4">
                 {logoPreview ? (
                   <div className="relative">
@@ -457,7 +494,9 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">Full Description</label>
+              <label className="text-sm font-medium text-gray-300">
+                Full Description
+              </label>
               <RichTextEditor
                 value={form.description}
                 onChange={handleDescriptionChange}
@@ -466,7 +505,9 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">Company Images</label>
+              <label className="text-sm font-medium text-gray-300">
+                Company Images
+              </label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {images.map((img, idx) => (
                   <div key={idx} className="relative">
@@ -515,222 +556,293 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                     setShowPromoForm(!showPromoForm);
                     setEditingPromo(null);
                     setPromoForm({
-                      code: '',
-                      discount: '',
-                      discountType: 'percentage',
-                      validFrom: '',
-                      validTo: '',
-                      terms: '',
-                      featured: false
+                      code: "",
+                      discount: "",
+                      discountType: "percentage",
+                      validFrom: "",
+                      validTo: "",
+                      terms: "",
+                      featured: false,
                     });
                   }}
                   className="btn btn-xs btn-primary"
                 >
-                  {showPromoForm ? 'Cancel' : '+ Add Promo Code'}
+                  {showPromoForm ? "Cancel" : "+ Add Promo Code"}
                 </button>
               </div>
 
-                {showPromoForm && (
-                  <div className="p-4 rounded-lg bg-gray-800/50 border border-gray-700 space-y-3">
-                    <h4 className="text-sm font-semibold">
-                      {editingPromo ? 'Edit Promo Code' : 'Add New Promo Code'}
-                    </h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs text-gray-400 mb-1">Code *</label>
+              {showPromoForm && (
+                <div className="p-4 rounded-lg bg-gray-800/50 border border-gray-700 space-y-3">
+                  <h4 className="text-sm font-semibold">
+                    {editingPromo ? "Edit Promo Code" : "Add New Promo Code"}
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">
+                        Code *
+                      </label>
+                      <input
+                        type="text"
+                        value={promoForm.code}
+                        onChange={(e) =>
+                          setPromoForm({
+                            ...promoForm,
+                            code: e.target.value.toUpperCase(),
+                          })
+                        }
+                        className="input input-sm w-full"
+                        placeholder="PROMOCODE"
+                        disabled={promoSubmitting}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">
+                        Discount *
+                      </label>
+                      <input
+                        type="number"
+                        value={promoForm.discount}
+                        onChange={(e) =>
+                          setPromoForm({
+                            ...promoForm,
+                            discount: e.target.value,
+                          })
+                        }
+                        className="input input-sm w-full"
+                        placeholder="10"
+                        min="0"
+                        disabled={promoSubmitting}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">
+                        Discount Type
+                      </label>
+                      <select
+                        value={promoForm.discountType}
+                        onChange={(e) =>
+                          setPromoForm({
+                            ...promoForm,
+                            discountType: e.target.value,
+                          })
+                        }
+                        className="input input-sm w-full"
+                        disabled={promoSubmitting}
+                      >
+                        <option value="percentage">Percentage</option>
+                        <option value="fixed">Fixed Amount</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">
+                        Valid From
+                      </label>
+                      <input
+                        type="date"
+                        value={promoForm.validFrom}
+                        onChange={(e) =>
+                          setPromoForm({
+                            ...promoForm,
+                            validFrom: e.target.value,
+                          })
+                        }
+                        className="input input-sm w-full"
+                        disabled={promoSubmitting}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">
+                        Valid To *
+                      </label>
+                      <input
+                        type="date"
+                        value={promoForm.validTo}
+                        onChange={(e) =>
+                          setPromoForm({
+                            ...promoForm,
+                            validTo: e.target.value,
+                          })
+                        }
+                        className="input input-sm w-full"
+                        required
+                        disabled={promoSubmitting}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-xs text-gray-400 mb-1">
+                        Terms & Conditions
+                      </label>
+                      <textarea
+                        value={promoForm.terms}
+                        onChange={(e) =>
+                          setPromoForm({ ...promoForm, terms: e.target.value })
+                        }
+                        className="input input-sm w-full h-20"
+                        placeholder="Terms and conditions"
+                        disabled={promoSubmitting}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="flex items-center gap-2 cursor-pointer">
                         <input
-                          type="text"
-                          value={promoForm.code}
-                          onChange={(e) => setPromoForm({ ...promoForm, code: e.target.value.toUpperCase() })}
-                          className="input input-sm w-full"
-                          placeholder="PROMOCODE"
+                          type="checkbox"
+                          checked={promoForm.featured}
+                          onChange={(e) =>
+                            setPromoForm({
+                              ...promoForm,
+                              featured: e.target.checked,
+                            })
+                          }
+                          className="checkbox checkbox-sm"
                           disabled={promoSubmitting}
                         />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-400 mb-1">Discount *</label>
-                        <input
-                          type="number"
-                          value={promoForm.discount}
-                          onChange={(e) => setPromoForm({ ...promoForm, discount: e.target.value })}
-                          className="input input-sm w-full"
-                          placeholder="10"
-                          min="0"
-                          disabled={promoSubmitting}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-400 mb-1">Discount Type</label>
-                        <select
-                          value={promoForm.discountType}
-                          onChange={(e) => setPromoForm({ ...promoForm, discountType: e.target.value })}
-                          className="input input-sm w-full"
-                          disabled={promoSubmitting}
-                        >
-                          <option value="percentage">Percentage</option>
-                          <option value="fixed">Fixed Amount</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-400 mb-1">Valid From</label>
-                        <input
-                          type="date"
-                          value={promoForm.validFrom}
-                          onChange={(e) => setPromoForm({ ...promoForm, validFrom: e.target.value })}
-                          className="input input-sm w-full"
-                          disabled={promoSubmitting}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-400 mb-1">Valid To *</label>
-                        <input
-                          type="date"
-                          value={promoForm.validTo}
-                          onChange={(e) => setPromoForm({ ...promoForm, validTo: e.target.value })}
-                          className="input input-sm w-full"
-                          required
-                          disabled={promoSubmitting}
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <label className="block text-xs text-gray-400 mb-1">Terms & Conditions</label>
-                        <textarea
-                          value={promoForm.terms}
-                          onChange={(e) => setPromoForm({ ...promoForm, terms: e.target.value })}
-                          className="input input-sm w-full h-20"
-                          placeholder="Terms and conditions"
-                          disabled={promoSubmitting}
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={promoForm.featured}
-                            onChange={(e) => setPromoForm({ ...promoForm, featured: e.target.checked })}
-                            className="checkbox checkbox-sm"
+                        <span className="text-xs text-gray-400">
+                          Mark as featured
+                        </span>
+                      </label>
+                    </div>
+                    <div className="col-span-2 flex gap-2">
+                      {isEditing && companyId ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={handleSavePromoCode}
+                            className="btn btn-sm btn-primary flex-1"
                             disabled={promoSubmitting}
-                          />
-                          <span className="text-xs text-gray-400">Mark as featured</span>
-                        </label>
-                      </div>
-                      <div className="col-span-2 flex gap-2">
-                        {isEditing && companyId ? (
-                          <>
-                            <button
-                              type="button"
-                              onClick={handleSavePromoCode}
-                              className="btn btn-sm btn-primary flex-1"
-                              disabled={promoSubmitting}
-                            >
-                              {promoSubmitting ? 'Saving...' : editingPromo ? 'Update' : 'Add Promo Code'}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setShowPromoForm(false);
-                                setEditingPromo(null);
-                              }}
-                              className="btn btn-sm btn-outline"
-                              disabled={promoSubmitting}
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                // Update in local state for new company
-                                if (editingPromo) {
-                                  const updatedPromos = [...form.promoCodes];
-                                  const index = updatedPromos.findIndex(
-                                    (p) => (p.id || p._id || p.tempId) === (editingPromo.id || editingPromo._id || editingPromo.tempId)
-                                  );
-                                  if (index !== -1) {
-                                    updatedPromos[index] = {
-                                      ...promoForm,
-                                      discount: parseFloat(promoForm.discount),
-                                      validFrom: promoForm.validFrom || new Date().toISOString(),
-                                      validTo: new Date(promoForm.validTo).toISOString(),
-                                      tempId: updatedPromos[index].tempId || `temp-${Date.now()}`,
-                                    };
-                                    setForm({ ...form, promoCodes: updatedPromos });
-                                  }
-                                } else {
-                                  handleSavePromoCode();
+                          >
+                            {promoSubmitting
+                              ? "Saving..."
+                              : editingPromo
+                              ? "Update"
+                              : "Add Promo Code"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowPromoForm(false);
+                              setEditingPromo(null);
+                            }}
+                            className="btn btn-sm btn-outline"
+                            disabled={promoSubmitting}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              // Update in local state for new company
+                              if (editingPromo) {
+                                const updatedPromos = [...form.promoCodes];
+                                const index = updatedPromos.findIndex(
+                                  (p) =>
+                                    (p.id || p._id || p.tempId) ===
+                                    (editingPromo.id ||
+                                      editingPromo._id ||
+                                      editingPromo.tempId)
+                                );
+                                if (index !== -1) {
+                                  updatedPromos[index] = {
+                                    ...promoForm,
+                                    discount: parseFloat(promoForm.discount),
+                                    validFrom:
+                                      promoForm.validFrom ||
+                                      new Date().toISOString(),
+                                    validTo: new Date(
+                                      promoForm.validTo
+                                    ).toISOString(),
+                                    tempId:
+                                      updatedPromos[index].tempId ||
+                                      `temp-${Date.now()}`,
+                                  };
+                                  setForm({
+                                    ...form,
+                                    promoCodes: updatedPromos,
+                                  });
                                 }
-                                setShowPromoForm(false);
-                                setEditingPromo(null);
-                              }}
-                              className="btn btn-sm btn-primary flex-1"
-                            >
-                              {editingPromo ? 'Update' : 'Add Promo Code'}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setShowPromoForm(false);
-                                setEditingPromo(null);
-                              }}
-                              className="btn btn-sm btn-outline"
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        )}
-                      </div>
+                              } else {
+                                handleSavePromoCode();
+                              }
+                              setShowPromoForm(false);
+                              setEditingPromo(null);
+                            }}
+                            className="btn btn-sm btn-primary flex-1"
+                          >
+                            {editingPromo ? "Update" : "Add Promo Code"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowPromoForm(false);
+                              setEditingPromo(null);
+                            }}
+                            className="btn btn-sm btn-outline"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                {form.promoCodes?.length > 0 && (
-                  <div className="space-y-2">
-                    {form.promoCodes.map((promo) => (
-                      <div
-                        key={promo.id || promo._id}
-                        className="p-3 rounded-lg bg-gray-800/30 border border-gray-700 flex items-center justify-between"
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-mono font-semibold text-sm">{promo.code}</span>
-                            <span className="text-xs text-green-400">
-                              {promo.discount}{promo.discountType === 'percentage' ? '%' : ''} OFF
+              {form.promoCodes?.length > 0 && (
+                <div className="space-y-2">
+                  {form.promoCodes.map((promo) => (
+                    <div
+                      key={promo.id || promo._id}
+                      className="p-3 rounded-lg bg-gray-800/30 border border-gray-700 flex items-center justify-between"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-mono font-semibold text-sm">
+                            {promo.code}
+                          </span>
+                          <span className="text-xs text-green-400">
+                            {promo.discount}
+                            {promo.discountType === "percentage" ? "%" : ""} OFF
+                          </span>
+                          {promo.featured && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-green-500/20 text-green-400">
+                              Featured
                             </span>
-                            {promo.featured && (
-                              <span className="text-xs px-1.5 py-0.5 rounded bg-green-500/20 text-green-400">
-                                Featured
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            Valid until {new Date(promo.validTo).toLocaleDateString()}
-                          </div>
+                          )}
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleEditPromoCode(promo)}
-                            className="btn btn-xs btn-ghost"
-                            disabled={promoSubmitting && isEditing && companyId}
-                          >
-                            <Edit className="h-3 w-3" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeletePromoCode(promo.id || promo._id || promo.tempId)}
-                            className="btn btn-xs btn-ghost text-red-400"
-                            disabled={promoSubmitting && isEditing && companyId}
-                          >
-                            <XCircle className="h-3 w-3" />
-                          </button>
+                        <div className="text-xs text-gray-400">
+                          Valid until{" "}
+                          {new Date(promo.validTo).toLocaleDateString()}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleEditPromoCode(promo)}
+                          className="btn btn-xs btn-ghost"
+                          disabled={promoSubmitting && isEditing && companyId}
+                        >
+                          <Edit className="h-3 w-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleDeletePromoCode(
+                              promo.id || promo._id || promo.tempId
+                            )
+                          }
+                          className="btn btn-xs btn-ghost text-red-400"
+                          disabled={promoSubmitting && isEditing && companyId}
+                        >
+                          <XCircle className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <div className="flex flex-wrap gap-3 pt-4">
               <button

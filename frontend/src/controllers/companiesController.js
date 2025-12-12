@@ -854,3 +854,78 @@ export async function deletePromoCode(companyId, promoId) {
   await saveCompanies(allCompanies);
   return { data: { success: true } };
 }
+
+// Request company addition (authenticated users only)
+// Backend endpoint: POST /api/protected/company/request
+export async function requestCompanyAddition(companyData) {
+  const mockMode = await isMockModeEnabled();
+  const user = getCurrentUser();
+
+  if (!user) {
+    throw new Error("You must be logged in to request a company addition");
+  }
+
+  // Try backend API first (when mock mode is OFF)
+  if (!mockMode) {
+    try {
+      const formData = new FormData();
+      Object.keys(companyData).forEach((key) => {
+        if (key === "logo" && companyData[key] instanceof File) {
+          formData.append("logo", companyData[key]);
+        } else if (key !== "logo") {
+          formData.append(
+            key,
+            typeof companyData[key] === "object"
+              ? JSON.stringify(companyData[key])
+              : companyData[key]
+          );
+        }
+      });
+
+      // Backend endpoint: POST /api/protected/company/request
+      const response = await api.post("/protected/company/request", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      // Backend returns: { success: true, message: "...", data: {...} }
+      if (response.data?.success && response.data?.data) {
+        return {
+          data: {
+            ...response.data.data,
+            id: response.data.data._id || response.data.data.id,
+          },
+        };
+      }
+      return response;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        throw new Error("Unauthorized. Please log in again.");
+      }
+      // If backend fails and mock mode is OFF, throw error
+      if (!mockMode) {
+        throw error;
+      }
+    }
+  }
+
+  // Mock data implementation (only if mock mode is ON or backend failed)
+  const companies = await loadCompanies();
+  const stored = localStorage.getItem("xktf_companies");
+  let allCompanies = stored ? JSON.parse(stored) : companies;
+
+  const newCompany = {
+    id: `cmp-${Date.now()}`,
+    ...companyData,
+    addedBy: user.id,
+    status: "pending",
+    ratingsAggregate: 0,
+    totalReviews: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    promoCodes: companyData.promoCodes || [],
+  };
+
+  allCompanies.push(newCompany);
+  await saveCompanies(allCompanies);
+  return { data: newCompany };
+}

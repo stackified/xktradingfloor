@@ -338,7 +338,7 @@ export async function deleteReview(reviewId) {
   if (!mockMode) {
     try {
       const response = await api.delete(
-        `/admin/review/${reviewId}/deleteReview`
+        `/admin/review/${reviewId}/deletereview`
       );
       // Backend returns: { success: true, message: "..." }
       if (response.data?.success) {

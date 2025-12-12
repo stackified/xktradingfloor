@@ -1,8 +1,20 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
-import { Plus, Edit, Trash2, Eye, Shield, ShieldOff, Loader2 } from "lucide-react";
-import { getAllCompanies, deleteCompany, toggleCompanyStatus } from "../../controllers/companiesController.js";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Shield,
+  ShieldOff,
+  Loader2,
+} from "lucide-react";
+import {
+  getAllCompanies,
+  deleteCompany,
+  updateCompany,
+} from "../../controllers/companiesController.js";
 import ProtectedRoute from "../../components/dashboard/ProtectedRoute.jsx";
 import { useSelector } from "react-redux";
 import { getUserCookie } from "../../utils/cookies.js";
@@ -18,7 +30,11 @@ function AdminCompaniesContent() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
   const [categoryFilter, setCategoryFilter] = React.useState("");
-  const [deleteModal, setDeleteModal] = React.useState({ isOpen: false, companyId: null, companyName: "" });
+  const [deleteModal, setDeleteModal] = React.useState({
+    isOpen: false,
+    companyId: null,
+    companyName: "",
+  });
 
   React.useEffect(() => {
     loadCompanies();
@@ -29,9 +45,12 @@ function AdminCompaniesContent() {
     try {
       const filters = {};
       if (searchQuery) filters.search = searchQuery;
-      if (statusFilter) filters.status = statusFilter;
+      // Only add status filter if it's not empty (not "All statuses")
+      if (statusFilter && statusFilter !== "") {
+        filters.status = statusFilter;
+      }
       if (categoryFilter) filters.category = categoryFilter;
-      
+
       const { data } = await getAllCompanies(filters);
       setCompanies(data || []);
     } catch (error) {
@@ -57,10 +76,34 @@ function AdminCompaniesContent() {
 
   async function handleToggleStatus(companyId) {
     try {
-      await toggleCompanyStatus(companyId);
+      const company = companies.find(
+        (c) => c.id === companyId || c._id === companyId
+      );
+      if (!company) {
+        console.error("Company not found");
+        return;
+      }
+
+      // Determine new status based on current status
+      let newStatus;
+      if (company.status === "approved") {
+        newStatus = "blocked";
+      } else if (company.status === "pending") {
+        newStatus = "approved";
+      } else if (company.status === "blocked") {
+        newStatus = "approved";
+      } else {
+        newStatus = "approved";
+      }
+
+      // Use updateCompany to change status
+      await updateCompany(companyId, { status: newStatus });
       await loadCompanies();
     } catch (error) {
       console.error("Failed to toggle company status:", error);
+      alert(
+        `Failed to toggle company status: ${error.message || "Unknown error"}`
+      );
     }
   }
 
@@ -178,11 +221,14 @@ function AdminCompaniesContent() {
                       </span>
                     </div>
                     <div className="text-sm text-gray-400 mb-2">
-                      {company.details || company.description || "No description"}
+                      {company.details ||
+                        company.description ||
+                        "No description"}
                     </div>
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                       <span>
-                        Rating: {company.ratingsAggregate?.toFixed(1) || "0.0"} ⭐
+                        Rating: {company.ratingsAggregate?.toFixed(1) || "0.0"}{" "}
+                        ⭐
                       </span>
                       <span>Reviews: {company.totalReviews || 0}</span>
                       <span>Updated: {formatDate(company.updatedAt)}</span>
@@ -200,7 +246,9 @@ function AdminCompaniesContent() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => navigate(`/admin/companies/edit/${company.id}`)}
+                      onClick={() =>
+                        navigate(`/admin/companies/edit/${company.id}`)
+                      }
                       className="btn btn-sm btn-outline border-white/20 text-white hover:bg-white/10"
                     >
                       <Edit className="h-4 w-4" />
@@ -246,7 +294,9 @@ function AdminCompaniesContent() {
       {/* Delete Confirmation Modal */}
       <ConfirmModal
         isOpen={deleteModal.isOpen}
-        onClose={() => setDeleteModal({ isOpen: false, companyId: null, companyName: "" })}
+        onClose={() =>
+          setDeleteModal({ isOpen: false, companyId: null, companyName: "" })
+        }
         onConfirm={confirmDelete}
         title="Delete Company"
         message={`Are you sure you want to delete "${deleteModal.companyName}"? This action cannot be undone.`}
