@@ -158,17 +158,20 @@ export async function getPublishedBlogs(filters = {}) {
     const params = { page, size, search, category, tag, featured };
     const response = await api.get("/blogs/getpublishedblogs", { params });
 
-    // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
-    if (response.data?.success && response.data?.data?.docs) {
-      backendBlogs = response.data.data.docs.map((blog) => ({
-        ...blog,
-        id: blog._id || blog.id,
-      }));
-    } else if (Array.isArray(response.data?.data)) {
-      backendBlogs = response.data.data.map((blog) => ({
-        ...blog,
-        id: blog._id || blog.id,
-      }));
+    // Backend returns: { success: true, data: [...], pagination: { page, limit, total, pages } }
+    if (response.data?.success && response.data?.data) {
+      if (Array.isArray(response.data.data)) {
+        backendBlogs = response.data.data.map((blog) => ({
+          ...blog,
+          id: blog._id || blog.id,
+        }));
+      } else if (response.data.data?.docs) {
+        // Fallback for paginated format
+        backendBlogs = response.data.data.docs.map((blog) => ({
+          ...blog,
+          id: blog._id || blog.id,
+        }));
+      }
     }
   } catch (error) {
     // If backend fails and mock mode is OFF, return empty array

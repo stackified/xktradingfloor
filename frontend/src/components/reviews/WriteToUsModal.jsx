@@ -1,6 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import { requestCompanyAddition } from "../../controllers/companiesController.js";
 
 function WriteToUsModal({ isOpen, onClose, onSubmit }) {
   const [formData, setFormData] = React.useState({
@@ -9,25 +10,60 @@ function WriteToUsModal({ isOpen, onClose, onSubmit }) {
     companyName: "",
     category: "",
     message: "",
+    logo: null,
   });
   const [submitted, setSubmitted] = React.useState(false);
+  const [submitting, setSubmitting] = React.useState(false);
+  const [error, setError] = React.useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically send the data to your backend
-    console.log("Form submitted:", formData);
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      onClose();
-      setFormData({
-        name: "",
-        email: "",
-        companyName: "",
-        category: "",
-        message: "",
-      });
-    }, 2000);
+    setSubmitting(true);
+    setError("");
+
+    try {
+      // Prepare company data for backend
+      const companyData = {
+        name: formData.companyName,
+        category: formData.category,
+        description: formData.message || "",
+        details: formData.message || "",
+        website: "", // Can be added to form if needed
+        logo: formData.logo,
+      };
+
+      await requestCompanyAddition(companyData);
+      
+      setSubmitted(true);
+      if (onSubmit) {
+        onSubmit(formData);
+      }
+      
+      setTimeout(() => {
+        setSubmitted(false);
+        onClose();
+        setFormData({
+          name: "",
+          email: "",
+          companyName: "",
+          category: "",
+          message: "",
+          logo: null,
+        });
+      }, 2000);
+    } catch (err) {
+      setError(err.message || "Failed to submit request. Please try again.");
+      console.error("Error submitting company request:", err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({ ...formData, logo: file });
+    }
   };
 
   const handleChange = (e) => {
@@ -196,19 +232,49 @@ function WriteToUsModal({ isOpen, onClose, onSubmit }) {
                       />
                     </div>
 
+                    <div>
+                      <label
+                        htmlFor="logo"
+                        className="block text-sm font-medium text-gray-300 mb-2"
+                      >
+                        Company Logo (Optional)
+                      </label>
+                      <input
+                        type="file"
+                        id="logo"
+                        name="logo"
+                        accept="image/*"
+                        onChange={handleLogoChange}
+                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      {formData.logo && (
+                        <p className="mt-1 text-xs text-gray-400">
+                          Selected: {formData.logo.name}
+                        </p>
+                      )}
+                    </div>
+
+                    {error && (
+                      <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
+                        <p className="text-sm text-red-400">{error}</p>
+                      </div>
+                    )}
+
                     <div className="flex gap-3 pt-4">
                       <button
                         type="button"
                         onClick={onClose}
-                        className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                        disabled={submitting}
+                        className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+                        disabled={submitting}
+                        className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Submit Request
+                        {submitting ? "Submitting..." : "Submit Request"}
                       </button>
                     </div>
                   </form>

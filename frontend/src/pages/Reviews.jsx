@@ -8,8 +8,13 @@ import CompanyFilters from "../components/reviews/CompanyFilters.jsx";
 import Pagination from "../components/reviews/Pagination.jsx";
 import CardLoader from "../components/shared/CardLoader.jsx";
 import WriteToUsModal from "../components/reviews/WriteToUsModal.jsx";
+import RequireAuthModal from "../components/shared/RequireAuthModal.jsx";
 import { getUserCookie } from "../utils/cookies.js";
-import { updateMockMode, fetchMockMode, syncMockModeFromStorage } from "../redux/slices/mockSlice.js";
+import {
+  updateMockMode,
+  fetchMockMode,
+  syncMockModeFromStorage,
+} from "../redux/slices/mockSlice.js";
 
 // Map URL category to actual category value
 const categoryMap = {
@@ -52,6 +57,7 @@ export default function Reviews() {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
   const [writeToUsModalOpen, setWriteToUsModalOpen] = React.useState(false);
+  const [authModalOpen, setAuthModalOpen] = React.useState(false);
 
   // Extract category from URL pathname
   React.useEffect(() => {
@@ -197,15 +203,23 @@ export default function Reviews() {
           <h1 className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl mb-3">
             {activeCategory ? (
               <>
-                Compare <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">{categoryLabels[activeCategory]}</span>
+                Compare{" "}
+                <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
+                  {categoryLabels[activeCategory]}
+                </span>
               </>
             ) : (
               <>
-                Compare <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Trading Companies</span>
+                Compare{" "}
+                <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
+                  Trading Companies
+                </span>
               </>
             )}
           </h1>
-          <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">{heroDescription}</p>
+          <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">
+            {heroDescription}
+          </p>
         </div>
       </section>
 
@@ -244,7 +258,7 @@ export default function Reviews() {
           </div>
         </section>
       )}
-      
+
       {isAdmin && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-end gap-4">
@@ -316,8 +330,20 @@ export default function Reviews() {
                       Write to us and get it added to our platform.
                     </p>
                     <button
-                      onClick={() => setWriteToUsModalOpen(true)}
+                      onClick={() => {
+                        if (user) {
+                          setWriteToUsModalOpen(true);
+                        } else {
+                          setAuthModalOpen(true);
+                        }
+                      }}
                       className="btn btn-primary inline-flex items-center gap-2"
+                      aria-disabled={!user}
+                      title={
+                        !user
+                          ? "Login required to request company addition"
+                          : ""
+                      }
                     >
                       <svg
                         className="h-4 w-4"
@@ -346,6 +372,14 @@ export default function Reviews() {
         onClose={() => setWriteToUsModalOpen(false)}
         onSubmit={(data) => {
           console.log("Submitted:", data);
+        }}
+      />
+      <RequireAuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onConfirm={() => {
+          const nextPath = "/reviews";
+          window.location.href = `/login?next=${encodeURIComponent(nextPath)}`;
         }}
       />
     </div>

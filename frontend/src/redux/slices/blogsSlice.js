@@ -64,6 +64,25 @@ export const fetchAllBlogs = createAsyncThunk(
         config
       );
 
+      // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
+      // Transform to expected format
+      if (response.data?.success && response.data?.data) {
+        return {
+          success: true,
+          data: response.data.data,
+          pagination: response.data.data.pagination ||
+            response.data.pagination || {
+              currentPage: response.data.data.currentPage || 1,
+              totalPages: response.data.data.totalPages || 1,
+              totalItems:
+                response.data.data.totalItems ||
+                (Array.isArray(response.data.data.docs)
+                  ? response.data.data.docs.length
+                  : 0),
+            },
+        };
+      }
+
       return response.data;
     } catch (error) {
       // Handle connection refused or network errors gracefully
@@ -833,20 +852,55 @@ const blogsSlice = createSlice({
       })
       .addCase(fetchAllBlogs.fulfilled, (state, action) => {
         state.loading = false;
-        // Backend returns: { success: true, data: [...], pagination: { totalItems, totalPages, currentPage, pageSize } }
+        // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
         const payload = action.payload;
-        if (payload.data && Array.isArray(payload.data)) {
-          state.blogs = payload.data;
+        let blogs = [];
+
+        // Handle different response structures
+        if (payload?.data?.docs && Array.isArray(payload.data.docs)) {
+          // Paginated response with docs array
+          blogs = payload.data.docs;
+        } else if (payload?.data && Array.isArray(payload.data)) {
+          // Direct array in data
+          blogs = payload.data;
         } else if (Array.isArray(payload)) {
-          state.blogs = payload;
-        } else {
-          state.blogs = [];
+          // Direct array
+          blogs = payload;
+        } else if (payload?.success && payload?.data) {
+          // Try to extract from nested structure
+          if (Array.isArray(payload.data)) {
+            blogs = payload.data;
+          } else if (payload.data.docs && Array.isArray(payload.data.docs)) {
+            blogs = payload.data.docs;
+          }
         }
-        if (payload.pagination) {
+
+        state.blogs = blogs;
+
+        // Handle pagination
+        if (payload?.pagination) {
           state.pagination = {
-            currentPage: payload.pagination.currentPage || 1,
-            totalPages: payload.pagination.totalPages || 1,
-            totalItems: payload.pagination.totalItems || 0,
+            currentPage:
+              payload.pagination.currentPage || payload.pagination.page || 1,
+            totalPages:
+              payload.pagination.totalPages || payload.pagination.pages || 1,
+            totalItems:
+              payload.pagination.totalItems || payload.pagination.total || 0,
+          };
+        } else if (payload?.data?.pagination) {
+          state.pagination = {
+            currentPage:
+              payload.data.pagination.currentPage ||
+              payload.data.pagination.page ||
+              1,
+            totalPages:
+              payload.data.pagination.totalPages ||
+              payload.data.pagination.pages ||
+              1,
+            totalItems:
+              payload.data.pagination.totalItems ||
+              payload.data.pagination.total ||
+              0,
           };
         }
       })

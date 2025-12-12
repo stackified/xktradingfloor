@@ -13,6 +13,7 @@ import {
   updateBlog,
   clearError,
 } from "../../redux/slices/blogsSlice.js";
+import { useToast } from "../../contexts/ToastContext.jsx";
 import { getUserCookie } from "../../utils/cookies.js";
 import ProtectedRoute from "../../components/dashboard/ProtectedRoute.jsx";
 import ConfirmModal from "../../components/shared/ConfirmModal.jsx";
@@ -21,6 +22,7 @@ import FlagModal from "../../components/shared/FlagModal.jsx";
 function AdminBlogsContent() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const toast = useToast();
   const { blogs, loading, error } = useSelector((state) => state.blogs);
   const reduxUser = useSelector((state) => state.auth.user);
   const user = reduxUser || getUserCookie();
@@ -28,8 +30,14 @@ function AdminBlogsContent() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
   const [viewFilter, setViewFilter] = React.useState("all"); // "all", "flagged", "own"
-  const [deleteModal, setDeleteModal] = React.useState({ isOpen: false, blogId: null });
-  const [flagModal, setFlagModal] = React.useState({ isOpen: false, blogId: null });
+  const [deleteModal, setDeleteModal] = React.useState({
+    isOpen: false,
+    blogId: null,
+  });
+  const [flagModal, setFlagModal] = React.useState({
+    isOpen: false,
+    blogId: null,
+  });
 
   React.useEffect(() => {
     dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
@@ -38,7 +46,7 @@ function AdminBlogsContent() {
   // Filter blogs based on view filter
   const filteredBlogs = React.useMemo(() => {
     if (!blogs || !Array.isArray(blogs)) return [];
-    
+
     switch (viewFilter) {
       case "flagged":
         return blogs.filter((blog) => {
@@ -81,9 +89,9 @@ function AdminBlogsContent() {
       setDeleteModal({ isOpen: false, blogId: null });
     } catch (err) {
       // Extract error message from response
-      const errorMessage = 
-        err?.response?.data?.message || 
-        err?.message || 
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
         (typeof err === "string" ? err : "Unknown error");
       console.error("Failed to delete blog:", err);
       alert(`Failed to delete blog: ${errorMessage}`);
@@ -110,10 +118,12 @@ function AdminBlogsContent() {
       setFlagModal({ isOpen: false, blogId: null });
     } catch (err) {
       // Extract error message from response
-      const errorMessage = 
-        err?.response?.data?.message || 
-        err?.message || 
-        (typeof err === "string" ? err : "An error occurred. Please contact support or try again later.");
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        (typeof err === "string"
+          ? err
+          : "An error occurred. Please contact support or try again later.");
       console.error("Failed to flag blog:", err);
       alert(`Failed to flag blog: ${errorMessage}`);
     }
@@ -129,9 +139,9 @@ function AdminBlogsContent() {
       dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
     } catch (err) {
       // Extract error message from response
-      const errorMessage = 
-        err?.response?.data?.message || 
-        err?.message || 
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
         (typeof err === "string" ? err : "Unknown error");
       console.error("Failed to unflag blog:", err);
       alert(`Failed to unflag blog: ${errorMessage}`);
@@ -139,7 +149,11 @@ function AdminBlogsContent() {
   };
 
   const handlePublish = async (blogId) => {
-    if (!window.confirm("Are you sure you want to publish this blog? It will be visible to all users.")) {
+    if (
+      !window.confirm(
+        "Are you sure you want to publish this blog? It will be visible to all users."
+      )
+    ) {
       return;
     }
     try {
@@ -149,9 +163,9 @@ function AdminBlogsContent() {
       dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
     } catch (err) {
       // Extract error message from response
-      const errorMessage = 
-        err?.response?.data?.message || 
-        err?.message || 
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
         (typeof err === "string" ? err : "Unknown error");
       console.error("Failed to publish blog:", err);
       alert(`Failed to publish blog: ${errorMessage}`);
@@ -159,25 +173,50 @@ function AdminBlogsContent() {
   };
 
   const handleUnpublish = async (blogId) => {
-    if (!window.confirm("Are you sure you want to unpublish this blog? It will no longer be visible to users.")) {
+    if (
+      !window.confirm(
+        "Are you sure you want to unpublish this blog? It will no longer be visible to users."
+      )
+    ) {
       return;
     }
     try {
+      // Use JSON instead of FormData to avoid issues
+      const updateData = {
+        status: "draft",
+      };
+
+      // Create FormData only if needed, otherwise use JSON
       const formData = new FormData();
       formData.append("status", "draft");
+
+      // Use updateBlog with FormData (backend expects multipart/form-data for updates)
       await dispatch(updateBlog({ blogId, formData })).unwrap();
-      // Refresh admin list
+
+      // Refresh admin list after successful update
       dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
-      // Note: The /blog page will automatically refresh via its polling mechanism
-      // or users can manually refresh to see the change
+
+      // Show success toast
+      toast.success("Blog unpublished successfully");
     } catch (err) {
       // Extract error message from response
-      const errorMessage = 
-        err?.response?.data?.message || 
-        err?.message || 
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
         (typeof err === "string" ? err : "Unknown error");
       console.error("Failed to unpublish blog:", err);
-      alert(`Failed to unpublish blog: ${errorMessage}`);
+
+      // Check if the error indicates the blog was deleted instead of unpublished
+      if (
+        errorMessage.toLowerCase().includes("not found") ||
+        errorMessage.toLowerCase().includes("deleted")
+      ) {
+        alert(
+          `Error: The blog may have been deleted instead of unpublished. Please refresh the page. Error: ${errorMessage}`
+        );
+      } else {
+        alert(`Failed to unpublish blog: ${errorMessage}`);
+      }
     }
   };
 

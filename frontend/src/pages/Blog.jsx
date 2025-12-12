@@ -8,6 +8,7 @@ import BlogCategories from "../components/blog/BlogCategories.jsx";
 import BlogList from "../components/blog/BlogList.jsx";
 import BlogSidebar from "../components/blog/BlogSidebar.jsx";
 import BlogCard from "../components/blog/BlogCard.jsx";
+import RequireAuthModal from "../components/shared/RequireAuthModal.jsx";
 import { getUserCookie } from "../utils/cookies.js";
 import { updateMockMode, fetchMockMode } from "../redux/slices/mockSlice.js";
 import { fetchPublishedBlogs } from "../redux/slices/blogsSlice.js";
@@ -27,7 +28,12 @@ function Blog() {
   const userRole =
     typeof user?.role === "string" ? user.role.toLowerCase() : null;
   const isAdmin = userRole === "admin";
-  const { blogs: publishedBlogs, loading: blogsLoading } = useSelector((state) => state.blogs);
+  const isAuthenticated = !!user;
+  const { blogs: publishedBlogs, loading: blogsLoading } = useSelector(
+    (state) => state.blogs
+  );
+  const [authModalOpen, setAuthModalOpen] = React.useState(false);
+  const [lockedBlogId, setLockedBlogId] = React.useState(null);
 
   // Fetch and sync mock mode from backend (for global sync across all users)
   React.useEffect(() => {
@@ -69,16 +75,16 @@ function Blog() {
     };
 
     loadBlogs();
-    
+
     // Refresh blogs every 30 seconds when not in mock mode (to catch new publications)
     if (!effectiveMockMode) {
       const refreshInterval = setInterval(() => {
         dispatch(fetchPublishedBlogs({ limit: 1000 }));
       }, 30000);
-      
+
       return () => clearInterval(refreshInterval);
     }
-    
+
     // Cleanup: if switching to mock mode, clear any pending API calls
     return () => {
       // No cleanup needed - React will handle unmounting
@@ -92,8 +98,12 @@ function Blog() {
       // Don't update from API when mock mode is ON (DISABLED FOR NOW)
       return;
     }
-    
-    if (publishedBlogs && Array.isArray(publishedBlogs) && publishedBlogs.length > 0) {
+
+    if (
+      publishedBlogs &&
+      Array.isArray(publishedBlogs) &&
+      publishedBlogs.length > 0
+    ) {
       // Transform backend blog format to match frontend format
       // IMPORTANT: Filter out unpublished and deleted blogs
       const transformedBlogs = publishedBlogs
@@ -109,9 +119,11 @@ function Blog() {
             month: "short",
             day: "numeric",
           });
-          
+
           // Calculate read time (rough estimate: 200 words per minute)
-          const wordCount = blog.content ? blog.content.replace(/<[^>]*>/g, "").split(/\s+/).length : 0;
+          const wordCount = blog.content
+            ? blog.content.replace(/<[^>]*>/g, "").split(/\s+/).length
+            : 0;
           const readTime = Math.max(1, Math.ceil(wordCount / 200));
 
           return {
@@ -119,9 +131,15 @@ function Blog() {
             title: blog.title,
             excerpt: blog.excerpt,
             content: blog.content,
-            category: Array.isArray(blog.categories) ? blog.categories[0] : blog.categories || blog.category || "",
+            category: Array.isArray(blog.categories)
+              ? blog.categories[0]
+              : blog.categories || blog.category || "",
             tags: blog.tags || [],
-            author: blog.author?.fullName || blog.author?.name || blog.author?.email || "Unknown",
+            author:
+              blog.author?.fullName ||
+              blog.author?.name ||
+              blog.author?.email ||
+              "Unknown",
             authorId: blog.author?._id || blog.author,
             authorInfo: blog.author, // Full author object for BlogAuthorInfo component
             image: blog.featuredImage,
@@ -135,13 +153,19 @@ function Blog() {
           };
         });
       setAll(transformedBlogs);
-    } else if (!effectiveMockMode && !blogsLoading && (!publishedBlogs || publishedBlogs.length === 0)) {
+    } else if (
+      !effectiveMockMode &&
+      !blogsLoading &&
+      (!publishedBlogs || publishedBlogs.length === 0)
+    ) {
       // If mock mode is OFF, API call completed, but no blogs returned - set empty array
       setAll([]);
     }
   }, [publishedBlogs, effectiveMockMode, blogsLoading]);
 
-  const categories = Array.from(new Set(all.map((p) => p.category).filter(Boolean)));
+  const categories = Array.from(
+    new Set(all.map((p) => p.category).filter(Boolean))
+  );
   const tags = Array.from(new Set(all.flatMap((p) => p.tags || [])));
 
   // Get featured blog (advertisement) - first blog marked as featured or first blog
@@ -167,12 +191,30 @@ function Blog() {
     (p) => p.id !== featuredBlog?.id
   );
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredWithoutFeatured.length / perPage)
-  );
+  // For unauthenticated users: show only featured blog fully, rest as locked (4-5 visible)
+  const displayBlogs = React.useMemo(() => {
+    if (isAuthenticated) {
+      // Authenticated users see all blogs
+      return filteredWithoutFeatured;
+    } else {
+      // Unauthenticated users see 4-5 locked blog cards
+      return filteredWithoutFeatured.slice(0, 5);
+    }
+  }, [filteredWithoutFeatured, isAuthenticated]);
+
+  const totalPages = Math.max(1, Math.ceil(displayBlogs.length / perPage));
   const start = (page - 1) * perPage;
-  const current = filteredWithoutFeatured.slice(start, start + perPage);
+  const current = displayBlogs.slice(start, start + perPage);
+
+  const handleLockedBlogClick = (blogId) => {
+    setLockedBlogId(blogId);
+    setAuthModalOpen(true);
+  };
+
+  const handleAuthConfirm = () => {
+    const nextPath = lockedBlogId ? `/blog/${lockedBlogId}` : "/blog";
+    navigate(`/login?next=${encodeURIComponent(nextPath)}`);
+  };
 
   React.useEffect(() => {
     setPage(1);
@@ -287,7 +329,17 @@ function Blog() {
               <div className="text-gray-400">Loading blogs...</div>
             </div>
           ) : (
-            <BlogList posts={current} onOpen={(p) => navigate(`/blog/${p.id}`)} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {current.map((p) => (
+                <BlogCard
+                  key={p.id}
+                  post={p}
+                  onClick={() => navigate(`/blog/${p.id}`)}
+                  isLocked={!isAuthenticated}
+                  onLockClick={() => handleLockedBlogClick(p.id)}
+                />
+              ))}
+            </div>
           )}
           <div className="flex items-center justify-center gap-2 pt-2">
             <button
@@ -318,6 +370,16 @@ function Blog() {
           />
         </div>
       </div>
+
+      {/* Require Auth Modal */}
+      <RequireAuthModal
+        isOpen={authModalOpen}
+        onClose={() => {
+          setAuthModalOpen(false);
+          setLockedBlogId(null);
+        }}
+        onConfirm={handleAuthConfirm}
+      />
     </div>
   );
 }
