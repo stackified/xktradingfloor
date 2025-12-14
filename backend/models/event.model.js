@@ -8,12 +8,12 @@ const EventSchema = new Schema(
         excerpt: String, // Short description
         type: { type: String, enum: ['campus', 'online'], default: 'online' },
         dateTime: Date, // Combined date and time
-        date: Date, // Legacy field
         location: String,
         price: { type: Number, default: 0 },
         seats: { type: Number, default: 0 },
-        image: String,
-        freebiesIncluded: [String], // Array of freebie names
+        featuredImage: String,
+        freebiesIncluded: [String],
+        adminId: { type: Schema.Types.ObjectId, ref: 'user' },
         registrations: [{
             userId: { type: Schema.Types.ObjectId, ref: 'user' },
             name: String,
