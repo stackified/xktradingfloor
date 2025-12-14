@@ -478,4 +478,3 @@ exports.permanentDeleteBlog = async (req, res) => {
         return sendErrorResponse(res, error);
     }
 };
-
