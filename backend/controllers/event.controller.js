@@ -1,15 +1,34 @@
 const EventModel = require("../models/event.model");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const { getPagination, getPaginationData, escapeRegex } = require("../utils/fn");
+const r2 = require("../helpers/r2.helper");
 
 // Create event
 exports.createEvent = async (req, res) => {
     try {
-        const event = new EventModel(req.body);
+        const { _id: adminId, role } = req.user;
+
+        let featuredImage = "";
+        if (req?.files?.featuredImage) {
+            featuredImage = req.files.featuredImage[0];
+            const pathN = featuredImage?.path;
+            const npathN = pathN.replaceAll("\\", "/");
+            featuredImage.path = npathN;
+
+            // Upload to Cloudflare R2
+            const url = await r2.uploadPublic(featuredImage?.path, `${featuredImage?.filename}`, `Events`);
+            featuredImage = url;
+        };
+
+        const eventData = req.body;
+        if (featuredImage) {
+            eventData.featuredImage = featuredImage;
+        };
+        eventData.adminId = adminId;
+
+        const event = new EventModel(eventData);
         const saved = await event.save();
-        const e = saved.toObject();
-        e.id = e._id.toString();
-        return sendSuccessResponse(res, { message: "Event created", data: e }, 201);
+        return sendSuccessResponse(res, { message: "Event created", data: saved }, 201);
     } catch (error) {
         return sendErrorResponse(res, error);
     }
@@ -18,7 +37,9 @@ exports.createEvent = async (req, res) => {
 // Get all events
 exports.getAllEvents = async (req, res) => {
     try {
-        const { type, search, page, size } = req.query;
+        const { search, page, size } = req.query;
+        const { type } = req.body;
+
         const { limit, offset } = getPagination(page, size);
         const searchTerm = escapeRegex(search);
 
@@ -60,9 +81,7 @@ exports.getEventById = async (req, res) => {
         if (!event) {
             return sendErrorResponse(res, "Event not found", 404, true, true);
         }
-        const e = event.toObject();
-        e.id = e._id.toString();
-        return sendSuccessResponse(res, { data: e });
+        return sendSuccessResponse(res, { data: event });
     } catch (error) {
         return sendErrorResponse(res, error);
     }
@@ -75,12 +94,26 @@ exports.updateEvent = async (req, res) => {
         const event = await EventModel.findById(eventId);
         if (!event) {
             return sendErrorResponse(res, "Event not found", 404, true, true);
+        };
+
+        const updateData = req.body;
+
+        let featuredImage = "";
+        if (req?.files?.featuredImage) {
+            featuredImage = req.files.featuredImage[0];
+            const pathN = featuredImage?.path;
+            const npathN = pathN.replaceAll("\\", "/");
+            featuredImage.path = npathN;
+
+            // Upload to Cloudflare R2
+            const url = await r2.uploadPublic(featuredImage?.path, `${featuredImage?.filename}`, `Events`);
+            updateData.featuredImage = url;
         }
-        Object.assign(event, req.body);
+
+        Object.assign(event, updateData);
         const updated = await event.save();
-        const e = updated.toObject();
-        e.id = e._id.toString();
-        return sendSuccessResponse(res, { message: "Event updated", data: e });
+
+        return sendSuccessResponse(res, { message: "Event updated", data: updated });
     } catch (error) {
         return sendErrorResponse(res, error);
     }

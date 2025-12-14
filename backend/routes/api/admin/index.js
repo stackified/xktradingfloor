@@ -5,6 +5,7 @@ const companyRoutes = require('./company.routes.js');
 const reviewRoutes = require('./review.routes.js');
 const settingRoutes = require('./setting.routes.js');
 const userRoutes = require('./user.routes.js');
+const eventRoutes = require('./event.routes.js');
 
 // Controllers
 // const productController = require('../../../controllers/product.controller');
@@ -42,11 +43,7 @@ router.use('/users', userRoutes);
 // router.delete('/products/:id', productController.deleteProduct);
 
 // Event Routes
-// router.post('/events', eventController.createEvent);
-// router.get('/events', eventController.getAllEvents);
-// router.get('/events/:id', eventController.getEventById);
-// router.put('/events/:id', eventController.updateEvent);
-// router.delete('/events/:id', eventController.deleteEvent);
+router.use('/event', eventRoutes);
 
 // Podcast Routes
 // router.post('/podcasts', podcastController.createPodcast);
