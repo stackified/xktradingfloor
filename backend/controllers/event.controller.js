@@ -140,7 +140,11 @@ exports.registerForEvent = async (req, res) => {
         const event = await EventModel.findById(eventId);
         if (!event) {
             return sendErrorResponse(res, "Event not found", 404, true, true);
-        }
+        };
+
+        if (!req.user && (!req.body.name || !req.body.email || !req.body.phone)) {
+            return sendErrorResponse(res, "Name, email, and phone are required for registration", 400, true, true);
+        };
 
         const registration = {
             userId: req.user?._id || null,
