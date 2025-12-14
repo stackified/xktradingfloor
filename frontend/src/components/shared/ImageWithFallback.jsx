@@ -343,7 +343,7 @@ export default function ImageWithFallback({
     }
   }, [src, alt, useDynamicFallback, cdnUrl, fallbackUrl]);
 
-  const handleError = () => {
+  const handleError = (e) => {
     // Prevent infinite error loops
     if (errorCount >= 3) {
       return;
@@ -353,24 +353,28 @@ export default function ImageWithFallback({
     setErrorCount(newErrorCount);
     setHasError(true);
 
-    // For external URLs (like Cloudflare R2), be more patient
-    // Only fallback if we've tried multiple times
+    // For external URLs (like Cloudflare R2 or CDN), handle SSL/certificate errors gracefully
+    // SSL certificate errors (ERR_CERT_COMMON_NAME_INVALID) should fallback immediately
     if (isExternalUrl) {
-      if (newErrorCount === 1) {
+      // Check if it's an SSL/certificate error - these should fallback immediately
+      const isSSLError = e?.target?.src?.includes('cdn.xktradingfloor.com') || 
+                         e?.target?.error?.code === 18; // NETWORK_ERR
+      
+      if (isSSLError || newErrorCount >= 2) {
+        // SSL errors or after retry failed, use fallback immediately
+        if (useDynamicFallback && dynamicFallback) {
+          setImgSrc(dynamicFallback);
+        } else {
+          setImgSrc(fallbackUrl);
+        }
+        return;
+      } else if (newErrorCount === 1) {
         // First error on external URL - might be temporary, try again
         // Reset to try loading the same URL once more
         setTimeout(() => {
           setImgSrc(cdnUrl);
           setHasError(false);
         }, 500);
-        return;
-      } else if (newErrorCount >= 2) {
-        // After retry failed, use fallback
-        if (useDynamicFallback && dynamicFallback) {
-          setImgSrc(dynamicFallback);
-        } else {
-          setImgSrc(fallbackUrl);
-        }
         return;
       }
     }

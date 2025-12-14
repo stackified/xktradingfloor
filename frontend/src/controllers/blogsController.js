@@ -105,35 +105,54 @@ export async function getAllBlogs(filters = {}) {
 }
 
 // Get blog by ID
-// Backend endpoint: GET /api/admin/blogs/:blogid/getblogbyid
+// Tries public endpoint first, then admin endpoint if authenticated
 export async function getBlogById(id) {
   const mockMode = await isMockModeEnabled();
 
-  // Always try backend first
+  // Always try backend first - try public endpoint first
   try {
-    const response = await api.get(`/admin/blogs/${id}/getblogbyid`);
-
+    // Try public endpoint first (works for everyone)
+    const publicResponse = await api.get(`/blogs/${id}/getblogbyid`);
+    
     // Backend returns: { success: true, data: {...} }
-    if (response.data?.success && response.data?.data) {
-      const blog = response.data.data;
+    if (publicResponse.data?.success && publicResponse.data?.data) {
+      const blog = publicResponse.data.data;
       return {
         ...blog,
         id: blog._id || blog.id,
       };
     }
-    if (response.data?.data) {
-      return response.data.data;
+    if (publicResponse.data?.data) {
+      return publicResponse.data.data;
     }
-  } catch (error) {
-    // If backend fails and mock mode is OFF, return null (no data)
-    if (!mockMode) {
-      if (error.response?.status === 404) {
+  } catch (publicError) {
+    // If public endpoint fails, try admin endpoint (only if user might be authenticated)
+    // This allows authenticated users to access unpublished blogs
+    try {
+      const adminResponse = await api.get(`/admin/blogs/${id}/getblogbyid`);
+      
+      // Backend returns: { success: true, data: {...} }
+      if (adminResponse.data?.success && adminResponse.data?.data) {
+        const blog = adminResponse.data.data;
+        return {
+          ...blog,
+          id: blog._id || blog.id,
+        };
+      }
+      if (adminResponse.data?.data) {
+        return adminResponse.data.data;
+      }
+    } catch (adminError) {
+      // If both fail and mock mode is OFF, return null (no data)
+      if (!mockMode) {
+        if (publicError.response?.status === 404 || adminError.response?.status === 404) {
+          return null;
+        }
+        // For other errors, return null for public view
         return null;
       }
-      // For other errors, return null for public view
-      return null;
+      // If mock mode is ON and backend fails, fall back to mock data
     }
-    // If mock mode is ON and backend fails, fall back to mock data
   }
 
   // If mock mode is ON, try mock data

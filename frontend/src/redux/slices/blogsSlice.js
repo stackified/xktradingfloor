@@ -131,16 +131,40 @@ export const fetchBlogById = createAsyncThunk(
         },
       };
 
-      // Backend route: GET /api/admin/blogs/:blogid/getblogbyid
-      // Ensure blogId is properly encoded in URL
+      // Try public endpoint first (works for everyone, including unauthorized users)
       const encodedBlogId = encodeURIComponent(blogId);
-      const response = await api.get(
-        `/admin/blogs/${encodedBlogId}/getblogbyid`,
-        config
-      );
-
-      // Backend returns: { success: true, data: {...} }
-      return response.data?.data || response.data;
+      try {
+        const publicResponse = await api.get(
+          `/blogs/${encodedBlogId}/getblogbyid`,
+          config
+        );
+        // Backend returns: { success: true, data: {...} }
+        if (publicResponse.data?.data) {
+          return publicResponse.data.data;
+        }
+        return publicResponse.data;
+      } catch (publicError) {
+        // If public endpoint fails (404 or doesn't exist), try admin endpoint
+        // This allows authenticated users to access unpublished blogs
+        if (token && publicError.response?.status !== 401) {
+          try {
+            const adminResponse = await api.get(
+              `/admin/blogs/${encodedBlogId}/getblogbyid`,
+              config
+            );
+            // Backend returns: { success: true, data: {...} }
+            if (adminResponse.data?.data) {
+              return adminResponse.data.data;
+            }
+            return adminResponse.data;
+          } catch (adminError) {
+            // If both fail, throw the original public error
+            throw publicError;
+          }
+        }
+        // If no token and public endpoint fails, throw the error
+        throw publicError;
+      }
     } catch (error) {
       // Handle specific error cases
       if (error.response?.status === 404) {
@@ -166,18 +190,62 @@ export const createBlog = createAsyncThunk(
     try {
       const token = getAuthToken();
       const config = {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
+        // Note: Don't manually set Content-Type for FormData - axios handles it automatically with boundary
+        ...(token && {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
       };
 
       const response = await api.post("/admin/blogs/addblog", formData, config);
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to create blog"
-      );
+      // Handle network errors
+      if (
+        error.code === "ERR_NETWORK" ||
+        error.message?.includes("ERR_CONNECTION_REFUSED")
+      ) {
+        return rejectWithValue(
+          "Network error: Unable to connect to server. Please check your connection and try again."
+        );
+      }
+
+      // Handle authentication errors
+      if (error.response?.status === 401) {
+        return rejectWithValue("Authentication failed. Please log in again.");
+      }
+
+      // Handle permission errors
+      if (error.response?.status === 403) {
+        return rejectWithValue(
+          "You don't have permission to create blogs. Please contact support."
+        );
+      }
+
+      // Handle validation errors
+      if (error.response?.status === 400) {
+        return rejectWithValue(
+          error.response?.data?.message ||
+            "Invalid data provided. Please check your input and try again."
+        );
+      }
+
+      // Handle server errors
+      if (error.response?.status >= 500) {
+        return rejectWithValue(
+          "Server error occurred. Please try again later or contact support."
+        );
+      }
+
+      // Extract error message from various formats
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to create blog. Please try again.";
+
+      return rejectWithValue(errorMessage);
     }
   }
 );

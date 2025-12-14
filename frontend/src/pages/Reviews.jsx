@@ -308,7 +308,7 @@ export default function Reviews() {
                 </div>
                 <div className="space-y-4">
                   {companies.map((company) => (
-                    <CompanyCard key={company.id} company={company} />
+                    <CompanyCard key={company.id} company={company} user={user} />
                   ))}
                 </div>
                 {totalPages > 1 && (

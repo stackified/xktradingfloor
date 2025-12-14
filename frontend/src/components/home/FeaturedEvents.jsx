@@ -5,6 +5,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import ImageWithFallback from '../shared/ImageWithFallback.jsx';
 
 function EventCard({ evt, onClick }) {
+  // Normalize image src - convert empty strings to null for proper text-based fallback
+  const imageSrc = ((evt.featuredImage || evt.image || '').trim() || null);
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
     try {
@@ -18,7 +21,13 @@ function EventCard({ evt, onClick }) {
   return (
     <motion.div whileHover={{ y: -4 }} className="card overflow-hidden cursor-pointer" onClick={onClick}>
       <div className="h-40 w-full bg-muted">
-        <ImageWithFallback src={evt.image || '/assets/placeholder.jpg'} fallback="/assets/placeholder.jpg" alt={evt.title} className="h-full w-full object-cover" />
+        <ImageWithFallback 
+          src={imageSrc} 
+          fallback="/assets/placeholder.jpg" 
+          alt={evt.title} 
+          className="h-full w-full object-cover" 
+          useDynamicFallback={true} 
+        />
       </div>
       <div className="card-body">
         <div className="text-xs sm:text-sm text-gray-400 mb-2">{formatDate(evt.dateTime || evt.date)}</div>

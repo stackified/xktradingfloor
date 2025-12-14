@@ -21,10 +21,12 @@ function RegisterModal({ isOpen, onClose, selectedEvent }) {
     setSubmitting(true);
     try {
       const res = await registerForEvent({ ...form, eventId });
-      if (res?.success) {
-        alert('Registration successful! We will contact you with details.');
+      if (res?.success || res?.data?.success) {
+        alert(res?.message || 'Registration successful! We will contact you with details.');
         onClose();
       }
+    } catch (error) {
+      alert(error?.message || 'Registration failed. Please try again.');
     } finally {
       setSubmitting(false);
     }

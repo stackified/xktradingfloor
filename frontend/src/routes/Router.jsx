@@ -8,6 +8,7 @@ import {
 } from "../redux/slices/mockSlice.js";
 import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
+import PageViewTracker from "../components/analytics/PageViewTracker.jsx";
 import Home from "../pages/Home.jsx";
 import Academy from "../pages/Academy.jsx";
 import EventDetails from "../pages/EventDetails.jsx";
@@ -32,12 +33,14 @@ import AdminBlogs from "../pages/admin/AdminBlogs.jsx";
 import AdminCompanies from "../pages/admin/AdminCompanies.jsx";
 import AdminCompanyDetails from "../pages/admin/AdminCompanyDetails.jsx";
 import AdminCompanyForm from "../components/admin/companies/CompanyForm.jsx";
+import AdminEvents from "../pages/admin/AdminEvents.jsx";
 import AboutEditor from "../pages/admin/AboutEditor.jsx";
 import AdminSettings from "../pages/admin/AdminSettings.jsx";
 import MyBlogs from "../pages/MyBlogs.jsx";
 import OperatorBlogs from "../pages/operator/OperatorBlogs.jsx";
 import OperatorReviews from "../pages/operator/OperatorReviews.jsx";
 import { BlogForm } from "../components/admin/blog/index.js";
+import { EventForm } from "../components/admin/event/index.js";
 import ProtectedRoute from "../components/dashboard/ProtectedRoute.jsx";
 
 function Layout({ children }) {
@@ -88,6 +91,7 @@ function Layout({ children }) {
 export default function AppRouter() {
   return (
     <Layout>
+      <PageViewTracker />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/academy" element={<Academy />} />
@@ -231,6 +235,32 @@ export default function AppRouter() {
           element={
             <ProtectedRoute role="admin">
               <AdminSettings />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Event Routes */}
+        <Route
+          path="/admin/events"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminEvents />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/events/create"
+          element={
+            <ProtectedRoute role="admin">
+              <EventForm redirectPath="/admin/events" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/events/edit/:eventId"
+          element={
+            <ProtectedRoute role="admin">
+              <EventForm redirectPath="/admin/events" />
             </ProtectedRoute>
           }
         />

@@ -9,6 +9,7 @@ import BlogList from "../components/blog/BlogList.jsx";
 import BlogSidebar from "../components/blog/BlogSidebar.jsx";
 import BlogCard from "../components/blog/BlogCard.jsx";
 import RequireAuthModal from "../components/shared/RequireAuthModal.jsx";
+import CardLoader from "../components/shared/CardLoader.jsx";
 import { getUserCookie } from "../utils/cookies.js";
 import { updateMockMode, fetchMockMode } from "../redux/slices/mockSlice.js";
 import { fetchPublishedBlogs } from "../redux/slices/blogsSlice.js";
@@ -166,7 +167,25 @@ function Blog() {
   const categories = Array.from(
     new Set(all.map((p) => p.category).filter(Boolean))
   );
-  const tags = Array.from(new Set(all.flatMap((p) => p.tags || [])));
+
+  // Calculate popular tags based on usage count, limit to top 10
+  const tagCounts = {};
+  all.forEach((p) => {
+    (p.tags || []).forEach((tag) => {
+      // Filter out empty tags
+      if (tag && tag.trim()) {
+        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+      }
+    });
+  });
+
+  // Sort tags by usage count (descending) and take top 10
+  const popularTags = Object.entries(tagCounts)
+    .sort((a, b) => b[1] - a[1]) // Sort by count descending
+    .slice(0, 10) // Limit to top 10
+    .map(([tag]) => tag); // Extract just the tag name
+
+  const tags = popularTags;
 
   // Get featured blog (advertisement) - first blog marked as featured or first blog
   const featuredBlog = all.find((p) => p.isFeatured) || all[0];
@@ -288,6 +307,7 @@ function Blog() {
                 <BlogCard
                   post={featuredBlog}
                   onClick={() => navigate(`/blog/${featuredBlog.id}`)}
+                  isLocked={false}
                 />
               </div>
             </div>
@@ -325,9 +345,7 @@ function Blog() {
             </div>
           )}
           {!effectiveMockMode && blogsLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-gray-400">Loading blogs...</div>
-            </div>
+            <CardLoader count={6} blog={true} />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {current.map((p) => (
@@ -335,7 +353,7 @@ function Blog() {
                   key={p.id}
                   post={p}
                   onClick={() => navigate(`/blog/${p.id}`)}
-                  isLocked={!isAuthenticated}
+                  isLocked={!isAuthenticated && !p.isFeatured}
                   onLockClick={() => handleLockedBlogClick(p.id)}
                 />
               ))}

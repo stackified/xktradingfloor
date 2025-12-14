@@ -163,25 +163,30 @@ export async function getAllCompanies(filters = {}) {
   if (!mockMode) {
     try {
       // Backend expects POST for getAllCompanies with filters in body and query params
-      const { search, page, size, ...bodyFilters } = filters;
+      const { search, page, size, category, ...bodyFilters } = filters;
 
       // Determine which endpoint to use
-      let endpoint = "/companies/getallcompanies"; // Public endpoint
+      let endpoint = "/companies/getallcompanies"; // Public endpoint: /api/companies/getallcompanies
       let requestBody = { ...bodyFilters };
+
+      // Public endpoint expects category in body (according to backend controller)
+      if (category) {
+        requestBody.category = category;
+      }
 
       if (authenticated && userIsAdmin) {
         // Admin users can use admin endpoint to see all companies (including pending)
         endpoint = "/admin/company/getallcompanies";
-        // Admin users: use status filter if provided, otherwise show all
-        if (!requestBody.status && !filters.status) {
-          // Default to approved for public view, but admin can override
-          requestBody.status = "approved";
+        // Admin users: only add status filter if explicitly provided
+        // If no status filter, don't add it - backend will return all companies
+        if (filters.status && filters.status !== "") {
+          requestBody.status = filters.status;
         }
+        // Don't set default status - let backend return all companies for admin
       } else {
         // Non-admin users and unauthenticated users use public endpoint
-        // Public endpoint only returns approved companies
-        // Always filter to approved companies only
-        requestBody.status = "approved";
+        // Public endpoint only returns approved companies (status handled by backend)
+        // Category is passed in body if provided
       }
 
       const response = await api.post(endpoint, requestBody, {
@@ -370,10 +375,12 @@ export async function createCompany(companyData) {
         if (key === "logo" && companyData[key] instanceof File) {
           formData.append("logo", companyData[key]);
         } else if (key === "images" && Array.isArray(companyData[key])) {
-          companyData[key].forEach((img, idx) => {
+          // Only append File objects, skip URLs (existing images)
+          companyData[key].forEach((img) => {
             if (img instanceof File) {
               formData.append(`images`, img);
             }
+            // Skip URLs - they're existing images that don't need to be re-uploaded
           });
         } else if (key !== "logo" && key !== "images") {
           formData.append(
@@ -386,9 +393,8 @@ export async function createCompany(companyData) {
       });
 
       // Backend endpoint: POST /admin/company/addcompany
-      const response = await api.post("/admin/company/addcompany", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      // Note: Don't manually set Content-Type for FormData - axios handles it automatically with boundary
+      const response = await api.post("/admin/company/addcompany", formData);
 
       // Backend returns: { success: true, message: "...", data: {...} }
       return response;
@@ -448,10 +454,12 @@ export async function updateCompany(companyId, updates) {
         if (key === "logo" && updates[key] instanceof File) {
           formData.append("logo", updates[key]);
         } else if (key === "images" && Array.isArray(updates[key])) {
+          // Only append File objects, skip URLs (existing images)
           updates[key].forEach((img) => {
             if (img instanceof File) {
               formData.append(`images`, img);
             }
+            // Skip URLs - they're existing images that don't need to be re-uploaded
           });
         } else if (key !== "logo" && key !== "images") {
           formData.append(
@@ -465,12 +473,10 @@ export async function updateCompany(companyId, updates) {
 
       // Note: Backend updateCompany endpoint might need to be added
       // For now, using the pattern from backend controller
+      // Note: Don't manually set Content-Type for FormData - axios handles it automatically with boundary
       const response = await api.put(
         `/admin/company/${companyId}/updatecompany`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
+        formData
       );
 
       // Backend returns: { success: true, message: "...", data: {...} }
@@ -883,9 +889,8 @@ export async function requestCompanyAddition(companyData) {
       });
 
       // Backend endpoint: POST /api/protected/company/request
-      const response = await api.post("/protected/company/request", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      // Note: Don't manually set Content-Type for FormData - axios handles it automatically with boundary
+      const response = await api.post("/protected/company/request", formData);
 
       // Backend returns: { success: true, message: "...", data: {...} }
       if (response.data?.success && response.data?.data) {

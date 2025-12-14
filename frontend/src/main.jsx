@@ -58,7 +58,13 @@ root.render(
   <React.StrictMode>
     <Provider store={store}>
       <HelmetProvider>
-        <BrowserRouter basename={basePath}>
+        <BrowserRouter
+          basename={basePath}
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
           <ToastProvider>
             <App />
           </ToastProvider>

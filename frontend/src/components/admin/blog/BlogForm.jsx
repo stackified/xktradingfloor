@@ -1,7 +1,14 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2, Upload, XCircle, Save, FileText } from "lucide-react";
+import {
+  ArrowLeft,
+  Loader2,
+  Upload,
+  XCircle,
+  Save,
+  FileText,
+} from "lucide-react";
 import {
   fetchBlogById,
   createBlog,
@@ -53,6 +60,8 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
   const isEditing = Boolean(blogId);
   const user = getUserCookie();
   const userId = user?.id;
+  const userRole = user?.role?.toLowerCase();
+  const isAdmin = userRole === "admin" || userRole === "subadmin";
 
   const { currentBlog, loading, error } = useSelector((state) => state.blogs);
 
@@ -63,7 +72,10 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
   const [summaryError, setSummaryError] = React.useState("");
   const [lastSaved, setLastSaved] = React.useState(null);
   const [isAutoSaving, setIsAutoSaving] = React.useState(false);
-  const autoSaveKey = React.useMemo(() => getAutoSaveKey(blogId, userId), [blogId, userId]);
+  const autoSaveKey = React.useMemo(
+    () => getAutoSaveKey(blogId, userId),
+    [blogId, userId]
+  );
 
   // Load draft from localStorage on mount (only for new blogs)
   React.useEffect(() => {
@@ -99,7 +111,9 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
     if (currentBlog && isEditing) {
       // Extract first category if multiple exist, or use first from array
       const categories = currentBlog.categories || [];
-      const category = Array.isArray(categories) ? categories[0] || "" : categories || "";
+      const category = Array.isArray(categories)
+        ? categories[0] || ""
+        : categories || "";
 
       setFormState({
         title: currentBlog.title || "",
@@ -108,8 +122,11 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
         status: currentBlog.status || "draft",
         category: category,
         tags: Array.isArray(currentBlog.tags) ? currentBlog.tags : [],
-        seoKeywords: Array.isArray(currentBlog.seoKeywords) ? currentBlog.seoKeywords : [],
-        isFeatured: Boolean(currentBlog.isFeatured),
+        seoKeywords: Array.isArray(currentBlog.seoKeywords)
+          ? currentBlog.seoKeywords
+          : [],
+        // Only allow featured if user is admin, otherwise set to false
+        isFeatured: isAdmin ? Boolean(currentBlog.isFeatured) : false,
       });
       setFeaturedImagePreview(currentBlog.featuredImage || "");
       // Clear auto-save when loading existing blog
@@ -117,7 +134,7 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
         localStorage.removeItem(autoSaveKey);
       }
     }
-  }, [currentBlog, isEditing, autoSaveKey]);
+  }, [currentBlog, isEditing, autoSaveKey, isAdmin]);
 
   // Auto-save functionality - saves to localStorage every 30 seconds
   React.useEffect(() => {
@@ -125,7 +142,11 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
 
     const autoSaveInterval = setInterval(() => {
       // Only save if there's meaningful content
-      if (formState.title.trim() || formState.content.trim() || formState.excerpt.trim()) {
+      if (
+        formState.title.trim() ||
+        formState.content.trim() ||
+        formState.excerpt.trim()
+      ) {
         setIsAutoSaving(true);
         try {
           const draftData = {
@@ -149,9 +170,13 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
   // Also save on form changes (debounced)
   React.useEffect(() => {
     if (isEditing) return;
-    
+
     const timeoutId = setTimeout(() => {
-      if (formState.title.trim() || formState.content.trim() || formState.excerpt.trim()) {
+      if (
+        formState.title.trim() ||
+        formState.content.trim() ||
+        formState.excerpt.trim()
+      ) {
         try {
           const draftData = {
             formState,
@@ -179,7 +204,9 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
     // Validate summary length
     if (name === "excerpt") {
       if (value.trim().length > 0 && value.trim().length < MIN_SUMMARY_LENGTH) {
-        setSummaryError(`Summary must be at least ${MIN_SUMMARY_LENGTH} characters.`);
+        setSummaryError(
+          `Summary must be at least ${MIN_SUMMARY_LENGTH} characters.`
+        );
       } else {
         setSummaryError("");
       }
@@ -216,13 +243,21 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
       return;
     }
 
-    if (!formState.content.trim() || formState.content.trim() === "<p><br></p>") {
+    if (
+      !formState.content.trim() ||
+      formState.content.trim() === "<p><br></p>"
+    ) {
       setLocalError("Content is required.");
       return;
     }
 
-    if (formState.excerpt.trim() && formState.excerpt.trim().length < MIN_SUMMARY_LENGTH) {
-      setSummaryError(`Summary must be at least ${MIN_SUMMARY_LENGTH} characters.`);
+    if (
+      formState.excerpt.trim() &&
+      formState.excerpt.trim().length < MIN_SUMMARY_LENGTH
+    ) {
+      setSummaryError(
+        `Summary must be at least ${MIN_SUMMARY_LENGTH} characters.`
+      );
       return;
     }
 
@@ -236,7 +271,11 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
     payload.append("excerpt", formState.excerpt.trim());
     payload.append("content", formState.content.trim());
     payload.append("status", statusToSave);
-    payload.append("isFeatured", formState.isFeatured ? "true" : "false");
+    // Only allow featured if user is admin
+    payload.append(
+      "isFeatured",
+      isAdmin && formState.isFeatured ? "true" : "false"
+    );
     payload.append("categories", formState.category);
 
     // Append tags and SEO keywords as arrays
@@ -257,17 +296,35 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
       } else {
         await dispatch(createBlog(payload)).unwrap();
       }
-      
+
       // Clear auto-save after successful save
       if (typeof window !== "undefined") {
         localStorage.removeItem(autoSaveKey);
       }
-      
-      navigate(redirectPath);
+
+      // Navigate back and force refresh by adding a timestamp query param
+      navigate(`${redirectPath}?refresh=${Date.now()}`, { replace: true });
     } catch (err) {
-      setLocalError(
-        err?.message || err || "Failed to save blog. Please try again."
-      );
+      // Extract error message from various error formats
+      let errorMessage = "Failed to save blog. Please try again.";
+
+      if (typeof err === "string") {
+        errorMessage = err;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      } else if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err?.data?.message) {
+        errorMessage = err.data.message;
+      } else if (err?.error) {
+        errorMessage =
+          typeof err.error === "string"
+            ? err.error
+            : err.error.message || errorMessage;
+      }
+
+      console.error("Blog save error:", err);
+      setLocalError(errorMessage);
     }
   };
 
@@ -284,7 +341,11 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
   const handleCancel = () => {
     // Clear auto-save when canceling
     if (typeof window !== "undefined" && !isEditing) {
-      if (window.confirm("Are you sure you want to cancel? Your draft will be saved locally.")) {
+      if (
+        window.confirm(
+          "Are you sure you want to cancel? Your draft will be saved locally."
+        )
+      ) {
         localStorage.removeItem(autoSaveKey);
         navigate(redirectPath);
       }
@@ -323,7 +384,9 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
               <p className="text-xs text-green-400 mt-2 flex items-center gap-2">
                 <Save className="h-3 w-3" />
                 Draft auto-saved {lastSaved.toLocaleTimeString()}
-                {isAutoSaving && <span className="text-gray-500">(saving...)</span>}
+                {isAutoSaving && (
+                  <span className="text-gray-500">(saving...)</span>
+                )}
               </p>
             )}
           </div>
@@ -364,8 +427,9 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
                 onChange={handleChange}
                 rows={3}
                 placeholder="Short elevator pitch for your blog (minimum 20 characters)."
-                className={`textarea textarea-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500 ${summaryError ? "border-red-500/50" : ""
-                  }`}
+                className={`textarea textarea-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500 ${
+                  summaryError ? "border-red-500/50" : ""
+                }`}
               />
               {summaryError && (
                 <p className="text-xs text-red-400">{summaryError}</p>
@@ -408,19 +472,20 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
                   ))}
                 </select>
               </div>
-
             </div>
 
-            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-gray-950/40 px-4 py-3 text-sm text-gray-300">
-              <input
-                type="checkbox"
-                name="isFeatured"
-                checked={formState.isFeatured}
-                onChange={handleChange}
-                className="checkbox checkbox-primary"
-              />
-              Feature this blog on landing pages
-            </label>
+            {isAdmin && (
+              <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-gray-950/40 px-4 py-3 text-sm text-gray-300">
+                <input
+                  type="checkbox"
+                  name="isFeatured"
+                  checked={formState.isFeatured}
+                  onChange={handleChange}
+                  className="checkbox checkbox-primary"
+                />
+                Feature this blog on landing pages
+              </label>
+            )}
 
             <ChipInput
               label="Tags"

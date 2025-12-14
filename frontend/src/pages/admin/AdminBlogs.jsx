@@ -1,8 +1,13 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Plus } from "lucide-react";
+import {
+  Plus,
+  ChevronDown,
+  Filter,
+  Search,
+} from "lucide-react";
 import { BlogList } from "../../components/admin/blog/index.js";
 import {
   fetchAllBlogs,
@@ -21,6 +26,7 @@ import FlagModal from "../../components/shared/FlagModal.jsx";
 
 function AdminBlogsContent() {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const toast = useToast();
   const { blogs, loading, error } = useSelector((state) => state.blogs);
@@ -39,9 +45,15 @@ function AdminBlogsContent() {
     blogId: null,
   });
 
+  // Refresh when filters change
   React.useEffect(() => {
     dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
   }, [dispatch, searchQuery, statusFilter]);
+
+  // Refresh when component mounts or when navigating back (detected by location change)
+  React.useEffect(() => {
+    dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
+  }, [location.pathname]);
 
   // Filter blogs based on view filter
   const filteredBlogs = React.useMemo(() => {
@@ -236,21 +248,25 @@ function AdminBlogsContent() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <select
-              value={viewFilter}
-              onChange={(e) => setViewFilter(e.target.value)}
-              className="select select-bordered bg-gray-900/70 border-white/10 text-white"
-            >
-              <option value="all">All Blogs</option>
-              <option value="flagged">Flagged Blogs</option>
-              <option value="own">My Blogs</option>
-            </select>
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-10" />
+              <select
+                value={viewFilter}
+                onChange={(e) => setViewFilter(e.target.value)}
+                className="w-full pl-10 pr-10 py-2.5 rounded-lg bg-gray-900/70 border border-white/10 text-white text-sm appearance-none cursor-pointer transition-all hover:border-white/20 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+              >
+                <option value="all" className="bg-gray-900 text-gray-300">All Blogs</option>
+                <option value="flagged" className="bg-gray-900 text-red-300">Flagged Blogs</option>
+                <option value="own" className="bg-gray-900 text-blue-300">My Blogs</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
             <button
               onClick={() => navigate("/admin/blogs/create")}
-              className="btn btn-primary flex items-center gap-2"
+              className="group relative inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-lg shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105"
             >
-              <Plus className="h-4 w-4" />
-              Create New Blog
+              <Plus className="h-4 w-4 transition-transform group-hover:rotate-90" />
+              <span>Create New Blog</span>
             </button>
           </div>
         </div>

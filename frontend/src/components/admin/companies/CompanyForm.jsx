@@ -37,6 +37,7 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
   const [logoPreview, setLogoPreview] = React.useState("");
   const [images, setImages] = React.useState([]);
   const [imageFiles, setImageFiles] = React.useState([]);
+  const imageInputRef = React.useRef(null);
   const [loading, setLoading] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -91,17 +92,31 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
 
   function handleImagesChange(e) {
     const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Add new files to state
+    const newFiles = files.map((file) => ({
+      file,
+      url: URL.createObjectURL(file),
+      id: `${Date.now()}-${Math.random()}`, // Unique ID for each file
+    }));
+
     setImageFiles((prev) => [...prev, ...files]);
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImages((prev) => [...prev, { url: e.target.result, file }]);
-      };
-      reader.readAsDataURL(file);
-    });
+    setImages((prev) => [...prev, ...newFiles]);
+
+    // Reset the input to allow re-adding the same file
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+    }
   }
 
   function removeImage(index) {
+    // Revoke object URL to prevent memory leaks
+    const imageToRemove = images[index];
+    if (imageToRemove?.url && imageToRemove.url.startsWith("blob:")) {
+      URL.revokeObjectURL(imageToRemove.url);
+    }
+
     setImages((prev) => prev.filter((_, i) => i !== index));
     setImageFiles((prev) => prev.filter((_, i) => i !== index));
   }
@@ -132,26 +147,46 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
       // Don't send promoCodes in company form - they're managed separately via API
       const { promoCodes, ...companyData } = form;
       const promoCodesToAdd = promoCodes || [];
+      // Prepare images: only send File objects, not URLs
+      // For new files, use the File objects from imageFiles
+      // For existing images (when editing), keep them as URLs if they're not File objects
+      const imagesToSend =
+        imageFiles.length > 0
+          ? imageFiles
+          : images
+              .map((img) => img.file || img.url)
+              .filter((img) => img instanceof File || typeof img === "string");
+
       const finalData = {
         ...companyData,
         logo: logoFile || form.logo,
-        images:
-          imageFiles.length > 0 ? imageFiles : images.map((img) => img.url),
+        images: imagesToSend,
       };
 
       if (isEditing) {
         // When updating, set status to pending (unless admin explicitly sets it)
         const updateData = {
           ...finalData,
-          // Only change status to pending if it's not explicitly set by admin
-          status: user?.role === "admin" ? finalData.status : "pending",
+          // Always set to pending when editing, unless admin explicitly sets it
+          status: user?.role === "admin" ? (finalData.status || "pending") : "pending",
         };
         await updateCompany(companyId, updateData);
+        // Navigate back - the AdminCompanies component will refresh on location change
         navigate(redirectPath);
       } else {
-        // Create company first
-        const result = await createCompany(finalData);
-        const newCompanyId = result?.data?._id || result?.data?.id;
+        // Create company - ensure status is pending by default
+        const createData = {
+          ...finalData,
+          status: user?.role === "admin" ? (finalData.status || "pending") : "pending",
+        };
+        const result = await createCompany(createData);
+        // Backend returns: { success: true, message: "...", data: { _id, ... } }
+        // So company ID is at result.data.data._id
+        const newCompanyId =
+          result?.data?.data?._id ||
+          result?.data?.data?.id ||
+          result?.data?._id ||
+          result?.data?.id;
 
         if (newCompanyId) {
           // After creating company, add all promo codes that were added during creation
@@ -510,7 +545,7 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
               </label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {images.map((img, idx) => (
-                  <div key={idx} className="relative">
+                  <div key={img.id || idx} className="relative">
                     <img
                       src={img.url}
                       alt={`Company image ${idx + 1}`}
@@ -529,6 +564,7 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                   <Upload className="h-5 w-5" />
                   <span className="text-xs">Add Image</span>
                   <input
+                    ref={imageInputRef}
                     type="file"
                     accept="image/*"
                     multiple

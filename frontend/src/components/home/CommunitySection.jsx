@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MessageCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import ImageWithFallback from '../shared/ImageWithFallback.jsx';
 
 function CommunitySection() {
@@ -47,9 +46,14 @@ function CommunitySection() {
                 Whether you're new or experienced, you'll find a team ready to help you reach the next level.
               </p>
             </motion.div>
-            <Link to="/academy" className="btn inline-flex items-center justify-center rounded-full bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3 font-medium">
+            <a
+              href="https://discord.gg/qEWw7sMn"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn inline-flex items-center justify-center rounded-full bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3 font-medium"
+            >
               Join the Community
-            </Link>
+            </a>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, x: 30, scale: 0.95 }}

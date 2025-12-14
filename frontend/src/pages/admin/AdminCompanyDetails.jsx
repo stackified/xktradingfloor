@@ -1,9 +1,31 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Edit, Trash2, Shield, ShieldOff, Pin, PinOff, Eye, EyeOff } from "lucide-react";
-import { getCompanyById, deleteCompany, toggleCompanyStatus, addPromoCode, updatePromoCode, deletePromoCode } from "../../controllers/companiesController.js";
-import { getReviewsByCompanyId, hideReview, pinReview, deleteReview } from "../../controllers/reviewsController.js";
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  Shield,
+  ShieldOff,
+  Pin,
+  PinOff,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import {
+  getCompanyById,
+  deleteCompany,
+  toggleCompanyStatus,
+  addPromoCode,
+  updatePromoCode,
+  deletePromoCode,
+} from "../../controllers/companiesController.js";
+import {
+  getReviewsByCompanyId,
+  hideReview,
+  pinReview,
+  deleteReview,
+} from "../../controllers/reviewsController.js";
 import ProtectedRoute from "../../components/dashboard/ProtectedRoute.jsx";
 import RatingBreakdownChart from "../../components/reviews/RatingBreakdownChart.jsx";
 import ImageWithFallback from "../../components/shared/ImageWithFallback.jsx";
@@ -21,19 +43,27 @@ function AdminCompanyDetailsContent() {
   const [company, setCompany] = React.useState(null);
   const [reviews, setReviews] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const [deleteCompanyModal, setDeleteCompanyModal] = React.useState({ isOpen: false });
-  const [deleteReviewModal, setDeleteReviewModal] = React.useState({ isOpen: false, reviewId: null });
-  const [deletePromoModal, setDeletePromoModal] = React.useState({ isOpen: false, promoId: null });
+  const [deleteCompanyModal, setDeleteCompanyModal] = React.useState({
+    isOpen: false,
+  });
+  const [deleteReviewModal, setDeleteReviewModal] = React.useState({
+    isOpen: false,
+    reviewId: null,
+  });
+  const [deletePromoModal, setDeletePromoModal] = React.useState({
+    isOpen: false,
+    promoId: null,
+  });
   const [showPromoForm, setShowPromoForm] = React.useState(false);
   const [editingPromo, setEditingPromo] = React.useState(null);
   const [promoForm, setPromoForm] = React.useState({
-    code: '',
-    discount: '',
-    discountType: 'percentage',
-    validFrom: '',
-    validTo: '',
-    terms: '',
-    featured: false
+    code: "",
+    discount: "",
+    discountType: "percentage",
+    validFrom: "",
+    validTo: "",
+    terms: "",
+    featured: false,
   });
   const [promoSubmitting, setPromoSubmitting] = React.useState(false);
 
@@ -114,13 +144,13 @@ function AdminCompanyDetailsContent() {
 
   function handleAddPromoCode() {
     setPromoForm({
-      code: '',
-      discount: '',
-      discountType: 'percentage',
-      validFrom: '',
-      validTo: '',
-      terms: '',
-      featured: false
+      code: "",
+      discount: "",
+      discountType: "percentage",
+      validFrom: "",
+      validTo: "",
+      terms: "",
+      featured: false,
     });
     setEditingPromo(null);
     setShowPromoForm(true);
@@ -128,13 +158,17 @@ function AdminCompanyDetailsContent() {
 
   function handleEditPromoCode(promo) {
     setPromoForm({
-      code: promo.code || '',
-      discount: promo.discount?.toString() || '',
-      discountType: promo.discountType || 'percentage',
-      validFrom: promo.validFrom ? new Date(promo.validFrom).toISOString().split('T')[0] : '',
-      validTo: promo.validTo ? new Date(promo.validTo).toISOString().split('T')[0] : '',
-      terms: promo.terms || '',
-      featured: promo.featured || false
+      code: promo.code || "",
+      discount: promo.discount?.toString() || "",
+      discountType: promo.discountType || "percentage",
+      validFrom: promo.validFrom
+        ? new Date(promo.validFrom).toISOString().split("T")[0]
+        : "",
+      validTo: promo.validTo
+        ? new Date(promo.validTo).toISOString().split("T")[0]
+        : "",
+      terms: promo.terms || "",
+      featured: promo.featured || false,
     });
     setEditingPromo(promo);
     setShowPromoForm(true);
@@ -142,7 +176,7 @@ function AdminCompanyDetailsContent() {
 
   async function handleSavePromoCode() {
     if (!promoForm.code || !promoForm.discount || !promoForm.validTo) {
-      alert('Please fill in promo code, discount, and expiry date');
+      alert("Please fill in promo code, discount, and expiry date");
       return;
     }
 
@@ -151,15 +185,19 @@ function AdminCompanyDetailsContent() {
       const promoData = {
         code: promoForm.code.toUpperCase(),
         discount: parseFloat(promoForm.discount),
-        discountType: promoForm.discountType || 'percentage',
+        discountType: promoForm.discountType || "percentage",
         validFrom: promoForm.validFrom || new Date().toISOString(),
         validTo: new Date(promoForm.validTo).toISOString(),
-        terms: promoForm.terms || '',
-        featured: promoForm.featured || false
+        terms: promoForm.terms || "",
+        featured: promoForm.featured || false,
       };
 
       if (editingPromo) {
-        await updatePromoCode(companyId, editingPromo.id || editingPromo._id, promoData);
+        await updatePromoCode(
+          companyId,
+          editingPromo.id || editingPromo._id,
+          promoData
+        );
       } else {
         await addPromoCode(companyId, promoData);
       }
@@ -168,17 +206,17 @@ function AdminCompanyDetailsContent() {
       setShowPromoForm(false);
       setEditingPromo(null);
       setPromoForm({
-        code: '',
-        discount: '',
-        discountType: 'percentage',
-        validFrom: '',
-        validTo: '',
-        terms: '',
-        featured: false
+        code: "",
+        discount: "",
+        discountType: "percentage",
+        validFrom: "",
+        validTo: "",
+        terms: "",
+        featured: false,
       });
     } catch (error) {
       console.error("Failed to save promo code:", error);
-      alert(error.message || 'Failed to save promo code');
+      alert(error.message || "Failed to save promo code");
     } finally {
       setPromoSubmitting(false);
     }
@@ -277,7 +315,14 @@ function AdminCompanyDetailsContent() {
                       </span>
                     </div>
                   </div>
-                  <p className="text-gray-300">{company.description || company.details}</p>
+                  {company.description ? (
+                    <div
+                      className="rich-text-content text-gray-300"
+                      dangerouslySetInnerHTML={{ __html: company.description }}
+                    />
+                  ) : (
+                    <p className="text-gray-300">{company.details}</p>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2">
@@ -334,7 +379,8 @@ function AdminCompanyDetailsContent() {
             <div className="card">
               <div className="card-body">
                 <h2 className="text-xl font-semibold mb-4">
-                  Reviews ({visibleReviews.length} visible, {reviews.length - visibleReviews.length} hidden)
+                  Reviews ({visibleReviews.length} visible,{" "}
+                  {reviews.length - visibleReviews.length} hidden)
                 </h2>
 
                 {pinnedReviews.length > 0 && (
@@ -390,11 +436,15 @@ function AdminCompanyDetailsContent() {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Total Reviews</span>
-                    <span className="text-white font-semibold">{reviews.length}</span>
+                    <span className="text-white font-semibold">
+                      {reviews.length}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Visible Reviews</span>
-                    <span className="text-white font-semibold">{visibleReviews.length}</span>
+                    <span className="text-white font-semibold">
+                      {visibleReviews.length}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Average Rating</span>
@@ -404,7 +454,9 @@ function AdminCompanyDetailsContent() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Status</span>
-                    <span className="text-white font-semibold capitalize">{company.status}</span>
+                    <span className="text-white font-semibold capitalize">
+                      {company.status}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -426,15 +478,22 @@ function AdminCompanyDetailsContent() {
                 {showPromoForm && (
                   <div className="mb-4 p-4 rounded-lg bg-gray-800/50 border border-gray-700 space-y-3">
                     <h4 className="text-sm font-semibold">
-                      {editingPromo ? 'Edit Promo Code' : 'Add New Promo Code'}
+                      {editingPromo ? "Edit Promo Code" : "Add New Promo Code"}
                     </h4>
                     <div className="space-y-2">
                       <div>
-                        <label className="block text-xs text-gray-400 mb-1">Code *</label>
+                        <label className="block text-xs text-gray-400 mb-1">
+                          Code *
+                        </label>
                         <input
                           type="text"
                           value={promoForm.code}
-                          onChange={(e) => setPromoForm({ ...promoForm, code: e.target.value.toUpperCase() })}
+                          onChange={(e) =>
+                            setPromoForm({
+                              ...promoForm,
+                              code: e.target.value.toUpperCase(),
+                            })
+                          }
                           className="input input-sm w-full"
                           placeholder="PROMOCODE"
                           disabled={promoSubmitting}
@@ -442,11 +501,18 @@ function AdminCompanyDetailsContent() {
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-xs text-gray-400 mb-1">Discount *</label>
+                          <label className="block text-xs text-gray-400 mb-1">
+                            Discount *
+                          </label>
                           <input
                             type="number"
                             value={promoForm.discount}
-                            onChange={(e) => setPromoForm({ ...promoForm, discount: e.target.value })}
+                            onChange={(e) =>
+                              setPromoForm({
+                                ...promoForm,
+                                discount: e.target.value,
+                              })
+                            }
                             className="input input-sm w-full"
                             placeholder="10"
                             min="0"
@@ -454,10 +520,17 @@ function AdminCompanyDetailsContent() {
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-400 mb-1">Type</label>
+                          <label className="block text-xs text-gray-400 mb-1">
+                            Type
+                          </label>
                           <select
                             value={promoForm.discountType}
-                            onChange={(e) => setPromoForm({ ...promoForm, discountType: e.target.value })}
+                            onChange={(e) =>
+                              setPromoForm({
+                                ...promoForm,
+                                discountType: e.target.value,
+                              })
+                            }
                             className="input input-sm w-full"
                             disabled={promoSubmitting}
                           >
@@ -468,21 +541,35 @@ function AdminCompanyDetailsContent() {
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-xs text-gray-400 mb-1">Valid From</label>
+                          <label className="block text-xs text-gray-400 mb-1">
+                            Valid From
+                          </label>
                           <input
                             type="date"
                             value={promoForm.validFrom}
-                            onChange={(e) => setPromoForm({ ...promoForm, validFrom: e.target.value })}
+                            onChange={(e) =>
+                              setPromoForm({
+                                ...promoForm,
+                                validFrom: e.target.value,
+                              })
+                            }
                             className="input input-sm w-full"
                             disabled={promoSubmitting}
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-400 mb-1">Valid To *</label>
+                          <label className="block text-xs text-gray-400 mb-1">
+                            Valid To *
+                          </label>
                           <input
                             type="date"
                             value={promoForm.validTo}
-                            onChange={(e) => setPromoForm({ ...promoForm, validTo: e.target.value })}
+                            onChange={(e) =>
+                              setPromoForm({
+                                ...promoForm,
+                                validTo: e.target.value,
+                              })
+                            }
                             className="input input-sm w-full"
                             required
                             disabled={promoSubmitting}
@@ -490,10 +577,17 @@ function AdminCompanyDetailsContent() {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-400 mb-1">Terms</label>
+                        <label className="block text-xs text-gray-400 mb-1">
+                          Terms
+                        </label>
                         <textarea
                           value={promoForm.terms}
-                          onChange={(e) => setPromoForm({ ...promoForm, terms: e.target.value })}
+                          onChange={(e) =>
+                            setPromoForm({
+                              ...promoForm,
+                              terms: e.target.value,
+                            })
+                          }
                           className="input input-sm w-full h-16"
                           placeholder="Terms and conditions"
                           disabled={promoSubmitting}
@@ -504,11 +598,18 @@ function AdminCompanyDetailsContent() {
                           <input
                             type="checkbox"
                             checked={promoForm.featured}
-                            onChange={(e) => setPromoForm({ ...promoForm, featured: e.target.checked })}
+                            onChange={(e) =>
+                              setPromoForm({
+                                ...promoForm,
+                                featured: e.target.checked,
+                              })
+                            }
                             className="checkbox checkbox-sm"
                             disabled={promoSubmitting}
                           />
-                          <span className="text-xs text-gray-400">Featured</span>
+                          <span className="text-xs text-gray-400">
+                            Featured
+                          </span>
                         </label>
                       </div>
                       <div className="flex gap-2">
@@ -517,7 +618,11 @@ function AdminCompanyDetailsContent() {
                           className="btn btn-xs btn-primary flex-1"
                           disabled={promoSubmitting}
                         >
-                          {promoSubmitting ? 'Saving...' : editingPromo ? 'Update' : 'Add'}
+                          {promoSubmitting
+                            ? "Saving..."
+                            : editingPromo
+                            ? "Update"
+                            : "Add"}
                         </button>
                         <button
                           onClick={() => {
@@ -544,9 +649,15 @@ function AdminCompanyDetailsContent() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="font-mono font-semibold text-sm">{promo.code}</span>
+                              <span className="font-mono font-semibold text-sm">
+                                {promo.code}
+                              </span>
                               <span className="text-xs text-green-400">
-                                {promo.discount}{promo.discountType === 'percentage' ? '%' : ''} OFF
+                                {promo.discount}
+                                {promo.discountType === "percentage"
+                                  ? "%"
+                                  : ""}{" "}
+                                OFF
                               </span>
                               {promo.featured && (
                                 <span className="text-xs px-1.5 py-0.5 rounded bg-green-500/20 text-green-400">
@@ -555,10 +666,13 @@ function AdminCompanyDetailsContent() {
                               )}
                             </div>
                             <div className="text-xs text-gray-400">
-                              Valid until {new Date(promo.validTo).toLocaleDateString()}
+                              Valid until{" "}
+                              {new Date(promo.validTo).toLocaleDateString()}
                             </div>
                             {promo.terms && (
-                              <div className="text-xs text-gray-500 mt-1">{promo.terms}</div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {promo.terms}
+                              </div>
                             )}
                           </div>
                           <div className="flex gap-1">
@@ -570,7 +684,9 @@ function AdminCompanyDetailsContent() {
                               <Edit className="h-3 w-3" />
                             </button>
                             <button
-                              onClick={() => handleDeletePromoCode(promo.id || promo._id)}
+                              onClick={() =>
+                                handleDeletePromoCode(promo.id || promo._id)
+                              }
                               className="btn btn-xs btn-ghost text-red-400"
                               title="Delete"
                             >
@@ -633,7 +749,13 @@ function AdminCompanyDetailsContent() {
 
 function ReviewCard({ review, onPin, onHide, onDelete }) {
   return (
-    <div className={`p-4 rounded-lg border ${review.isPinned ? 'border-amber-500/40 bg-amber-500/5' : 'border-white/10 bg-gray-900/30'}`}>
+    <div
+      className={`p-4 rounded-lg border ${
+        review.isPinned
+          ? "border-amber-500/40 bg-amber-500/5"
+          : "border-white/10 bg-gray-900/30"
+      }`}
+    >
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
@@ -661,7 +783,11 @@ function ReviewCard({ review, onPin, onHide, onDelete }) {
             }`}
             title={review.isPinned ? "Unpin review" : "Pin review"}
           >
-            {review.isPinned ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
+            {review.isPinned ? (
+              <PinOff className="h-3 w-3" />
+            ) : (
+              <Pin className="h-3 w-3" />
+            )}
           </button>
           <button
             onClick={onHide}
@@ -683,12 +809,14 @@ function ReviewCard({ review, onPin, onHide, onDelete }) {
       </div>
       {review.pros && (
         <div className="text-sm mb-2">
-          <span className="text-green-400 font-semibold">Pros:</span> {review.pros}
+          <span className="text-green-400 font-semibold">Pros:</span>{" "}
+          {review.pros}
         </div>
       )}
       {review.cons && (
         <div className="text-sm mb-2">
-          <span className="text-red-400 font-semibold">Cons:</span> {review.cons}
+          <span className="text-red-400 font-semibold">Cons:</span>{" "}
+          {review.cons}
         </div>
       )}
       {review.description && (
@@ -715,5 +843,3 @@ export default function AdminCompanyDetails() {
     </ProtectedRoute>
   );
 }
-
-

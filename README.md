@@ -35,6 +35,7 @@ xktradingfloor/
 - **🛍️ Merchandise**: E-commerce functionality with shopping cart
 - **👤 Dashboards**: Personalized dashboards for users, operators, and admins
 - **🔐 Authentication**: User registration, login, and role-based access control
+- **📊 Analytics**: Google Analytics 4 integration for tracking website performance and user behavior
 
 ## 🛠️ Tech Stack
 
@@ -143,6 +144,25 @@ Fully responsive and optimized for:
 - Laptop (1024px - 1919px)
 - Tablet (768px - 1023px)
 - Mobile (320px - 767px)
+
+## 📊 Analytics Integration
+
+The application includes Google Analytics 4 (GA4) integration for comprehensive website analytics:
+
+- **Measurement ID**: `G-GYPE81F8N8`
+- **Stream ID**: `13130862580`
+- **Automatic Page View Tracking**: All route changes are automatically tracked
+- **Custom Event Tracking**: Utility functions available for tracking button clicks, form submissions, searches, and user engagement
+
+### Analytics Features
+
+- Real-time page view tracking
+- Custom event tracking (button clicks, form submissions, link clicks)
+- Search query tracking
+- User engagement metrics
+- Automatic route change detection
+
+Analytics utilities are available in `frontend/src/utils/analytics.js` for custom event tracking throughout the application.
 
 ## 🤝 Contributing
 

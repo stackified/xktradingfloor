@@ -1,10 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Lock } from "lucide-react";
 import StarRating from "./StarRating.jsx";
 import ImageWithFallback from "../shared/ImageWithFallback.jsx";
 
-function CompanyCard({ company }) {
+function CompanyCard({ company, user }) {
   const categoryColors = {
     Broker: "bg-blue-500/20 text-blue-400",
     PropFirm: "bg-purple-500/20 text-purple-400",
@@ -75,26 +76,68 @@ function CompanyCard({ company }) {
               {company.details || company.description}
             </p>
             {isPromoValid && (
-              <div className="mt-3 p-2 rounded bg-green-500/10 border border-green-500/30">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xs text-green-400 font-semibold">
-                      Featured Promo
+              <div className="mt-3">
+                {!user ? (
+                  <div className="relative p-3 rounded-lg bg-green-500/10 border border-green-500/20 overflow-hidden">
+                    {/* Blurred promo code - subtle blur */}
+                    <div className="blur-[3px] select-none pointer-events-none">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-xs text-green-400 font-semibold">
+                            Featured Promo
+                          </div>
+                          <div className="text-sm font-mono text-green-300">
+                            {featuredPromo.code}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-bold text-green-400">
+                            {featuredPromo.discount}% OFF
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            Expires{" "}
+                            {new Date(featuredPromo.validTo).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-sm font-mono text-green-300">
-                      {featuredPromo.code}
+                    {/* Clean overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-[2px] rounded-lg">
+                      <Link
+                        to="/login"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-900/90 border border-gray-700/50 backdrop-blur-sm hover:bg-gray-800/90 hover:border-gray-600/50 transition-all cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Lock className="h-3.5 w-3.5 text-blue-400 flex-shrink-0" />
+                        <span className="text-xs text-gray-300 font-medium">
+                          Login to access promo code
+                        </span>
+                      </Link>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-bold text-green-400">
-                      {featuredPromo.discount}% OFF
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      Expires{" "}
-                      {new Date(featuredPromo.validTo).toLocaleDateString()}
+                ) : (
+                  <div className="p-2 rounded bg-green-500/10 border border-green-500/30">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs text-green-400 font-semibold">
+                          Featured Promo
+                        </div>
+                        <div className="text-sm font-mono text-green-300">
+                          {featuredPromo.code}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-bold text-green-400">
+                          {featuredPromo.discount}% OFF
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          Expires{" "}
+                          {new Date(featuredPromo.validTo).toLocaleDateString()}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
             <div className="flex items-center gap-3 mt-4">
