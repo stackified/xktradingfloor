@@ -18,5 +18,11 @@ router.post(
   companyController.requestCompanyAddition
 );
 
+// Get company by ID - requires read permission
+router.get(
+  "/:companyId/getcompanybyid",
+  companyController.getCompanyById
+);
+
 module.exports = router;
 
