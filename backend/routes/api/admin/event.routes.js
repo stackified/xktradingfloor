@@ -26,5 +26,6 @@ router.put('/:eventId/updateEvent',
     ),
     eventController.updateEvent);
 router.delete('/:eventId/deleteEvent', eventController.deleteEvent);
+router.post('/:eventId/register', eventController.registerForEvent);
 
 module.exports = router;
