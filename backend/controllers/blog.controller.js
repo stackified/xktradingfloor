@@ -20,11 +20,27 @@ const getViewerIdentifier = (req) => {
     return `anon_${identifier}`;
 };
 
-// Admin: Create blog post
+const RESTRICTED_FIELDS = [
+    'status',
+    'publishedAt',
+    'isFeatured',
+    'isFlagged',
+    'flagReason',
+    'flagAdditionalDetails',
+    'flaggedAt',
+    'flaggedBy',
+    'views',
+    'viewedBy',
+    'isDeleted',
+    'author'
+];
+
+// Admin/User: Create blog post
 exports.createBlog = async (req, res) => {
     try {
-        const { _id: adminId, role } = req.user;
+        const { _id: userId, role } = req.user;
 
+        // Handle featured image upload
         let featuredImage = "";
         if (req?.files?.featuredImage) {
             featuredImage = req.files.featuredImage[0];
@@ -37,11 +53,35 @@ exports.createBlog = async (req, res) => {
             featuredImage = url;
         }
 
-        const blogData = req.body;
-        blogData.author = adminId || null;
-        blogData.featuredImage = featuredImage || null;
+        // Handle additional images
+        let images = [];
+        if (req?.files?.images && Array.isArray(req.files.images)) {
+            for (const image of req.files.images) {
+                const pathN = image?.path;
+                const npathN = pathN.replaceAll("\\", "/");
+                image.path = npathN;
+                const url = await r2.uploadPublic(image?.path, `${image?.filename}`, `Blogs`);
+                images.push(url);
+            }
+        }
 
-        if (blogData.status === 'published' && role != "User") {
+        const blogData = { ...req.body };
+
+        // For regular users, filter out restricted fields and enforce draft status
+        if (role === "User") {
+            RESTRICTED_FIELDS.forEach(field => {
+                delete blogData[field];
+            });
+            blogData.status = 'draft';
+        }
+
+        blogData.author = userId || null;
+        blogData.featuredImage = featuredImage || null;
+        if (images.length > 0) {
+            blogData.images = images;
+        }
+
+        if (blogData.status === 'published' && role !== "User") {
             blogData.publishedAt = new Date();
         }
 
@@ -49,7 +89,9 @@ exports.createBlog = async (req, res) => {
         const savedBlog = await blog.save();
 
         return sendSuccessResponse(res, {
-            message: "Blog post created successfully",
+            message: role === "User"
+                ? "Blog post created successfully as draft"
+                : "Blog post created successfully",
             data: savedBlog
         }, 201);
     } catch (error) {
@@ -90,10 +132,10 @@ exports.getAllPublishedBlogs = async (req, res) => {
     }
 };
 
-// Admin: Get all blogs (with filters)
+// Admin/User: Get all blogs (with filters)
 exports.getAllBlogs = async (req, res) => {
     try {
-        const { _id: adminId, role } = req.user;
+        const { _id: userId, role } = req.user;
         let { page, size, search } = req.query;
 
         const { status } = req.body;
@@ -103,13 +145,19 @@ exports.getAllBlogs = async (req, res) => {
 
         const query = {};
 
-        if (role !== "Admin") {
-            query.author = adminId;
+        // Users can only see their own blogs, admins can see all
+        if (role === "User") {
+            query.author = userId;
+        } else if (role !== "Admin") {
+            query.author = userId;
         }
 
         if (status) {
             query.status = status;
         }
+
+        // Only show non-deleted blogs
+        query.isDeleted = false;
 
         if (search) {
             query.$or = [
@@ -279,15 +327,23 @@ exports.getPublishedBlogs = async (req, res) => {
     }
 };
 
-// Admin: Update blog
+// Admin/User: Update blog
 exports.updateBlog = async (req, res) => {
     try {
         const { blogid } = req.params;
-        const updateData = req.body;
+        const { _id: userId, role } = req.user;
+        const updateData = { ...req.body };
 
-        let featuredImage = "";
+        // Fetch blog first to check existence and for image merging
+        const blog = await BlogModel.findOne({ _id: blogid, isDeleted: false });
+
+        if (!blog) {
+            return sendErrorResponse(res, "Blog post not found", 404, true, true);
+        }
+
+        // Handle featured image upload
         if (req?.files?.featuredImage) {
-            featuredImage = req.files.featuredImage[0];
+            const featuredImage = req.files.featuredImage[0];
             const pathN = featuredImage?.path;
             const npathN = pathN.replaceAll("\\", "/");
             featuredImage.path = npathN;
@@ -297,38 +353,64 @@ exports.updateBlog = async (req, res) => {
             updateData.featuredImage = url;
         }
 
-        const blog = await BlogModel.findOne({ _id: blogid, isDeleted: false });
-
-        if (!blog) {
-            return sendErrorResponse(res, "Blog post not found", 404, true, true);
-        }
-
-        // If status is being changed to published, set publishedAt
-        if (updateData.status === 'published' && blog.status !== 'published') {
-            updateData.publishedAt = new Date();
-        }
-
-        // Handle flagging fields
-        if (updateData.flagReason !== undefined) {
-            // Validate flag reason if provided
-            if (updateData.flagReason) {
-                const validReasons = ['Spam', 'Inappropriate Content', 'Misinformation', 'Duplicate Content', 'Other'];
-                if (!validReasons.includes(updateData.flagReason)) {
-                    return sendErrorResponse(res, `Invalid flag reason. Must be one of: ${validReasons.join(', ')}`, 400, true, true);
-                }
-                // Set flagging information
-                updateData.isFlagged = true;
-                updateData.flaggedAt = new Date();
-                if (req.user && req.user._id) {
-                    updateData.flaggedBy = req.user._id;
-                }
+        // Handle additional images
+        if (req?.files?.images && Array.isArray(req.files.images)) {
+            let images = [];
+            for (const image of req.files.images) {
+                const pathN = image?.path;
+                const npathN = pathN.replaceAll("\\", "/");
+                image.path = npathN;
+                const url = await r2.uploadPublic(image?.path, `${image?.filename}`, `Blogs`);
+                images.push(url);
+            }
+            // Merge with existing images if any
+            if (blog.images && blog.images.length > 0) {
+                updateData.images = [...blog.images, ...images];
             } else {
-                // If flagReason is set to null/empty, unflag the blog
-                updateData.isFlagged = false;
-                updateData.flagReason = null;
-                updateData.flagAdditionalDetails = null;
-                updateData.flaggedAt = null;
-                updateData.flaggedBy = null;
+                updateData.images = images;
+            }
+        }
+
+        // For regular users: verify ownership and filter restricted fields
+        if (role === "User") {
+            // Verify that the user owns this blog
+            if (blog.author.toString() !== userId.toString()) {
+                return sendErrorResponse(res, "You are not authorized to update this blog post", 403, true, true);
+            }
+
+            // Filter out restricted fields
+            RESTRICTED_FIELDS.forEach(field => {
+                delete updateData[field];
+            });
+        } else {
+            // Admin operations
+            // If status is being changed to published, set publishedAt
+            if (updateData.status === 'published' && blog.status !== 'published') {
+                updateData.publishedAt = new Date();
+            }
+
+            // Handle flagging fields (admin only)
+            if (updateData.flagReason !== undefined) {
+                // Validate flag reason if provided
+                if (updateData.flagReason) {
+                    const validReasons = ['Spam', 'Inappropriate Content', 'Misinformation', 'Duplicate Content', 'Other'];
+                    if (!validReasons.includes(updateData.flagReason)) {
+                        return sendErrorResponse(res, `Invalid flag reason. Must be one of: ${validReasons.join(', ')}`, 400, true, true);
+                    }
+                    // Set flagging information
+                    updateData.isFlagged = true;
+                    updateData.flaggedAt = new Date();
+                    if (req.user && req.user._id) {
+                        updateData.flaggedBy = req.user._id;
+                    }
+                } else {
+                    // If flagReason is set to null/empty, unflag the blog
+                    updateData.isFlagged = false;
+                    updateData.flagReason = null;
+                    updateData.flagAdditionalDetails = null;
+                    updateData.flaggedAt = null;
+                    updateData.flaggedBy = null;
+                }
             }
         }
 
@@ -344,14 +426,28 @@ exports.updateBlog = async (req, res) => {
     }
 };
 
-// Admin: Delete blog (soft delete)
+// Admin/User: Delete blog (soft delete)
 exports.deleteBlog = async (req, res) => {
     try {
         const { blogid } = req.params;
-        const blog = await BlogModel.findOne({ _id: blogid, isDeleted: false });
+        const { _id: userId, role } = req.user;
+
+        const query = { _id: blogid, isDeleted: false };
+
+        // Users can only delete their own blogs
+        if (role === "User") {
+            query.author = userId;
+        }
+
+        const blog = await BlogModel.findOne(query);
 
         if (!blog) {
-            return sendErrorResponse(res, "Blog post not found", 404, true, true);
+            return sendErrorResponse(res,
+                role === "User"
+                    ? "Blog post not found or you don't have access to it"
+                    : "Blog post not found",
+                404, true, true
+            );
         }
 
         blog.isDeleted = true;
