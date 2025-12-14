@@ -259,11 +259,9 @@ exports.updateCompany = async (req, res) => {
             await updatedCompany.populate('adminId', 'fullName email profileImage');
         }
 
-        const companyObj = updatedCompany.toObject();
-        companyObj.id = companyObj._id.toString();
         return sendSuccessResponse(res, {
             message: "Company updated successfully",
-            data: companyObj
+            data: updatedCompany
         });
     } catch (error) {
         return sendErrorResponse(res, error);

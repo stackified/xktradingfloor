@@ -40,6 +40,16 @@ router.get(
 router.put(
   "/:companyId/updatecompany",
   permissionAuthorization("company", ["update"], [constants.roles.admin, constants.roles.operator]),
+  pdfUpload.fileUpload(
+    "companies",
+    ["pdf", "image"],
+    [
+      {
+        name: "logo",
+        maxCount: 1,
+      },
+    ]
+  ),
   companyController.updateCompany
 );
 

@@ -6,7 +6,7 @@ const pdfUpload = require("../../../middleware/file-upload.middleware");
 router.post(
   "/request",
   pdfUpload.fileUpload(
-    "CompanyRequests",
+    "companies",
     ["pdf", "image"],
     [
       {
