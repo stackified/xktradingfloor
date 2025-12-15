@@ -1,6 +1,6 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Plus } from "lucide-react";
 import { BlogList } from "../../components/admin/blog/index.js";
@@ -16,6 +16,7 @@ import ProtectedRoute from "../../components/dashboard/ProtectedRoute.jsx";
 
 function OperatorBlogsContent() {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { blogs, loading, error } = useSelector((state) => state.blogs);
   const reduxUser = useSelector((state) => state.auth.user);
@@ -24,6 +25,7 @@ function OperatorBlogsContent() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
 
+  // Refresh when filters change
   React.useEffect(() => {
     if (user?.id) {
       dispatch(
@@ -36,6 +38,19 @@ function OperatorBlogsContent() {
     }
   }, [dispatch, user?.id, searchQuery, statusFilter]);
 
+  // Refresh when component mounts or when navigating back (detected by location change)
+  React.useEffect(() => {
+    if (user?.id) {
+      dispatch(
+        fetchOperatorBlogs({
+          operatorId: user.id,
+          search: searchQuery,
+          status: statusFilter,
+        })
+      );
+    }
+  }, [location.pathname]);
+
   // Filter blogs: show own blogs + normal user blogs (for flagging)
   const filteredBlogs = React.useMemo(() => {
     if (!blogs || !Array.isArray(blogs)) return [];
@@ -43,7 +58,8 @@ function OperatorBlogsContent() {
       const authorId = blog.author?._id || blog.author;
       const isOwnBlog = authorId === user?.id;
       const authorRole = blog.author?.role?.toLowerCase();
-      const isNormalUserBlog = authorRole === "user" || authorRole === undefined;
+      const isNormalUserBlog =
+        authorRole === "user" || authorRole === undefined;
       // Show own blogs OR normal user blogs (for flagging)
       return isOwnBlog || isNormalUserBlog;
     });
@@ -66,7 +82,9 @@ function OperatorBlogsContent() {
     const isOwner = authorId === user?.id;
 
     if (!isOwner) {
-      alert("You can only delete your own blogs. You can flag other users' blogs if they violate guidelines.");
+      alert(
+        "You can only delete your own blogs. You can flag other users' blogs if they violate guidelines."
+      );
       return;
     }
 

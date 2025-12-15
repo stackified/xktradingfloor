@@ -44,7 +44,8 @@ const steps = [
       "Write your trading story, publish blogs, review brokers and prop firms, and discover trading events happening around the world.",
     image: "/assets/join_academy.jpg",
     ctaText: "Join Discord",
-    ctaLink: "/contact",
+    ctaLink: "https://discord.gg/qEWw7sMn",
+    isExternal: true,
     color: "purple",
   },
 ];
@@ -116,12 +117,23 @@ function StepCard({ step, index, isInView }) {
             </p>
           </div>
 
-          <Link
-            to={step.ctaLink}
-            className={`${colors.button} text-white px-6 py-3 rounded-full font-medium w-fit transition-all hover:scale-105 shadow-lg`}
-          >
-            {step.ctaText}
-          </Link>
+          {step.isExternal ? (
+            <a
+              href={step.ctaLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${colors.button} text-white px-6 py-3 rounded-full font-medium w-fit transition-all hover:scale-105 shadow-lg`}
+            >
+              {step.ctaText}
+            </a>
+          ) : (
+            <Link
+              to={step.ctaLink}
+              className={`${colors.button} text-white px-6 py-3 rounded-full font-medium w-fit transition-all hover:scale-105 shadow-lg`}
+            >
+              {step.ctaText}
+            </Link>
+          )}
         </div>
       </div>
     </motion.div>

@@ -106,11 +106,20 @@ function CompanyForm() {
       const promoCodesToAdd = promoCodes || [];
 
       if (isEdit) {
-        await updateCompany(companyId, companyData);
+        // When updating, set status to pending
+        const updateData = {
+          ...companyData,
+          status: "pending",
+        };
+        await updateCompany(companyId, updateData);
         navigate("/reviews/operator");
       } else {
-        // Create company first
-        const result = await createCompany(companyData);
+        // Create company - ensure status is pending by default
+        const createData = {
+          ...companyData,
+          status: "pending",
+        };
+        const result = await createCompany(createData);
         // Backend returns: { success: true, message: "...", data: { _id, id, ... } }
         // Axios response: result.data = { success: true, message: "...", data: { _id, id, ... } }
         // So company object is at result.data.data

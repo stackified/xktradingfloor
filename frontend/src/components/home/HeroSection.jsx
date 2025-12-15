@@ -94,12 +94,14 @@ function HeroSection() {
             >
               Find the Right Broker
             </Link>
-            <Link
-              to="/academy"
+            <a
+              href="https://discord.gg/qEWw7sMn"
+              target="_blank"
+              rel="noopener noreferrer"
               className="btn rounded-full btn-secondary border-2 border-gray-600 hover:border-gray-500 bg-gray-800/50 hover:bg-gray-800 text-white hover:scale-105 transition-all px-6 py-3"
             >
               Join XK Trading Floor
-            </Link>
+            </a>
           </motion.div>
         </motion.div>
         <motion.div

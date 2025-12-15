@@ -1,7 +1,11 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-export default function CardLoader({ count = 3, horizontal = false }) {
+export default function CardLoader({
+  count = 3,
+  horizontal = false,
+  blog = false,
+}) {
   if (horizontal) {
     // Horizontal/rectangular card loader for Reviews page
     return (
@@ -150,6 +154,116 @@ export default function CardLoader({ count = 3, horizontal = false }) {
     );
   }
 
+  // Blog-specific card loader (matches BlogCard structure)
+  if (blog) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: count }).map((_, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: index * 0.1 }}
+            className="card overflow-hidden shadow-lg shadow-blue-500/10"
+          >
+            {/* Image skeleton */}
+            <div className="h-40 w-full bg-gray-800/50 relative overflow-hidden">
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-700/50 to-transparent"
+                animate={{
+                  x: ["-100%", "100%"],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              />
+            </div>
+            <div className="card-body">
+              {/* Category skeleton */}
+              <div className="h-3 bg-gray-800/50 rounded w-16 mb-2 relative overflow-hidden">
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-700/50 to-transparent"
+                  animate={{
+                    x: ["-100%", "100%"],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: 0.2,
+                  }}
+                />
+              </div>
+              {/* Title skeleton */}
+              <div className="h-5 bg-gray-800/50 rounded w-3/4 mb-2 relative overflow-hidden">
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-700/50 to-transparent"
+                  animate={{
+                    x: ["-100%", "100%"],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: 0.4,
+                  }}
+                />
+              </div>
+              {/* Author/Date/ReadTime skeleton */}
+              <div className="h-3 bg-gray-800/50 rounded w-2/3 mb-2 relative overflow-hidden">
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-700/50 to-transparent"
+                  animate={{
+                    x: ["-100%", "100%"],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: 0.6,
+                  }}
+                />
+              </div>
+              {/* Excerpt skeleton */}
+              <div className="space-y-2 mt-2">
+                <div className="h-3 bg-gray-800/50 rounded w-full relative overflow-hidden">
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-700/50 to-transparent"
+                    animate={{
+                      x: ["-100%", "100%"],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "linear",
+                      delay: 0.8,
+                    }}
+                  />
+                </div>
+                <div className="h-3 bg-gray-800/50 rounded w-5/6 relative overflow-hidden">
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-700/50 to-transparent"
+                    animate={{
+                      x: ["-100%", "100%"],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "linear",
+                      delay: 1.0,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    );
+  }
+
   // Original vertical/square card loader
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -243,4 +357,3 @@ export default function CardLoader({ count = 3, horizontal = false }) {
     </div>
   );
 }
-

@@ -1,13 +1,17 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { useParams, Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { getEventById } from "../controllers/eventsController.js";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
+import RegisterModal from "../components/academy/RegisterModal.jsx";
+import { getUserCookie } from "../utils/cookies.js";
 
 function EventDetails() {
   const { eventId } = useParams();
   const [event, setEvent] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
+  const [modalOpen, setModalOpen] = React.useState(false);
 
   React.useEffect(() => {
     async function loadEvent() {
@@ -25,11 +29,8 @@ function EventDetails() {
     }
     loadEvent();
   }, [eventId]);
-  const [qty, setQty] = React.useState(1);
-  const user = (() => {
-    const s = sessionStorage.getItem("xktf_user");
-    return s ? JSON.parse(s) : null;
-  })();
+  const reduxUser = useSelector((state) => state.auth.user);
+  const user = reduxUser || getUserCookie();
 
   if (loading) {
     return (
@@ -71,12 +72,15 @@ function EventDetails() {
       </Helmet>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 card overflow-hidden">
-          <ImageWithFallback
-            src={event.image || "/assets/placeholder.jpg"}
-            fallback="/assets/placeholder.jpg"
-            alt={event.title}
-            className="h-64 w-full object-cover"
-          />
+          <div className="w-full h-64 sm:h-80 md:h-96 bg-muted overflow-hidden">
+            <ImageWithFallback
+              src={((event.featuredImage || event.image || '').trim() || null)}
+              fallback="/assets/placeholder.jpg"
+              alt={event.title}
+              className="h-full w-full object-cover"
+              useDynamicFallback={true}
+            />
+          </div>
           <div className="card-body">
             <div className="flex items-center justify-between mb-2">
               <h1 className="font-display font-bold text-xl sm:text-2xl lg:text-3xl">
@@ -102,9 +106,20 @@ function EventDetails() {
                 : event.date}{" "}
               {event.location ? `• ${event.location}` : ""}
             </div>
-            <p className="text-sm sm:text-base text-gray-300 mb-4">
-              {event.excerpt || event.description || ""}
-            </p>
+            {(event.excerpt || event.description) && (
+              <div className="mb-4">
+                {event.excerpt && (
+                  <p className="text-sm sm:text-base text-gray-300 mb-2">
+                    {event.excerpt}
+                  </p>
+                )}
+                {event.description && (
+                  <div className="text-sm sm:text-base text-gray-300 whitespace-pre-line">
+                    {event.description}
+                  </div>
+                )}
+              </div>
+            )}
             {event.freebiesIncluded && event.freebiesIncluded.length > 0 && (
               <div>
                 <h3 className="font-semibold text-sm sm:text-base mb-1">
@@ -121,37 +136,37 @@ function EventDetails() {
         </div>
         <div className="card h-fit">
           <div className="card-body">
-            {event.price && (
-              <>
-                <div className="text-2xl font-semibold">₹{event.price}</div>
-                <div className="text-sm text-gray-400 mb-2">
-                  {event.seats && `Seats: ${event.seats}`}
+            <div className="text-center mb-4">
+              <div className="text-2xl font-semibold text-blue-400 mb-1">Free Event</div>
+              {event.seats && (
+                <div className="text-sm text-gray-400">
+                  {event.seats} seats available
                 </div>
-              </>
-            )}
-            <div className="flex items-center gap-2 mb-4">
-              <label className="text-sm">Qty</label>
-              <input
-                type="number"
-                min={1}
-                value={qty}
-                onChange={(e) => setQty(Number(e.target.value))}
-                className="input w-24"
-              />
+              )}
             </div>
             {user ? (
-              <button className="btn btn-primary w-full">Buy Ticket</button>
+              <button 
+                className="btn btn-primary w-full"
+                onClick={() => setModalOpen(true)}
+              >
+                Register
+              </button>
             ) : (
               <Link to="/login" className="btn btn-primary w-full">
-                Login to Buy
+                Login to Register
               </Link>
             )}
-            <div className="text-xs text-gray-400 mt-2">
-              Payments integrate later (Stripe/Razorpay).
+            <div className="text-xs text-gray-400 mt-3 text-center">
+              This is a free event. Registration is required.
             </div>
           </div>
         </div>
       </div>
+      <RegisterModal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        selectedEvent={event} 
+      />
     </div>
   );
 }

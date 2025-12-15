@@ -1,14 +1,19 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Plus,
   Edit,
   Trash2,
   Eye,
-  Shield,
-  ShieldOff,
   Loader2,
+  CheckCircle2,
+  Clock,
+  Ban,
+  ChevronDown,
+  Search,
+  Filter,
+  ArrowUpDown,
 } from "lucide-react";
 import {
   getAllCompanies,
@@ -22,6 +27,7 @@ import ConfirmModal from "../../components/shared/ConfirmModal.jsx";
 
 function AdminCompaniesContent() {
   const navigate = useNavigate();
+  const location = useLocation();
   const reduxUser = useSelector((state) => state.auth.user);
   const user = reduxUser || getUserCookie();
 
@@ -30,15 +36,22 @@ function AdminCompaniesContent() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
   const [categoryFilter, setCategoryFilter] = React.useState("");
+  const [sortBy, setSortBy] = React.useState("newest");
   const [deleteModal, setDeleteModal] = React.useState({
     isOpen: false,
     companyId: null,
     companyName: "",
   });
 
+  // Refresh when filters change
   React.useEffect(() => {
     loadCompanies();
-  }, [searchQuery, statusFilter, categoryFilter]);
+  }, [searchQuery, statusFilter, categoryFilter, sortBy]);
+
+  // Refresh when component mounts or when navigating back (detected by location change)
+  React.useEffect(() => {
+    loadCompanies();
+  }, [location.pathname]);
 
   async function loadCompanies() {
     setLoading(true);
@@ -46,15 +59,52 @@ function AdminCompaniesContent() {
       const filters = {};
       if (searchQuery) filters.search = searchQuery;
       // Only add status filter if it's not empty (not "All statuses")
+      // For admin, show all companies by default (no status filter) unless explicitly filtered
       if (statusFilter && statusFilter !== "") {
         filters.status = statusFilter;
       }
       if (categoryFilter) filters.category = categoryFilter;
 
       const { data } = await getAllCompanies(filters);
-      setCompanies(data || []);
+      // Ensure we have an array and map _id to id for consistency
+      let companiesList = Array.isArray(data)
+        ? data.map((c) => ({
+            ...c,
+            id: c._id || c.id,
+          }))
+        : [];
+
+      // Apply sorting
+      if (sortBy === "newest") {
+        companiesList.sort(
+          (a, b) =>
+            new Date(b.createdAt || b.updatedAt) -
+            new Date(a.createdAt || a.updatedAt)
+        );
+      } else if (sortBy === "oldest") {
+        companiesList.sort(
+          (a, b) =>
+            new Date(a.createdAt || a.updatedAt) -
+            new Date(b.createdAt || b.updatedAt)
+        );
+      } else if (sortBy === "name-asc") {
+        companiesList.sort((a, b) =>
+          (a.name || "").localeCompare(b.name || "")
+        );
+      } else if (sortBy === "name-desc") {
+        companiesList.sort((a, b) =>
+          (b.name || "").localeCompare(a.name || "")
+        );
+      } else if (sortBy === "rating") {
+        companiesList.sort(
+          (a, b) => (b.ratingsAggregate || 0) - (a.ratingsAggregate || 0)
+        );
+      }
+
+      setCompanies(companiesList);
     } catch (error) {
       console.error("Error loading companies:", error);
+      setCompanies([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -74,7 +124,7 @@ function AdminCompaniesContent() {
     }
   };
 
-  async function handleToggleStatus(companyId) {
+  async function handleStatusChange(companyId, newStatus) {
     try {
       const company = companies.find(
         (c) => c.id === companyId || c._id === companyId
@@ -84,25 +134,14 @@ function AdminCompaniesContent() {
         return;
       }
 
-      // Determine new status based on current status
-      let newStatus;
-      if (company.status === "approved") {
-        newStatus = "blocked";
-      } else if (company.status === "pending") {
-        newStatus = "approved";
-      } else if (company.status === "blocked") {
-        newStatus = "approved";
-      } else {
-        newStatus = "approved";
-      }
-
       // Use updateCompany to change status
       await updateCompany(companyId, { status: newStatus });
+      // Refresh the list after status change
       await loadCompanies();
     } catch (error) {
-      console.error("Failed to toggle company status:", error);
+      console.error("Failed to update company status:", error);
       alert(
-        `Failed to toggle company status: ${error.message || "Unknown error"}`
+        `Failed to update company status: ${error.message || "Unknown error"}`
       );
     }
   }
@@ -135,44 +174,111 @@ function AdminCompaniesContent() {
           </div>
           <button
             onClick={() => navigate("/admin/companies/create")}
-            className="btn btn-primary flex items-center gap-2"
+            className="group relative inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-lg shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105"
           >
-            <Plus className="h-4 w-4" />
-            Add Company
+            <Plus className="h-4 w-4 transition-transform group-hover:rotate-90" />
+            <span>Add Company</span>
           </button>
         </div>
 
         {/* Filters */}
-        <div className="card mb-6">
+        <div className="card mb-6 border-white/10 bg-gradient-to-br from-gray-900/80 to-gray-800/60 backdrop-blur-sm">
           <div className="card-body">
-            <div className="grid gap-4 md:grid-cols-3">
-              <input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search companies..."
-                className="input input-bordered bg-gray-900/70 border-white/10 text-white placeholder:text-gray-500"
-                type="search"
-              />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="select select-bordered bg-gray-900/70 border-white/10 text-white"
-              >
-                <option value="">All statuses</option>
-                <option value="approved">Approved</option>
-                <option value="pending">Pending</option>
-                <option value="blocked">Blocked</option>
-              </select>
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="select select-bordered bg-gray-900/70 border-white/10 text-white"
-              >
-                <option value="">All categories</option>
-                <option value="Broker">Broker</option>
-                <option value="PropFirm">Prop Firm</option>
-                <option value="Crypto">Crypto</option>
-              </select>
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search companies..."
+                  className="input input-bordered bg-gray-900/70 border-white/10 text-white placeholder:text-gray-500 pl-10 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  type="search"
+                />
+              </div>
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-10" />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full pl-10 pr-10 py-2.5 rounded-lg bg-gray-900/70 border border-white/10 text-white text-sm appearance-none cursor-pointer transition-all hover:border-white/20 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                >
+                  <option value="" className="bg-gray-900 text-gray-300">
+                    All statuses
+                  </option>
+                  <option
+                    value="approved"
+                    className="bg-gray-900 text-emerald-300"
+                  >
+                    Approved
+                  </option>
+                  <option
+                    value="pending"
+                    className="bg-gray-900 text-yellow-300"
+                  >
+                    Pending
+                  </option>
+                  <option value="blocked" className="bg-gray-900 text-red-300">
+                    Blocked
+                  </option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              </div>
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-10" />
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="w-full pl-10 pr-10 py-2.5 rounded-lg bg-gray-900/70 border border-white/10 text-white text-sm appearance-none cursor-pointer transition-all hover:border-white/20 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                >
+                  <option value="" className="bg-gray-900 text-gray-300">
+                    All categories
+                  </option>
+                  <option value="Broker" className="bg-gray-900 text-blue-300">
+                    Broker
+                  </option>
+                  <option
+                    value="PropFirm"
+                    className="bg-gray-900 text-purple-300"
+                  >
+                    Prop Firm
+                  </option>
+                  <option value="Crypto" className="bg-gray-900 text-amber-300">
+                    Crypto
+                  </option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              </div>
+              <div className="relative">
+                <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-10" />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full pl-10 pr-10 py-2.5 rounded-lg bg-gray-900/70 border border-white/10 text-white text-sm appearance-none cursor-pointer transition-all hover:border-white/20 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                >
+                  <option value="newest" className="bg-gray-900 text-gray-300">
+                    Newest First
+                  </option>
+                  <option value="oldest" className="bg-gray-900 text-gray-300">
+                    Oldest First
+                  </option>
+                  <option
+                    value="name-asc"
+                    className="bg-gray-900 text-gray-300"
+                  >
+                    Name (A-Z)
+                  </option>
+                  <option
+                    value="name-desc"
+                    className="bg-gray-900 text-gray-300"
+                  >
+                    Name (Z-A)
+                  </option>
+                  <option value="rating" className="bg-gray-900 text-gray-300">
+                    Highest Rating
+                  </option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              </div>
             </div>
           </div>
         </div>
@@ -199,24 +305,34 @@ function AdminCompaniesContent() {
             <div className="divide-y divide-white/5">
               {companies.map((company) => (
                 <div
-                  key={company.id}
-                  className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center"
+                  key={company.id || company._id || `company-${company.name}`}
+                  className="group relative flex flex-col gap-4 p-5 lg:flex-row lg:items-center hover:bg-gray-800/30 transition-all duration-300"
                 >
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-blue-500/50 transition-all duration-300 rounded-r"></div>
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-3 text-white mb-2">
-                      <h3 className="text-lg font-semibold">{company.name}</h3>
+                      <h3 className="text-lg font-semibold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                        {company.name}
+                      </h3>
                       <span
-                        className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold backdrop-blur-sm ${
                           company.status === "approved"
-                            ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/40"
+                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-lg shadow-emerald-500/10"
                             : company.status === "pending"
-                            ? "bg-yellow-500/10 text-yellow-300 border border-yellow-500/40"
-                            : "bg-red-500/10 text-red-300 border border-red-500/40"
+                            ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/50 shadow-lg shadow-yellow-500/10"
+                            : "bg-red-500/20 text-red-300 border border-red-500/50 shadow-lg shadow-red-500/10"
                         }`}
                       >
+                        {company.status === "approved" ? (
+                          <CheckCircle2 className="h-3 w-3" />
+                        ) : company.status === "pending" ? (
+                          <Clock className="h-3 w-3" />
+                        ) : (
+                          <Ban className="h-3 w-3" />
+                        )}
                         {company.status || "unknown"}
                       </span>
-                      <span className="px-2 py-0.5 rounded text-xs bg-blue-500/10 text-blue-300 border border-blue-500/40">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs bg-blue-500/20 text-blue-300 border border-blue-500/50 shadow-lg shadow-blue-500/10 backdrop-blur-sm font-semibold">
                         {company.category}
                       </span>
                     </div>
@@ -225,63 +341,105 @@ function AdminCompaniesContent() {
                         company.description ||
                         "No description"}
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>
-                        Rating: {company.ratingsAggregate?.toFixed(1) || "0.0"}{" "}
-                        ⭐
+                    <div className="flex items-center gap-4 text-xs">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-purple-500/10 text-purple-300 border border-purple-500/30">
+                        <span className="text-yellow-400">⭐</span>
+                        <span className="font-medium">
+                          {company.ratingsAggregate?.toFixed(1) || "0.0"}
+                        </span>
                       </span>
-                      <span>Reviews: {company.totalReviews || 0}</span>
-                      <span>Updated: {formatDate(company.updatedAt)}</span>
+                      <span className="text-gray-400">
+                        <span className="font-medium text-gray-300">
+                          {company.totalReviews || 0}
+                        </span>{" "}
+                        reviews
+                      </span>
+                      <span className="text-gray-500">
+                        Updated {formatDate(company.updatedAt)}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 lg:w-64">
+                  <div className="flex flex-wrap gap-2 lg:w-auto lg:flex-nowrap">
                     <button
                       type="button"
-                      onClick={() => navigate(`/admin/companies/${company.id}`)}
-                      className="btn btn-sm btn-outline border-white/20 text-white hover:bg-white/10"
+                      onClick={() =>
+                        navigate(
+                          `/admin/companies/${company.id || company._id}`
+                        )
+                      }
+                      className="group relative inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 hover:border-blue-500/50 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20"
                     >
-                      <Eye className="h-4 w-4" />
-                      View
+                      <Eye className="h-4 w-4 transition-transform group-hover:scale-110" />
+                      <span className="text-sm font-medium">View</span>
                     </button>
                     <button
                       type="button"
                       onClick={() =>
-                        navigate(`/admin/companies/edit/${company.id}`)
+                        navigate(
+                          `/admin/companies/edit/${company.id || company._id}`
+                        )
                       }
-                      className="btn btn-sm btn-outline border-white/20 text-white hover:bg-white/10"
+                      className="group relative inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20 hover:border-indigo-500/50 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/20"
                     >
-                      <Edit className="h-4 w-4" />
-                      Edit
+                      <Edit className="h-4 w-4 transition-transform group-hover:scale-110" />
+                      <span className="text-sm font-medium">Edit</span>
                     </button>
+                    <div className="relative">
+                      <select
+                        value={company.status || "pending"}
+                        onChange={(e) =>
+                          handleStatusChange(
+                            company.id || company._id,
+                            e.target.value
+                          )
+                        }
+                        className={`relative appearance-none px-3 py-2 pr-8 rounded-lg border text-sm font-medium cursor-pointer transition-all hover:opacity-90 focus:outline-none focus:ring-2 ${
+                          company.status === "approved"
+                            ? "border-emerald-500/40 text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 hover:border-emerald-500/60 focus:ring-emerald-500/30"
+                            : company.status === "pending"
+                            ? "border-yellow-500/40 text-yellow-300 bg-yellow-500/10 hover:bg-yellow-500/20 hover:border-yellow-500/60 focus:ring-yellow-500/30"
+                            : "border-red-500/40 text-red-300 bg-red-500/10 hover:bg-red-500/20 hover:border-red-500/60 focus:ring-red-500/30"
+                        }`}
+                      >
+                        <option
+                          value="pending"
+                          className="bg-gray-900 text-yellow-300"
+                        >
+                          Pending
+                        </option>
+                        <option
+                          value="approved"
+                          className="bg-gray-900 text-emerald-300"
+                        >
+                          Approved
+                        </option>
+                        <option
+                          value="blocked"
+                          className="bg-gray-900 text-red-300"
+                        >
+                          Blocked
+                        </option>
+                      </select>
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                        {company.status === "approved" ? (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+                        ) : company.status === "pending" ? (
+                          <Clock className="h-4 w-4 text-yellow-300" />
+                        ) : (
+                          <Ban className="h-4 w-4 text-red-300" />
+                        )}
+                      </div>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => handleToggleStatus(company.id)}
-                      className={`btn btn-sm btn-outline ${
-                        company.status === "approved"
-                          ? "border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/10"
-                          : "border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10"
-                      }`}
+                      onClick={() =>
+                        handleDelete(company.id || company._id, company.name)
+                      }
+                      className="group relative inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20 hover:border-red-500/50 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/20"
                     >
-                      {company.status === "approved" ? (
-                        <>
-                          <ShieldOff className="h-4 w-4" />
-                          Block
-                        </>
-                      ) : (
-                        <>
-                          <Shield className="h-4 w-4" />
-                          Approve
-                        </>
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(company.id, company.name)}
-                      className="btn btn-sm btn-outline border-red-500/40 text-red-300 hover:bg-red-500/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Delete
+                      <Trash2 className="h-4 w-4 transition-transform group-hover:scale-110" />
+                      <span className="text-sm font-medium">Delete</span>
                     </button>
                   </div>
                 </div>

@@ -1,10 +1,27 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, FileText } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { getUserCookie } from '../../utils/cookies.js';
+import { useToast } from '../../contexts/ToastContext.jsx';
 import ImageWithFallback from '../shared/ImageWithFallback.jsx';
 
 function FreebiesSection() {
+  const reduxUser = useSelector((state) => state.auth.user);
+  const user = reduxUser || (typeof window !== 'undefined' ? getUserCookie() : null);
+  const navigate = useNavigate();
+  const toast = useToast();
+
+  const handleIndicatorClick = () => {
+    if (!user) {
+      // Redirect to login if not authenticated
+      navigate('/login');
+    } else {
+      // Show custom alert for logged in users
+      toast.info('Your freebie will be soon delivered in your mailbox. Keep checking it frequently.', 6000);
+    }
+  };
   return (
     <section className="py-20 bg-black relative overflow-hidden">
       {/* Background decoration */}
@@ -71,9 +88,18 @@ function FreebiesSection() {
                 <p className="text-sm sm:text-base text-gray-300 mb-4 line-clamp-3">
                   I Build This indicator based on a simple strategy While I do Analysis on Chart Check this Indicator out.
                 </p>
-                <Link to="/signup" className="btn inline-flex items-center justify-center w-full rounded-full bg-green-500 hover:bg-green-600 text-white border-2 border-green-500 hover:border-green-600 hover:scale-105 transition-all shadow-lg shadow-green-500/20 px-6 py-3">
-                  Sign Up For Free
-                </Link>
+                {!user ? (
+                  <Link to="/login" className="btn inline-flex items-center justify-center w-full rounded-full bg-green-500 hover:bg-green-600 text-white border-2 border-green-500 hover:border-green-600 hover:scale-105 transition-all shadow-lg shadow-green-500/20 px-6 py-3">
+                    Login to access...
+                  </Link>
+                ) : (
+                  <button
+                    onClick={handleIndicatorClick}
+                    className="btn inline-flex items-center justify-center w-full rounded-full bg-green-500 hover:bg-green-600 text-white border-2 border-green-500 hover:border-green-600 hover:scale-105 transition-all shadow-lg shadow-green-500/20 px-6 py-3"
+                  >
+                    Ask for access...
+                  </button>
+                )}
               </div>
             </div>
           </motion.div>

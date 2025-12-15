@@ -3,63 +3,27 @@ import HeroSection from "../components/shared/HeroSection.jsx";
 import SectionHeader from "../components/shared/SectionHeader.jsx";
 import InfoCard from "../components/shared/InfoCard.jsx";
 import AnimatedDivider from "../components/shared/AnimatedDivider.jsx";
-import { Rocket, ShieldCheck, Users, Loader2 } from "lucide-react";
+import { Rocket, ShieldCheck, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
-import { Link } from "react-router-dom";
 
-// Image component with loader
-function ImageWithLoader({ src, fallback, alt, className }) {
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
+// Simple image component without loader for fast loading
+function SimpleImage({ src, fallback, alt, className }) {
   const [imageSrc, setImageSrc] = React.useState(src);
 
   React.useEffect(() => {
-    setLoading(true);
-    setError(false);
     setImageSrc(src);
   }, [src]);
 
-  const handleLoad = () => {
-    setLoading(false);
-  };
-
   const handleError = () => {
-    setLoading(false);
-    setError(true);
     if (fallback && imageSrc !== fallback) {
       setImageSrc(fallback);
     }
   };
 
   return (
-    <div className="relative w-full h-full" aria-busy={loading}>
-      {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-800/50 rounded-xl">
-          <div className="flex flex-col items-center gap-2">
-            <Loader2 className="h-6 w-6 animate-spin text-blue-400" />
-            <span className="text-xs text-gray-400">Loading...</span>
-          </div>
-        </div>
-      )}
-      <img
-        src={imageSrc}
-        alt={alt}
-        className={className}
-        loading="lazy"
-        onLoad={handleLoad}
-        onError={handleError}
-        style={{ display: loading ? "none" : "block" }}
-      />
-      {error && !loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-800/50 rounded-xl">
-          <div className="text-center text-gray-400 text-sm">
-            <p>Image unavailable</p>
-          </div>
-        </div>
-      )}
-    </div>
+    <img src={imageSrc} alt={alt} className={className} onError={handleError} />
   );
 }
 
@@ -202,7 +166,7 @@ function About() {
                   {/* Image container with elegant border */}
                   <div className="relative rounded-2xl overflow-hidden border border-gray-800/50 bg-gradient-to-br from-gray-900/50 to-gray-800/30 p-2">
                     <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
-                      <ImageWithLoader
+                      <SimpleImage
                         src={aboutData.image}
                         fallback="/assets/placeholder.jpg"
                         alt={aboutData.name}
@@ -353,13 +317,15 @@ function About() {
                   Become part of a growing, supportive trading community.
                 </p>
               </div>
-              <Link
-                to="/academy"
+              <a
+                href="https://discord.gg/qEWw7sMn"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="btn inline-flex items-center justify-center rounded-full bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3 font-medium whitespace-nowrap"
-                aria-label="Explore Academy"
+                aria-label="Join Discord"
               >
                 Get Started
-              </Link>
+              </a>
             </div>
           </motion.div>
         </div>

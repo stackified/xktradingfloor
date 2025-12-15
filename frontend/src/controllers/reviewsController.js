@@ -119,11 +119,34 @@ export async function getAllReviews(filters = {}) {
 }
 
 // Get reviews by company ID
+// Note: The backend getCompanyById endpoint includes reviews in company.reviewsDetails
+// This function can be used as a fallback, but prefer using reviews from company data
 export async function getReviewsByCompanyId(companyId) {
   const mockMode = await isMockModeEnabled();
 
-  // Backend API call - no public endpoint exists for reviews
-  // Reviews are accessed via admin endpoints or company-specific endpoints
+  // Try to get reviews from company endpoint (backend includes reviews in company data)
+  if (!mockMode) {
+    try {
+      const { getCompanyById } = await import("./companiesController.js");
+      const companyResponse = await getCompanyById(companyId);
+      if (companyResponse?.data?.reviewsDetails) {
+        // Backend returns reviews in company.reviewsDetails
+        const reviews = Array.isArray(companyResponse.data.reviewsDetails)
+          ? companyResponse.data.reviewsDetails.map((review) => ({
+              ...review,
+              id: review._id || review.id,
+            }))
+          : [];
+        return { data: reviews };
+      }
+    } catch (error) {
+      // If company endpoint fails, fall back to mock or empty array
+      if (!mockMode && error.response?.status !== 404) {
+        // For real data mode, return empty array if company fetch fails
+        return { data: [] };
+      }
+    }
+  }
 
   // Mock data implementation
   const { data } = await getAllReviews({ companyId });

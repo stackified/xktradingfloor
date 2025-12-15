@@ -1,6 +1,6 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Plus } from "lucide-react";
 import { BlogList } from "../components/admin/blog/index.js";
@@ -15,6 +15,7 @@ import ProtectedRoute from "../components/dashboard/ProtectedRoute.jsx";
 
 function MyBlogsContent() {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { blogs, loading, error } = useSelector((state) => state.blogs);
   const reduxUser = useSelector((state) => state.auth.user);
@@ -23,6 +24,7 @@ function MyBlogsContent() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
 
+  // Refresh when filters change
   React.useEffect(() => {
     if (user?.id) {
       dispatch(
@@ -36,6 +38,21 @@ function MyBlogsContent() {
       });
     }
   }, [dispatch, user?.id, searchQuery, statusFilter]);
+
+  // Refresh when component mounts or when navigating back (detected by location change)
+  React.useEffect(() => {
+    if (user?.id) {
+      dispatch(
+        fetchUserBlogs({
+          userId: user.id,
+          search: searchQuery,
+          status: statusFilter,
+        })
+      ).catch(() => {
+        // Error is handled by Redux slice, just catch to prevent unhandled promise rejection
+      });
+    }
+  }, [location.pathname]);
 
   React.useEffect(() => {
     return () => {
@@ -111,7 +128,11 @@ function MyBlogsContent() {
       return;
     }
 
-    if (!window.confirm("Are you sure you want to publish this blog? It will be visible to all users.")) {
+    if (
+      !window.confirm(
+        "Are you sure you want to publish this blog? It will be visible to all users."
+      )
+    ) {
       return;
     }
     try {
@@ -145,7 +166,11 @@ function MyBlogsContent() {
       return;
     }
 
-    if (!window.confirm("Are you sure you want to unpublish this blog? It will no longer be visible to users.")) {
+    if (
+      !window.confirm(
+        "Are you sure you want to unpublish this blog? It will no longer be visible to users."
+      )
+    ) {
       return;
     }
     try {
@@ -254,7 +279,10 @@ function MyBlogsContent() {
           blogs={blogs.filter((blog) => {
             // Additional frontend filtering to ensure only own blogs are shown
             const authorId = blog.author?._id || blog.author;
-            return authorId?.toString() === user?.id?.toString() || authorId === user?.id;
+            return (
+              authorId?.toString() === user?.id?.toString() ||
+              authorId === user?.id
+            );
           })}
           loading={loading}
           onEdit={handleEdit}
