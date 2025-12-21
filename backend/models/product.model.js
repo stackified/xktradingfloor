@@ -4,13 +4,13 @@ const Schema = mongoose.Schema;
 const ProductSchema = new Schema(
     {
         title: { type: String, required: true },
-        name: { type: String }, // Alias
+        name: { type: String },
         description: String,
         price: { type: Number, required: true },
         stock: { type: Number, default: 0 },
-        images: [String], // Array of image URLs
-        image: String, // Single image (legacy)
-        sku: String, // Stock keeping unit
+        images: [String],
+        image: String,
+        sku: String,
     },
     {
         timestamps: true,
