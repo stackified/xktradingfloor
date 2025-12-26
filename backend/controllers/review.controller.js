@@ -132,6 +132,16 @@ exports.createReview = async (req, res) => {
         }
 
         const { companyId, rating, title, body, comment } = req.body;
+
+        // Handle screenshot upload
+        let screenshot = null;
+        if (req.file) {
+            screenshot = `/uploads/reviews/${req.file.filename}`;
+        } else if (req.body.screenshot) {
+            // Handle case where screenshot might be passed as URL string (rare but possible)
+            screenshot = req.body.screenshot;
+        }
+
         if (!companyId || !rating) {
             return sendErrorResponse(
                 res,
@@ -141,8 +151,6 @@ exports.createReview = async (req, res) => {
                 true
             );
         };
-
-        console.log(rating, "rating");
 
         // rating should be 1 or between 5 not more than 5 
         if (rating && (rating < 1 || rating > 5)) {
@@ -154,8 +162,6 @@ exports.createReview = async (req, res) => {
                 true
             );
         }
-
-        console.log(rating, "rating");
 
         // Prevent duplicate review per user per company
         const existing = await ReviewModel.findOne({
@@ -179,6 +185,7 @@ exports.createReview = async (req, res) => {
             title,
             body,
             comment: comment,
+            screenshot, // Save screenshot
         });
 
         const saved = await review.save();
@@ -224,6 +231,11 @@ exports.updateReview = async (req, res) => {
             updates.comment = updates.body;
         }
 
+        // Handle screenshot update if new file is uploaded
+        if (req.file) {
+            updates.screenshot = `/uploads/reviews/${req.file.filename}`;
+        }
+
         Object.assign(review, updates);
         const updated = await review.save();
 
@@ -259,7 +271,7 @@ exports.deleteReview = async (req, res) => {
 
         if (
             review.userId.toString() !== user._id.toString() &&
-            user.role !== "Admin"
+            user.role !== "Admin" && user.role !== "admin" // Fix role check
         ) {
             return sendErrorResponse(
                 res,
@@ -275,6 +287,58 @@ exports.deleteReview = async (req, res) => {
         await recalculateCompanyRating(companyId);
 
         return sendSuccessResponse(res, { message: "Review deleted successfully" });
+    } catch (error) {
+        return sendErrorResponse(res, error);
+    }
+};
+
+// Hide/Unhide review (Admin only)
+exports.toggleReviewVisibility = async (req, res) => {
+    try {
+        const user = req.user;
+        if (!user || (user.role !== "Admin" && user.role !== "admin")) {
+            return sendErrorResponse(res, "Only admins can manage review visibility", 403, true, true);
+        }
+
+        const { reviewId } = req.params;
+        const review = await ReviewModel.findById(reviewId);
+        if (!review) {
+            return sendErrorResponse(res, "Review not found", 404, true, true);
+        }
+
+        review.isHidden = !review.isHidden;
+        await review.save();
+
+        return sendSuccessResponse(res, {
+            message: `Review ${review.isHidden ? 'hidden' : 'visible'} successfully`,
+            data: { isHidden: review.isHidden }
+        });
+    } catch (error) {
+        return sendErrorResponse(res, error);
+    }
+};
+
+// Pin/Unpin review (Admin only)
+exports.toggleReviewPin = async (req, res) => {
+    try {
+        const user = req.user;
+        if (!user || (user.role !== "Admin" && user.role !== "admin")) {
+            return sendErrorResponse(res, "Only admins can manage review pins", 403, true, true);
+        }
+
+        const { reviewId } = req.params;
+        const review = await ReviewModel.findById(reviewId);
+        if (!review) {
+            return sendErrorResponse(res, "Review not found", 404, true, true);
+        }
+
+        review.isPinned = !review.isPinned;
+        await review.save();
+
+        return sendSuccessResponse(res, {
+            message: `Review ${review.isPinned ? 'pinned' : 'unpinned'} successfully`,
+            data: { isPinned: review.isPinned }
+        });
     } catch (error) {
         return sendErrorResponse(res, error);
     }

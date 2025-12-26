@@ -9,6 +9,18 @@ const ReviewSchema = new Schema(
         title: String,
         body: String,
         comment: String,
+        screenshot: { type: String, default: null },
+        isVerified: { type: Boolean, default: false },
+        isHidden: { type: Boolean, default: false },
+        isPinned: { type: Boolean, default: false },
+        flags: [{ type: String }],
+        reports: [
+            {
+                userId: { type: Schema.Types.ObjectId, ref: 'user' },
+                reason: String,
+                createdAt: { type: Date, default: Date.now }
+            }
+        ],
     },
     {
         timestamps: true,

@@ -239,7 +239,7 @@ exports.updateCompany = async (req, res) => {
         }
 
         // Operators can only update their own companies (ownership check)
-        if (role === constants.roles.operator && company.admminId.toString() !== userId.toString()) {
+        if (role === constants.roles.operator && company.adminId.toString() !== userId.toString()) {
             return sendErrorResponse(res, "You can only update your own companies", 403, true, true);
         }
 

@@ -21,7 +21,7 @@ const getViewerIdentifier = (req) => {
 };
 
 const RESTRICTED_FIELDS = [
-    'status',
+    // 'status', // Users need to be able to change status (draft/published)
     'publishedAt',
     'isFeatured',
     'isFlagged',
@@ -378,10 +378,18 @@ exports.updateBlog = async (req, res) => {
                 return sendErrorResponse(res, "You are not authorized to update this blog post", 403, true, true);
             }
 
-            // Filter out restricted fields
-            RESTRICTED_FIELDS.forEach(field => {
+            // Filter out restricted fields but allow status updates
+            const fieldsToRemove = RESTRICTED_FIELDS.filter(field => field !== 'status');
+            fieldsToRemove.forEach(field => {
                 delete updateData[field];
             });
+
+            // If user is publishing/unpublishing, handle publishedAt
+            if (updateData.status === 'published' && blog.status !== 'published') {
+                updateData.publishedAt = new Date();
+            } else if (updateData.status === 'draft') {
+                updateData.publishedAt = null;
+            }
         } else {
             // Admin operations
             // If status is being changed to published, set publishedAt
