@@ -72,14 +72,14 @@ export const fetchAllBlogs = createAsyncThunk(
           data: response.data.data,
           pagination: response.data.data.pagination ||
             response.data.pagination || {
-              currentPage: response.data.data.currentPage || 1,
-              totalPages: response.data.data.totalPages || 1,
-              totalItems:
-                response.data.data.totalItems ||
-                (Array.isArray(response.data.data.docs)
-                  ? response.data.data.docs.length
-                  : 0),
-            },
+            currentPage: response.data.data.currentPage || 1,
+            totalPages: response.data.data.totalPages || 1,
+            totalItems:
+              response.data.data.totalItems ||
+              (Array.isArray(response.data.data.docs)
+                ? response.data.data.docs.length
+                : 0),
+          },
         };
       }
 
@@ -186,9 +186,23 @@ export const fetchBlogById = createAsyncThunk(
 
 export const createBlog = createAsyncThunk(
   "blogs/create",
-  async (formData, { rejectWithValue }) => {
+  async (formData, { rejectWithValue, getState }) => {
     try {
       const token = getAuthToken();
+
+      // Determine user role to select correct endpoint
+      let isUser = true;
+      try {
+        const user = getUserCookie();
+        const role = user?.role?.toLowerCase();
+        // Admins, subadmins, operators use admin endpoint
+        if (role === 'admin' || role === 'subadmin' || role === 'operator') {
+          isUser = false;
+        }
+      } catch (e) {
+        // Default to user endpoint if checking fails
+      }
+
       const config = {
         // Note: Don't manually set Content-Type for FormData - axios handles it automatically with boundary
         ...(token && {
@@ -198,7 +212,12 @@ export const createBlog = createAsyncThunk(
         }),
       };
 
-      const response = await api.post("/admin/blogs/addblog", formData, config);
+      // Use correct endpoint based on role
+      // Admin: /admin/blogs/addblog
+      // User: /blogs/addblog (Protected route)
+      const endpoint = isUser ? "/blogs/addblog" : "/admin/blogs/addblog";
+
+      const response = await api.post(endpoint, formData, config);
       return response.data;
     } catch (error) {
       // Handle network errors
@@ -227,7 +246,7 @@ export const createBlog = createAsyncThunk(
       if (error.response?.status === 400) {
         return rejectWithValue(
           error.response?.data?.message ||
-            "Invalid data provided. Please check your input and try again."
+          "Invalid data provided. Please check your input and try again."
         );
       }
 
@@ -269,6 +288,16 @@ export const updateBlog = createAsyncThunk(
         return rejectWithValue("Authentication required. Please log in.");
       }
 
+      // Determine user role to select correct endpoint
+      let isUser = true;
+      try {
+        const user = getUserCookie();
+        const role = user?.role?.toLowerCase();
+        if (role === 'admin' || role === 'subadmin' || role === 'operator') {
+          isUser = false;
+        }
+      } catch (e) { }
+
       // Determine Content-Type based on formData type
       // If formData is FormData instance, let axios set it automatically (includes boundary)
       // If formData is a plain object, use application/json
@@ -281,11 +310,15 @@ export const updateBlog = createAsyncThunk(
         },
       };
 
-      // Backend route: PUT /api/admin/blogs/:blogid/updateblog
+      // Backend route: PUT /admin/blogs/:blogid/updateblog OR /blogs/:blogid/updateblog
       // Ensure blogId is properly encoded in URL
       const encodedBlogId = encodeURIComponent(blogId);
+      const endpoint = isUser
+        ? `/blogs/${encodedBlogId}/updateblog`
+        : `/admin/blogs/${encodedBlogId}/updateblog`;
+
       const response = await api.put(
-        `/admin/blogs/${encodedBlogId}/updateblog`,
+        endpoint,
         formData,
         config
       );
@@ -313,8 +346,8 @@ export const updateBlog = createAsyncThunk(
 
       return rejectWithValue(
         error.response?.data?.message ||
-          error.message ||
-          "Failed to update blog"
+        error.message ||
+        "Failed to update blog"
       );
     }
   }
@@ -341,13 +374,25 @@ export const deleteBlog = createAsyncThunk(
         },
       };
 
-      // Backend route: DELETE /api/admin/blogs/:blogid/deleteblog
-      // Ensure blogId is properly encoded in URL
+      // Determine user role to select correct endpoint
+      let isUser = true;
+      try {
+        const user = getUserCookie();
+        const role = user?.role?.toLowerCase();
+        if (role === 'admin' || role === 'subadmin' || role === 'operator') {
+          isUser = false;
+        }
+      } catch (e) { }
+
+      // Backend route: 
+      // User: DELETE /blogs/:blogid/deleteblog (Protected route)
+      // Admin: DELETE /api/admin/blogs/:blogid/deleteblog
       const encodedBlogId = encodeURIComponent(blogId);
-      const response = await api.delete(
-        `/admin/blogs/${encodedBlogId}/deleteblog`,
-        config
-      );
+      const endpoint = isUser
+        ? `/blogs/${encodedBlogId}/deleteblog`
+        : `/admin/blogs/${encodedBlogId}/deleteblog`;
+
+      const response = await api.delete(endpoint, config);
 
       // Backend returns: { success: true, message: "Blog post deleted successfully" }
       return { blogId, data: response.data };
@@ -367,8 +412,8 @@ export const deleteBlog = createAsyncThunk(
 
       return rejectWithValue(
         error.response?.data?.message ||
-          error.message ||
-          "Failed to delete blog"
+        error.message ||
+        "Failed to delete blog"
       );
     }
   }
@@ -420,8 +465,8 @@ export const permanentDeleteBlog = createAsyncThunk(
 
       return rejectWithValue(
         error.response?.data?.message ||
-          error.message ||
-          "Failed to permanently delete blog"
+        error.message ||
+        "Failed to permanently delete blog"
       );
     }
   }
@@ -451,13 +496,25 @@ export const fetchUserBlogs = createAsyncThunk(
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          params: { page, size, search, status },
+          params: { page, size, search },
         };
 
-        const userResponse = await api.get(`/user/blogs`, userConfig);
+        const requestBody = {};
+        if (status) {
+          requestBody.status = status;
+        }
 
-        // Filter to ensure only user's own blogs are returned
-        let blogs = userResponse.data?.data || userResponse.data?.blogs || [];
+        // Endpoint for user's own blogs is POST /blogs/getmyblogs (Protected route)
+        // Mounted at /api/blogs/getmyblogs
+        const userResponse = await api.post(`/blogs/getmyblogs`, requestBody, userConfig);
+
+        // Filter to ensure only user's own blogs are returned (Backend should do this, but double check)
+        let blogs =
+          userResponse.data?.data?.docs ||
+          userResponse.data?.data ||
+          userResponse.data?.blogs ||
+          [];
+
         blogs = blogs.filter(
           (blog) =>
             blog.author?._id === userId ||
@@ -465,7 +522,13 @@ export const fetchUserBlogs = createAsyncThunk(
             blog.author?._id?.toString() === userId.toString()
         );
 
-        return { ...userResponse.data, data: blogs, blogs };
+        return {
+          success: true,
+          data: blogs,
+          blogs,
+          pagination: userResponse.data?.pagination ||
+            userResponse.data?.data?.pagination || undefined
+        };
       } catch (userError) {
         // User endpoint doesn't exist or failed - try admin endpoint with userId filter
         // Backend should allow this for users with limited scope (only their own blogs)
@@ -717,10 +780,10 @@ export const fetchPublishedBlogs = createAsyncThunk(
           data: blogs,
           pagination: response.data?.pagination ||
             response.data?.data?.pagination || {
-              page: 1,
-              totalPages: 1,
-              totalItems: blogs.length,
-            },
+            page: 1,
+            totalPages: 1,
+            totalItems: blogs.length,
+          },
         };
       } catch (error) {
         // Handle connection refused gracefully
@@ -883,8 +946,8 @@ export const unflagBlog = createAsyncThunk(
 
       return rejectWithValue(
         error.response?.data?.message ||
-          error.message ||
-          "Failed to unflag blog"
+        error.message ||
+        "Failed to unflag blog"
       );
     }
   }

@@ -1,7 +1,7 @@
 import React from "react";
 import { Flag } from "lucide-react";
 import StarRating from "./StarRating.jsx";
-import { deleteReview, reportReview } from "../../controllers/reviewsController.js";
+import { deleteReview, reportReview, hideReview, pinReview } from "../../controllers/reviewsController.js";
 import { getAssetPath } from "../../utils/assets.js";
 import { useSelector } from "react-redux";
 import { getUserCookie } from "../../utils/cookies.js";
@@ -9,9 +9,13 @@ import { getUserCookie } from "../../utils/cookies.js";
 function CompanyReviewCard({ review, currentUserId, onUpdate, onDelete }) {
   const [deleting, setDeleting] = React.useState(false);
   const [reporting, setReporting] = React.useState(false);
-  const isOwner = review.userId === currentUserId;
   const reduxUser = useSelector((state) => state.auth.user);
   const user = reduxUser || getUserCookie();
+
+  // Handle case where specific fields might be objects (due to population)
+  const reviewUserId = typeof review.userId === 'object' ? review.userId?._id || review.userId?.id : review.userId;
+  const isOwner = reviewUserId?.toString() === currentUserId?.toString();
+
   const userRole = user?.role?.toLowerCase();
   // Only operator and admin can report reviews
   const canReport = userRole === "operator" || userRole === "admin";
@@ -50,23 +54,52 @@ function CompanyReviewCard({ review, currentUserId, onUpdate, onDelete }) {
     }
   }
 
+  async function handleHide() {
+    try {
+      await hideReview(review.id);
+      onDelete?.(); // Trigger refresh
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update visibility");
+    }
+  }
+
+  async function handlePin() {
+    try {
+      await pinReview(review.id);
+      onDelete?.(); // Trigger refresh
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update pin status");
+    }
+  }
+
+  const validAvatar = review.userAvatar && review.userAvatar !== "null" && review.userAvatar !== "undefined"
+    ? getAssetPath(review.userAvatar)
+    : getAssetPath("/assets/users/default-avatar.jpg");
+
   return (
-    <div className="border border-gray-800 rounded-lg p-4 hover:bg-gray-800/30 transition-colors">
+    <div className={`border border-gray-800 rounded-lg p-4 transition-colors ${review.isHidden ? 'opacity-50 bg-gray-900/50' : 'hover:bg-gray-800/30'} ${review.isPinned ? 'border-l-4 border-l-accent' : ''}`}>
       <div className="flex items-start gap-3 mb-3">
         <div className="h-10 w-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
           <img
-            src={getAssetPath(review.userAvatar)}
+            src={validAvatar}
             alt={review.userName}
             className="h-full w-full object-cover"
             onError={(e) => {
               e.target.src = getAssetPath("/assets/users/default-avatar.jpg");
+              e.target.onerror = null; // Prevent infinite loop
             }}
           />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <div className="font-semibold">{review.userName}</div>
+              <div className="font-semibold flex items-center gap-2">
+                {review.userName}
+                {review.isPinned && <span className="text-[10px] bg-accent/20 text-accent px-1.5 rounded uppercase font-bold tracking-wider">PINNED</span>}
+                {review.isHidden && <span className="text-[10px] bg-red-500/20 text-red-400 px-1.5 rounded uppercase font-bold tracking-wider">HIDDEN</span>}
+              </div>
               <div className="text-xs text-gray-400">
                 {new Date(review.createdAt).toLocaleDateString("en-US", {
                   year: "numeric",
@@ -79,22 +112,19 @@ function CompanyReviewCard({ review, currentUserId, onUpdate, onDelete }) {
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              {isOwner && (
+              {userRole === 'admin' && (
                 <>
-                  <button
-                    onClick={() => onUpdate?.(review)}
-                    className="text-xs text-accent hover:text-accent/80"
-                  >
-                    Edit
+                  <button onClick={handlePin} className="text-xs text-blue-400 hover:text-blue-300">
+                    {review.isPinned ? "Unpin" : "Pin"}
                   </button>
-                  <button
-                    onClick={handleDelete}
-                    disabled={deleting}
-                    className="text-xs text-red-400 hover:text-red-300 disabled:opacity-50"
-                  >
-                    {deleting ? "Deleting..." : "Delete"}
+                  <button onClick={handleHide} className="text-xs text-gray-400 hover:text-gray-300">
+                    {review.isHidden ? "Unhide" : "Hide"}
                   </button>
                 </>
+              )}
+              {isOwner && (
+                // Owner controls are now handled in the main view (Edit Your Review button)
+                null
               )}
               {!isOwner && canReport && (
                 <button
@@ -132,7 +162,7 @@ function CompanyReviewCard({ review, currentUserId, onUpdate, onDelete }) {
       </p>
       {review.screenshot && (
         <img
-          src={review.screenshot}
+          src={getAssetPath(review.screenshot)}
           alt="Review screenshot"
           className="mt-3 max-w-xs rounded-lg"
         />

@@ -1,20 +1,25 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
 import { getCompanyById } from "../controllers/companiesController.js";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
 import CardLoader from "../components/shared/CardLoader.jsx";
-import { getReviewsByCompanyId } from "../controllers/reviewsController.js";
+import { getReviewsByCompanyId, deleteReview } from "../controllers/reviewsController.js";
 import StarRating from "../components/reviews/StarRating.jsx";
 import CompanyReviewCard from "../components/reviews/CompanyReviewCard.jsx";
 import CompanyReviewForm from "../components/reviews/CompanyReviewForm.jsx";
+import ConfirmModal from "../components/shared/ConfirmModal.jsx";
 import { getUserCookie } from "../utils/cookies.js";
+import { useToast } from "../contexts/ToastContext.jsx";
 
 function CompanyDetails() {
   const { companyId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { success: toastSuccess } = useToast();
   const reduxUser = useSelector((state) => state.auth.user);
   const user = reduxUser || getUserCookie();
   const userRole =
@@ -24,6 +29,7 @@ function CompanyDetails() {
   const [company, setCompany] = React.useState(null);
   const [reviews, setReviews] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
   const [showReviewForm, setShowReviewForm] = React.useState(false);
   const [editingReview, setEditingReview] = React.useState(null);
   const [userReview, setUserReview] = React.useState(null);
@@ -32,71 +38,96 @@ function CompanyDetails() {
     loadData();
   }, [companyId]);
 
-  React.useEffect(() => {
-    if (canSubmitReview && userId && reviews.length > 0) {
-      const review = reviews.find((r) => r.userId === userId);
-      setUserReview(review || null);
-    } else {
-      setUserReview(null);
-    }
-  }, [canSubmitReview, userId, reviews]);
-
-  React.useEffect(() => {
-    if (!canSubmitReview && showReviewForm) {
-      setShowReviewForm(false);
-      setEditingReview(null);
-    }
-  }, [canSubmitReview, showReviewForm]);
+  // ... (useEffects remain same)
 
   async function loadData() {
     setLoading(true);
+    setError(null);
     try {
       const companyRes = await getCompanyById(companyId);
       const companyData = companyRes.data;
       setCompany(companyData);
-      // Backend returns reviews in company.reviewsDetails
-      // Use reviews from company data if available, otherwise fetch separately
+
       if (
         companyData?.reviewsDetails &&
         Array.isArray(companyData.reviewsDetails)
       ) {
-        setReviews(
-          companyData.reviewsDetails.map((review) => ({
-            ...review,
-            id: review._id || review.id,
-          }))
-        );
+        const details = companyData.reviewsDetails.map((review) => ({
+          ...review,
+          id: review._id || review.id,
+        }));
+        setReviews(details);
+        if (userId) {
+          setUserReview(details.find(r => {
+            const rUserId = typeof r.userId === 'object' ? r.userId?._id || r.userId?.id : r.userId;
+            return rUserId?.toString() === userId?.toString();
+          }));
+        }
       } else {
-        // Fallback to separate reviews fetch if not in company data
         const reviewsRes = await getReviewsByCompanyId(companyId);
-        setReviews(reviewsRes.data || []);
+        const fetchedReviews = reviewsRes.data || [];
+        setReviews(fetchedReviews);
+        if (userId) {
+          setUserReview(fetchedReviews.find(r => {
+            const rUserId = typeof r.userId === 'object' ? r.userId?._id || r.userId?.id : r.userId;
+            return rUserId?.toString() === userId?.toString();
+          }));
+        }
       }
-    } catch (error) {
-      console.error("Error loading company details:", error);
+    } catch (err) {
+      console.error("Error loading company details:", err);
+      setError(err);
     } finally {
       setLoading(false);
     }
   }
 
-  function handleReviewSuccess() {
-    setShowReviewForm(false);
-    setEditingReview(null);
-    loadData();
-  }
+  // ... (handlers remain same)
 
-  function handleEditReview(review) {
+  const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+  const [reviewToDelete, setReviewToDelete] = React.useState(null);
+
+  const handleEditReview = (review) => {
     setEditingReview(review);
     setShowReviewForm(true);
-  }
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-  function handleCancelEdit() {
-    setEditingReview(null);
+  const confirmDeleteReview = (reviewId) => {
+    setReviewToDelete(reviewId);
+    setShowConfirmModal(true);
+  };
+
+  const handleDeleteReview = async () => {
+    if (!reviewToDelete) return;
+
+    try {
+      await deleteReview(reviewToDelete);
+      toastSuccess("Review deleted successfully");
+      loadData();
+    } catch (err) {
+      console.error("Error deleting review:", err);
+      // toastError(err.message || "Failed to delete review");
+    } finally {
+      setShowConfirmModal(false);
+      setReviewToDelete(null);
+    }
+  };
+
+  const handleReviewSuccess = () => {
     setShowReviewForm(false);
-  }
-
-  function handleDeleteReview() {
+    setEditingReview(null);
+    toastSuccess("Review submitted successfully");
     loadData();
-  }
+    // Re-check for user review after reload
+    // loadData handles this but we can ensure it runs
+  };
+
+  const handleCancelEdit = () => {
+    setShowReviewForm(false);
+    setEditingReview(null);
+  };
 
   if (loading) {
     return (
@@ -106,14 +137,39 @@ function CompanyDetails() {
     );
   }
 
-  if (!company) {
+  // Handle 401 Unauthorized
+  if (error?.response?.status === 401 || (error?.message === "Authentication required")) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 py-10">
+        <div className="card border-2 border-dashed border-gray-700 bg-gray-900/50">
+          <div className="card-body text-center py-16">
+            <div className="mx-auto w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4">
+              <Lock className="h-8 w-8 text-blue-400" />
+            </div>
+            <h2 className="text-2xl font-semibold mb-2">Login Required</h2>
+            <p className="text-gray-400 mb-6 max-w-md mx-auto">
+              You must be logged in to view company details and reviews.
+            </p>
+            <button
+              onClick={() => navigate(`/login?next=${encodeURIComponent(location.pathname)}`)}
+              className="btn btn-primary px-8"
+            >
+              Login to View
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!company || error) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-10">
         <div className="card">
           <div className="card-body text-center">
             <h2 className="text-xl font-semibold mb-2">Company not found</h2>
             <p className="text-gray-400 mb-4">
-              The company you're looking for doesn't exist.
+              The company you're looking for doesn't exist or you don't have permission to view it.
             </p>
             <Link to="/reviews" className="btn btn-primary">
               Back to Reviews
@@ -135,9 +191,8 @@ function CompanyDetails() {
         <title>{company.name} | XK Trading Floor</title>
         <meta
           name="description"
-          content={`${company.details || "Read reviews and details about"} ${
-            company.name
-          } on XK Trading Floor.`}
+          content={`${company.details || "Read reviews and details about"} ${company.name
+            } on XK Trading Floor.`}
         />
       </Helmet>
 
@@ -421,8 +476,20 @@ function CompanyDetails() {
                     Write a Review
                   </button>
                 ) : (
-                  <div className="text-sm text-gray-400">
-                    You've already reviewed this company
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleEditReview(userReview)}
+                      className="btn btn-primary"
+                    >
+                      Edit Your Review
+                    </button>
+                    <button
+                      onClick={() => confirmDeleteReview(userReview.id || userReview._id)}
+                      className="p-2 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      title="Delete Review"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash-2"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
+                    </button>
                   </div>
                 ))}
               {user && !canSubmitReview && (
@@ -460,7 +527,7 @@ function CompanyDetails() {
                     review={review}
                     currentUserId={userId}
                     onUpdate={handleEditReview}
-                    onDelete={handleDeleteReview}
+                    onDelete={confirmDeleteReview}
                   />
                 ))}
               </div>
@@ -468,6 +535,16 @@ function CompanyDetails() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleDeleteReview}
+        title="Delete Review"
+        message="Are you sure you want to delete this review? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 }

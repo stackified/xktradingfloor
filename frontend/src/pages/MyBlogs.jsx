@@ -12,6 +12,8 @@ import {
 } from "../redux/slices/blogsSlice.js";
 import { getUserCookie } from "../utils/cookies.js";
 import ProtectedRoute from "../components/dashboard/ProtectedRoute.jsx";
+import { useToast } from "../contexts/ToastContext.jsx";
+import ConfirmModal from "../components/shared/ConfirmModal.jsx";
 
 function MyBlogsContent() {
   const navigate = useNavigate();
@@ -60,6 +62,19 @@ function MyBlogsContent() {
     };
   }, [dispatch]);
 
+  const { error: toastError, success: toastSuccess } = useToast();
+  const [confirmModal, setConfirmModal] = React.useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => { },
+    variant: "default",
+    confirmText: "Confirm",
+  });
+
+  const closeConfirmModal = () =>
+    setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+
   // Helper to check if user owns the blog
   const isOwnBlog = (blog) => {
     if (!blog || !user?.id) return false;
@@ -71,125 +86,138 @@ function MyBlogsContent() {
     // Verify ownership before allowing edit
     const blog = blogs.find((b) => (b._id || b.id) === blogId);
     if (!blog) {
-      alert("Blog not found.");
+      toastError("Blog post not found.");
       return;
     }
     if (!isOwnBlog(blog)) {
-      alert("You can only edit your own blogs.");
+      toastError("You can only edit your own blogs.");
       return;
     }
     navigate(`/blogs/edit/${blogId}`);
   };
 
-  const handleDelete = async (blogId) => {
+  const handleDelete = (blogId) => {
     // Verify ownership before allowing delete
     const blog = blogs.find((b) => (b._id || b.id) === blogId);
     if (!blog) {
-      alert("Blog not found.");
+      toastError("Blog post not found.");
       return;
     }
     if (!isOwnBlog(blog)) {
-      alert("You can only delete your own blogs.");
+      toastError("You can only delete your own blogs.");
       return;
     }
 
-    if (
-      window.confirm(
-        "Are you sure you want to delete this blog? This action can be undone."
-      )
-    ) {
-      try {
-        await dispatch(deleteBlog(blogId)).unwrap();
-        // Refresh the list
-        if (user?.id) {
-          dispatch(
-            fetchUserBlogs({
-              userId: user.id,
-              search: searchQuery,
-              status: statusFilter,
-            })
-          );
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Blog Post",
+      message:
+        "Are you sure you want to delete this blog post? This action can be undone if it's a soft delete, but it's best to be careful.",
+      variant: "danger",
+      confirmText: "Delete",
+      onConfirm: async () => {
+        try {
+          await dispatch(deleteBlog(blogId)).unwrap();
+          toastSuccess("Blog post deleted successfully");
+          // Refresh the list
+          if (user?.id) {
+            dispatch(
+              fetchUserBlogs({
+                userId: user.id,
+                search: searchQuery,
+                status: statusFilter,
+              })
+            );
+          }
+        } catch (err) {
+          toastError("Failed to delete blog: " + (err || "Unknown error"));
         }
-      } catch (err) {
-        alert("Failed to delete blog: " + (err || "Unknown error"));
-      }
-    }
+      },
+    });
   };
 
-  const handlePublish = async (blogId) => {
+  const handlePublish = (blogId) => {
     // Verify ownership before allowing publish
     const blog = blogs.find((b) => (b._id || b.id) === blogId);
     if (!blog) {
-      alert("Blog not found.");
+      toastError("Blog post not found.");
       return;
     }
     if (!isOwnBlog(blog)) {
-      alert("You can only publish your own blogs.");
+      toastError("You can only publish your own blogs.");
       return;
     }
 
-    if (
-      !window.confirm(
-        "Are you sure you want to publish this blog? It will be visible to all users."
-      )
-    ) {
-      return;
-    }
-    try {
-      const formData = new FormData();
-      formData.append("status", "published");
-      await dispatch(updateBlog({ blogId, formData })).unwrap();
-      // Refresh the list
-      if (user?.id) {
-        dispatch(
-          fetchUserBlogs({
-            userId: user.id,
-            search: searchQuery,
-            status: statusFilter,
-          })
-        );
-      }
-    } catch (err) {
-      alert("Failed to publish blog: " + (err || "Unknown error"));
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: "Publish Blog Post",
+      message:
+        "Are you sure you want to publish this blog post? It will be visible to all users.",
+      variant: "default",
+      confirmText: "Publish",
+      onConfirm: async () => {
+        try {
+          const formData = new FormData();
+          formData.append("status", "published");
+          await dispatch(updateBlog({ blogId, formData })).unwrap();
+          toastSuccess("Blog post published successfully");
+          // Refresh the list
+          if (user?.id) {
+            dispatch(
+              fetchUserBlogs({
+                userId: user.id,
+                search: searchQuery,
+                status: statusFilter,
+              })
+            );
+          }
+        } catch (err) {
+          toastError("Failed to publish blog: " + (err || "Unknown error"));
+        }
+      },
+    });
   };
 
-  const handleUnpublish = async (blogId) => {
+  const handleUnpublish = (blogId) => {
     // Verify ownership before allowing unpublish
     const blog = blogs.find((b) => (b._id || b.id) === blogId);
     if (!blog) {
-      alert("Blog not found.");
+      toastError("Blog post not found.");
       return;
     }
     if (!isOwnBlog(blog)) {
-      alert("You can only unpublish your own blogs.");
+      toastError("You can only unpublish your own blogs.");
       return;
     }
 
-    if (
-      !window.confirm(
-        "Are you sure you want to unpublish this blog? It will no longer be visible to users."
-      )
-    ) {
-      return;
-    }
-    try {
-      const formData = new FormData();
-      formData.append("status", "draft");
-      await dispatch(updateBlog({ blogId, formData })).unwrap();
-      // Refresh the list
-      if (user?.id) {
-        dispatch(
-          fetchUserBlogs({
-            userId: user.id,
-            search: searchQuery,
-            status: statusFilter,
-          })
-        );
-      }
-    } catch (err) {
-      alert("Failed to unpublish blog: " + (err || "Unknown error"));
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: "Unpublish Blog Post",
+      message:
+        "Are you sure you want to unpublish this blog post? It will no longer be visible to users.",
+      variant: "warning",
+      confirmText: "Unpublish",
+      onConfirm: async () => {
+        try {
+          const formData = new FormData();
+          formData.append("status", "draft");
+          await dispatch(updateBlog({ blogId, formData })).unwrap();
+          toastSuccess("Blog post unpublished successfully");
+          // Refresh the list
+          if (user?.id) {
+            dispatch(
+              fetchUserBlogs({
+                userId: user.id,
+                search: searchQuery,
+                status: statusFilter,
+              })
+            );
+          }
+        } catch (err) {
+          toastError("Failed to unpublish blog: " + (err || "Unknown error"));
+        }
+      },
+    });
   };
 
   return (
@@ -294,6 +322,16 @@ function MyBlogsContent() {
           statusFilter={statusFilter}
           onStatusFilterChange={setStatusFilter}
           canDelete
+        />
+
+        <ConfirmModal
+          isOpen={confirmModal.isOpen}
+          onClose={closeConfirmModal}
+          onConfirm={confirmModal.onConfirm}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          variant={confirmModal.variant}
+          confirmText={confirmModal.confirmText}
         />
       </div>
     </div>

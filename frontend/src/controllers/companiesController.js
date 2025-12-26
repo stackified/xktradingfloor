@@ -83,6 +83,68 @@ async function saveCompanies(companies) {
   return { data: companies };
 }
 
+// Helper to check if user is authenticated
+function isAuthenticated() {
+  if (typeof window === "undefined") return false;
+  try {
+    const userCookie = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("xktf_user="));
+    if (userCookie) {
+      const userString = decodeURIComponent(
+        userCookie.split("=").slice(1).join("=")
+      );
+      const user = JSON.parse(userString);
+      return !!user?.token;
+    }
+  } catch (error) {
+    // Silently fail
+  }
+  // Also check sessionStorage
+  try {
+    const s = sessionStorage.getItem("xktf_user");
+    if (s) {
+      const user = JSON.parse(s);
+      return !!user?.token;
+    }
+  } catch (error) {
+    // Silently fail
+  }
+  return false;
+}
+
+// Helper to check if user is admin
+function isAdmin() {
+  if (!isAuthenticated()) return false;
+  try {
+    const userCookie = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("xktf_user="));
+    if (userCookie) {
+      const userString = decodeURIComponent(
+        userCookie.split("=").slice(1).join("=")
+      );
+      const user = JSON.parse(userString);
+      const role = user?.role?.toLowerCase();
+      return role === "admin" || role === "subadmin" || role === "operator";
+    }
+  } catch (error) {
+    // Silently fail
+  }
+  // Also check sessionStorage
+  try {
+    const s = sessionStorage.getItem("xktf_user");
+    if (s) {
+      const user = JSON.parse(s);
+      const role = user?.role?.toLowerCase();
+      return role === "admin" || role === "subadmin" || role === "operator";
+    }
+  } catch (error) {
+    // Silently fail
+  }
+  return false;
+}
+
 // Get all companies (with optional filters)
 export async function getAllCompanies(filters = {}) {
   const mockMode = await isMockModeEnabled();
@@ -92,82 +154,20 @@ export async function getAllCompanies(filters = {}) {
 
   let backendCompanies = [];
   let backendRequestSucceeded = false;
-
-  // Helper to check if user is authenticated
-  function isAuthenticated() {
-    if (typeof window === "undefined") return false;
-    try {
-      const userCookie = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("xktf_user="));
-      if (userCookie) {
-        const userString = decodeURIComponent(
-          userCookie.split("=").slice(1).join("=")
-        );
-        const user = JSON.parse(userString);
-        return !!user?.token;
-      }
-    } catch (error) {
-      // Silently fail
-    }
-    // Also check sessionStorage
-    try {
-      const s = sessionStorage.getItem("xktf_user");
-      if (s) {
-        const user = JSON.parse(s);
-        return !!user?.token;
-      }
-    } catch (error) {
-      // Silently fail
-    }
-    return false;
-  }
+  let paginationData = { currentPage: 1, totalPages: 1, totalItems: 0 };
 
   const authenticated = isAuthenticated();
-
-  // Helper to check if user is admin
-  function isAdmin() {
-    if (!authenticated) return false;
-    try {
-      const userCookie = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("xktf_user="));
-      if (userCookie) {
-        const userString = decodeURIComponent(
-          userCookie.split("=").slice(1).join("=")
-        );
-        const user = JSON.parse(userString);
-        const role = user?.role?.toLowerCase();
-        return role === "admin" || role === "subadmin" || role === "operator";
-      }
-    } catch (error) {
-      // Silently fail
-    }
-    // Also check sessionStorage
-    try {
-      const s = sessionStorage.getItem("xktf_user");
-      if (s) {
-        const user = JSON.parse(s);
-        const role = user?.role?.toLowerCase();
-        return role === "admin" || role === "subadmin" || role === "operator";
-      }
-    } catch (error) {
-      // Silently fail
-    }
-    return false;
-  }
-
   const userIsAdmin = isAdmin();
 
   // Always try to fetch from backend first (only if mock mode is OFF)
   if (!mockMode) {
     try {
-      // Backend expects POST for getAllCompanies with filters in body and query params
       const { search, page, size, category, ...bodyFilters } = filters;
 
       // Determine which endpoint to use
       let endpoint = "/companies/getallcompanies"; // Public endpoint: /api/companies/getallcompanies
       let requestBody = { ...bodyFilters };
+      // paginationData is now declared at top of function to be available in all scopes
 
       // Public endpoint expects category in body (according to backend controller)
       if (category) {
@@ -192,20 +192,36 @@ export async function getAllCompanies(filters = {}) {
       const response = await api.post(endpoint, requestBody, {
         params: { search, page, size },
       });
+
       // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
-      // Transform to expected format: { data: [...] }
+      // OR: { success: true, data: [...], pagination: {...} } depending on endpoint implementation
+
       if (response.data?.success && response.data?.data?.docs) {
-        // Map _id to id for frontend compatibility
+        // Paginated response standard format
         backendCompanies = response.data.data.docs.map((company) => ({
           ...company,
           id: company._id || company.id,
         }));
+
+        // Extract pagination
+        if (response.data.data.totalPages || response.data.data.totalItems) {
+          paginationData = {
+            currentPage: response.data.data.currentPage || response.data.data.page || 1,
+            totalPages: response.data.data.totalPages || response.data.data.pages || 1,
+            totalItems: response.data.data.totalItems || response.data.data.total || 0
+          };
+        }
+
         backendRequestSucceeded = true;
       } else if (Array.isArray(response.data?.data)) {
         backendCompanies = response.data.data.map((company) => ({
           ...company,
           id: company._id || company.id,
         }));
+        // Try to find pagination in sibling property
+        if (response.data.pagination) {
+          paginationData = response.data.pagination;
+        }
         backendRequestSucceeded = true;
       } else if (Array.isArray(response.data)) {
         backendCompanies = response.data;
@@ -236,18 +252,22 @@ export async function getAllCompanies(filters = {}) {
     if (backendRequestSucceeded) {
       // For authenticated users, show all companies they have access to
       // For unauthenticated users, show only approved companies
+      // Note: Backend should have already filtered by status for public endpoint, 
+      // but redundancy is safe here provided we trust the backend array.
+      // Pagination metadata is returned alongside data.
+
       if (authenticated) {
-        return { data: backendCompanies };
+        return { data: backendCompanies, pagination: paginationData || undefined };
       } else {
-        const approvedCompanies = backendCompanies.filter(
-          (c) => c.status === "approved" || c.status === "Approved"
-        );
-        return { data: approvedCompanies };
+        // If we filtered manually here, pagination metadata would be wrong!
+        // We rely on backend (public endpoint) returning only approved companies and CORRECT pagination.
+        // The public endpoint /api/companies/getallcompanies DOES filter by 'approved'.
+        return { data: backendCompanies, pagination: paginationData || undefined };
       }
     }
     // If backend request failed (403/401 expected for non-admin users or public endpoint doesn't exist)
     // Return empty array gracefully - this allows the page to render without errors
-    return { data: [] };
+    return { data: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } };
   }
 
   // If mock mode is ON, return ONLY mock data (no merging with backend)
@@ -305,10 +325,24 @@ export async function getCompanyById(companyId) {
   // Try backend API first
   if (!mockMode) {
     try {
-      // Backend endpoint: GET /admin/company/:companyId/getcompanybyid
-      const response = await api.get(
-        `/admin/company/${companyId}/getcompanybyid`
-      );
+      // Check authentication
+      if (!isAuthenticated()) {
+        const error = new Error("Authentication required");
+        error.response = { status: 401 };
+        throw error;
+      }
+
+      const userIsAdmin = isAdmin();
+
+      // Determine endpoint based on role
+      // Admin: /admin/company/:id/getcompanybyid
+      // User: /companies/:id/getcompanybyid (Protected route)
+      const endpoint = userIsAdmin
+        ? `/admin/company/${companyId}/getcompanybyid`
+        : `/company/${companyId}/getcompanybyid`;
+
+      const response = await api.get(endpoint);
+
       // Backend returns: { success: true, data: {...} }
       if (response.data?.success && response.data?.data) {
         const company = response.data.data;
@@ -664,7 +698,7 @@ export async function addPromoCode(companyId, promoData) {
       if (error.response?.status === 403) {
         throw new Error(
           error.response?.data?.message ||
-            "You don't have permission to add promo codes to this company"
+          "You don't have permission to add promo codes to this company"
         );
       }
       // If backend fails and mock mode is OFF, throw error
@@ -743,7 +777,7 @@ export async function updatePromoCode(companyId, promoId, updates) {
       if (error.response?.status === 403) {
         throw new Error(
           error.response?.data?.message ||
-            "You don't have permission to update promo codes for this company"
+          "You don't have permission to update promo codes for this company"
         );
       }
       // If backend fails and mock mode is OFF, throw error
@@ -823,7 +857,7 @@ export async function deletePromoCode(companyId, promoId) {
       if (error.response?.status === 403) {
         throw new Error(
           error.response?.data?.message ||
-            "You don't have permission to delete promo codes from this company"
+          "You don't have permission to delete promo codes from this company"
         );
       }
       // If backend fails and mock mode is OFF, throw error
