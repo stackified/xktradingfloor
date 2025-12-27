@@ -382,6 +382,13 @@ exports.updateBlog = async (req, res) => {
             RESTRICTED_FIELDS.forEach(field => {
                 delete updateData[field];
             });
+
+            // If user is publishing/unpublishing, handle publishedAt
+            if (updateData.status === 'published' && blog.status !== 'published') {
+                updateData.publishedAt = new Date();
+            } else if (updateData.status === 'draft') {
+                updateData.publishedAt = null;
+            }
         } else {
             // Admin operations
             // If status is being changed to published, set publishedAt
