@@ -133,9 +133,9 @@ export async function getReviewsByCompanyId(companyId) {
         // Backend returns reviews in company.reviewsDetails
         const reviews = Array.isArray(companyResponse.data.reviewsDetails)
           ? companyResponse.data.reviewsDetails.map((review) => ({
-              ...review,
-              id: review._id || review.id,
-            }))
+            ...review,
+            id: review._id || review.id,
+          }))
           : [];
         return { data: reviews };
       }
@@ -215,20 +215,36 @@ export async function createReview(reviewData) {
   }
 
   // Backend API call
-  // Backend endpoint: POST /api/admin/review/addreview (lowercase)
-  // Backend expects: { companyId, rating, title, body, comment }
+  // Backend endpoint: POST /api/reviews/addReview
   if (!mockMode) {
     try {
-      const payload = {
-        companyId: reviewData.companyId,
-        rating: reviewData.rating,
-        title: reviewData.title || reviewData.description || "",
-        body: reviewData.body || reviewData.description || "",
-        comment:
-          reviewData.comment || reviewData.description || reviewData.body || "",
-      };
+      // Check if we need to send FormData (for screenshot upload)
+      const hasScreenshot = reviewData.screenshot instanceof File;
 
-      const response = await api.post("/admin/review/addreview", payload);
+      let payload;
+      let headers = {};
+
+      if (hasScreenshot) {
+        payload = new FormData();
+        payload.append("companyId", reviewData.companyId);
+        payload.append("rating", reviewData.rating);
+        payload.append("title", reviewData.title || reviewData.description || "");
+        payload.append("body", reviewData.body || reviewData.description || "");
+        payload.append("comment", reviewData.comment || reviewData.description || reviewData.body || "");
+        payload.append("screenshot", reviewData.screenshot);
+        headers["Content-Type"] = "multipart/form-data";
+      } else {
+        payload = {
+          companyId: reviewData.companyId,
+          rating: reviewData.rating,
+          title: reviewData.title || reviewData.description || "",
+          body: reviewData.body || reviewData.description || "",
+          comment: reviewData.comment || reviewData.description || reviewData.body || "",
+          screenshot: reviewData.screenshot, // If string/null
+        };
+      }
+
+      const response = await api.post("/reviews/addReview", payload, { headers });
 
       // Backend returns: { success: true, message: "...", data: {...} }
       if (response.data?.success && response.data?.data) {
@@ -303,12 +319,48 @@ export async function createReview(reviewData) {
 
 // Update review (users can only update their own reviews)
 export async function updateReview(reviewId, updates) {
-  // return api.put(`/reviews/${reviewId}`, updates);
+  const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
   if (!user) {
     throw new Error("You must be logged in to update a review");
   }
 
+  // Backend API call
+  if (!mockMode) {
+    try {
+      // Check if we need to send FormData (for screenshot upload)
+      const hasScreenshot = updates.screenshot instanceof File;
+
+      let payload;
+      let headers = {};
+
+      if (hasScreenshot) {
+        payload = new FormData();
+        Object.keys(updates).forEach(key => {
+          if (key !== 'screenshot') {
+            payload.append(key, updates[key]);
+          }
+        });
+        payload.append("screenshot", updates.screenshot);
+        headers["Content-Type"] = "multipart/form-data";
+      } else {
+        payload = updates;
+      }
+
+      const response = await api.put(`/reviews/${reviewId}`, payload, { headers });
+
+      if (response.data?.success && response.data?.data) {
+        const review = response.data.data;
+        return { data: { ...review, id: review._id || review.id } };
+      }
+      return response;
+    } catch (error) {
+      if (error.response?.status === 401) throw error;
+      if (!mockMode) throw error;
+    }
+  }
+
+  // Mock data fallback
   const reviews = await loadReviews();
   const stored = localStorage.getItem("xktf_reviews");
   let allReviews = stored ? JSON.parse(stored) : reviews;
@@ -360,9 +412,14 @@ export async function deleteReview(reviewId) {
   // Try backend API first (when mock mode is OFF)
   if (!mockMode) {
     try {
-      const response = await api.delete(
-        `/admin/review/${reviewId}/deletereview`
-      );
+      // Use protected route /api/reviews/:id (for users) OR /api/admin/review/:id/deletereview (for admins)
+      // But since users are deleting their own, the user route is sufficient.
+      // If user is admin, they can use the same route or the admin one.
+      // But based on our backend, `deleteReview` in controller allows admins too.
+      // So sticking to ONE endpoint is simpler if permission logic is in controller.
+      // However, we added strict route `/reviews/:reviewId` in protected.
+      const response = await api.delete(`/reviews/${reviewId}`);
+
       // Backend returns: { success: true, message: "..." }
       if (response.data?.success) {
         return { data: { success: true } };
@@ -649,34 +706,16 @@ export async function hideReview(reviewId) {
     throw new Error("Only admins can hide reviews");
   }
 
-  // Backend API call (ready for integration)
-  // Uncomment when backend is ready:
-  /*
-  try {
-    const response = await api.patch(`/admin/reviews/${reviewId}/hide`);
-    
-    if (mockMode) {
-      // Also update mock data if mock mode is ON
-      const reviews = await loadReviews();
-      const stored = localStorage.getItem('xktf_reviews');
-      let allReviews = stored ? JSON.parse(stored) : reviews;
-      const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
-      if (reviewIndex !== -1) {
-        allReviews[reviewIndex].isHidden = true;
-        allReviews[reviewIndex].updatedAt = new Date().toISOString();
-        await saveReviews(allReviews);
+  if (!mockMode) {
+    try {
+      const response = await api.patch(`/admin/review/${reviewId}/hide`);
+      if (response.data?.success) {
+        return { data: response.data.data };
       }
-    }
-    
-    return response;
-  } catch (error) {
-    if (mockMode) {
-      console.warn('Backend unavailable, using mock data');
-    } else {
-      throw error;
+    } catch (error) {
+      if (!mockMode) throw error;
     }
   }
-  */
 
   // Mock data implementation
   const reviews = await loadReviews();
@@ -688,7 +727,7 @@ export async function hideReview(reviewId) {
     throw new Error("Review not found");
   }
 
-  allReviews[reviewIndex].isHidden = true;
+  allReviews[reviewIndex].isHidden = true; // Or toggle
   allReviews[reviewIndex].updatedAt = new Date().toISOString();
   await saveReviews(allReviews);
 
@@ -704,34 +743,16 @@ export async function pinReview(reviewId) {
     throw new Error("Only admins can pin reviews");
   }
 
-  // Backend API call (ready for integration)
-  // Uncomment when backend is ready:
-  /*
-  try {
-    const response = await api.patch(`/admin/reviews/${reviewId}/pin`);
-    
-    if (mockMode) {
-      // Also update mock data if mock mode is ON
-      const reviews = await loadReviews();
-      const stored = localStorage.getItem('xktf_reviews');
-      let allReviews = stored ? JSON.parse(stored) : reviews;
-      const reviewIndex = allReviews.findIndex(r => r.id === reviewId);
-      if (reviewIndex !== -1) {
-        allReviews[reviewIndex].isPinned = !allReviews[reviewIndex].isPinned;
-        allReviews[reviewIndex].updatedAt = new Date().toISOString();
-        await saveReviews(allReviews);
+  if (!mockMode) {
+    try {
+      const response = await api.patch(`/admin/review/${reviewId}/pin`);
+      if (response.data?.success) {
+        return { data: response.data.data };
       }
-    }
-    
-    return response;
-  } catch (error) {
-    if (mockMode) {
-      console.warn('Backend unavailable, using mock data');
-    } else {
-      throw error;
+    } catch (error) {
+      if (!mockMode) throw error;
     }
   }
-  */
 
   // Mock data implementation
   const reviews = await loadReviews();

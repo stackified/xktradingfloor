@@ -121,21 +121,50 @@ function EventCard({ evt, onRegister }) {
 
 function EventsGrid({ onOpenRegister }) {
   const [events, setEvents] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [page, setPage] = React.useState(1);
+  const [hasMore, setHasMore] = React.useState(false);
+  const itemsPerPage = 6;
+
+  const loadEvents = React.useCallback(async (pageToLoad) => {
+    setLoading(true);
+    try {
+      const response = await getAllEvents({ page: pageToLoad, size: itemsPerPage });
+      const newEvents = response.data || [];
+      const pagination = response.pagination || {};
+
+      setEvents(prev => pageToLoad === 1 ? newEvents : [...prev, ...newEvents]);
+
+      // key is strictly keeping track of if we have more pages
+      // If we are on page 1 and total pages is 1, hasMore is false.
+      // If we are on page 1 and total pages is 2, hasMore is true.
+      if (pagination.totalPages) {
+        setHasMore(pageToLoad < pagination.totalPages);
+      } else {
+        setHasMore(newEvents.length >= itemsPerPage); // Fallback assumption
+      }
+    } catch (error) {
+      console.error("Failed to load events:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   React.useEffect(() => {
-    (async () => setEvents(await getAllEvents()))();
-  }, []);
+    loadEvents(1);
+  }, [loadEvents]);
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    loadEvents(nextPage); // loadEvents is optimized to append
+  };
 
   return (
     <section
       id="academy-events"
       className="py-20 bg-black relative overflow-hidden"
     >
-      {/* Background decoration */}
-      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
-      </div> */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <h2 className="text-xl font-semibold mb-4">Events</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -143,12 +172,26 @@ function EventsGrid({ onOpenRegister }) {
             <EventCard key={evt.id} evt={evt} onRegister={onOpenRegister} />
           ))}
         </div>
-        {/* View Past Events button - functionality not implemented yet */}
-        {/* <div className="text-center mt-6">
-          <button className="btn btn-secondary rounded-full opacity-100 visible" style={{ visibility: 'visible', opacity: 1 }}>
-            View Past Events
-          </button>
-        </div> */}
+
+        {loading && events.length === 0 && (
+          <div className="text-center py-12 text-gray-500">Loading events...</div>
+        )}
+
+        <div className="text-center mt-8">
+          {loading && events.length > 0 && (
+            <div className="mb-4 text-sm text-gray-400">Loading more...</div>
+          )}
+
+          {!loading && hasMore && (
+            <button
+              onClick={handleLoadMore}
+              className="btn btn-secondary rounded-full opacity-100 visible"
+              style={{ visibility: 'visible', opacity: 1 }}
+            >
+              View More Events
+            </button>
+          )}
+        </div>
       </div>
     </section>
   );

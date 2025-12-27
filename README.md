@@ -12,15 +12,20 @@ xktradingfloor/
 │   ├── src/
 │   │   ├── components/ # React components
 │   │   ├── controllers/ # API controllers
+│   │   ├── contexts/   # React contexts
+│   │   ├── models/     # Data models/types
 │   │   ├── pages/      # Page components
 │   │   ├── redux/      # Redux store
 │   │   └── routes/     # React Router
 │   └── package.json
 ├── backend/           # Express.js backend application
 │   ├── controllers/   # Request handlers
+│   ├── helpers/       # Helper functions
+│   ├── middleware/    # Express middleware
 │   ├── models/        # Database models
 │   ├── routes/        # API routes
-│   ├── middleware/    # Express middleware
+│   ├── utils/         # Utility functions
+│   ├── views/         # EJS templates
 │   └── package.json
 └── README.md
 ```
@@ -35,6 +40,9 @@ xktradingfloor/
 - **🛍️ Merchandise**: E-commerce functionality with shopping cart
 - **👤 Dashboards**: Personalized dashboards for users, operators, and admins
 - **🔐 Authentication**: User registration, login, and role-based access control
+- **📧 Email Notifications**: Automated emails via SendGrid
+- **☁️ Cloud Storage**: Secure file upload and storage via AWS S3
+- **🛡️ Error Monitoring**: Real-time error tracking and performance monitoring via Sentry
 - **📊 Analytics**: Google Analytics 4 integration for tracking website performance and user behavior
 
 ## 🛠️ Tech Stack
@@ -47,6 +55,8 @@ xktradingfloor/
 - Redux Toolkit 2.2.7
 - Tailwind CSS 3.4.14
 - Framer Motion 11.2.13
+- Lucide React 0.474.0
+- React Helmet Async 2.0.5
 - React Quill 2.0.0 (Rich text editor)
 - Recharts 2.15.4 (Charts)
 
@@ -56,6 +66,10 @@ xktradingfloor/
 - Express.js 4.16.1
 - MongoDB with Mongoose 8.18.1
 - JWT Authentication
+- AWS SDK (S3)
+- SendGrid (Email)
+- Sentry (Monitoring)
+- EJS (Templates)
 - File upload support
 
 ## 🚦 Getting Started

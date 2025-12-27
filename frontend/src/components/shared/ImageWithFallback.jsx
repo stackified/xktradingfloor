@@ -355,12 +355,17 @@ export default function ImageWithFallback({
 
     // For external URLs (like Cloudflare R2 or CDN), handle SSL/certificate errors gracefully
     // SSL certificate errors (ERR_CERT_COMMON_NAME_INVALID) should fallback immediately
-    if (isExternalUrl) {
-      // Check if it's an SSL/certificate error - these should fallback immediately
-      const isSSLError = e?.target?.src?.includes('cdn.xktradingfloor.com') || 
-                         e?.target?.error?.code === 18; // NETWORK_ERR
-      
+    // Check if it's an SSL/certificate error - these should fallback immediately
+    // Check if it's an SSL/certificate error - these should fallback immediately
+    const isTargetDomain = src?.includes('xktradingfloor.com') || e?.target?.src?.includes('xktradingfloor.com');
+
+    // Process external URLs or our CDN specifically
+    if (isExternalUrl || isTargetDomain) {
+      const isSSLError = isTargetDomain ||
+        e?.target?.error?.code === 18; // NETWORK_ERR
+
       if (isSSLError || newErrorCount >= 2) {
+        console.warn(`Image load failed for ${src} (SSL/Network Error). Switching to fallback.`);
         // SSL errors or after retry failed, use fallback immediately
         if (useDynamicFallback && dynamicFallback) {
           setImgSrc(dynamicFallback);
@@ -370,7 +375,16 @@ export default function ImageWithFallback({
         return;
       } else if (newErrorCount === 1) {
         // First error on external URL - might be temporary, try again
-        // Reset to try loading the same URL once more
+        // SKIP retry for known problematic CDN to avoid flickering
+        if (isTargetDomain) {
+          if (useDynamicFallback && dynamicFallback) {
+            setImgSrc(dynamicFallback);
+          } else {
+            setImgSrc(fallbackUrl);
+          }
+          return;
+        }
+
         setTimeout(() => {
           setImgSrc(cdnUrl);
           setHasError(false);

@@ -2,6 +2,9 @@ import React from "react";
 import { Helmet } from "react-helmet-async";
 import { useLocation, Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
+import { Reorder } from "framer-motion";
+import { GripVertical } from "lucide-react";
+import { updateCompany } from "../controllers/companiesController.js";
 import { getAllCompanies } from "../controllers/companiesController.js";
 import CompanyCard from "../components/reviews/CompanyCard.jsx";
 import CompanyFilters from "../components/reviews/CompanyFilters.jsx";
@@ -50,12 +53,13 @@ export default function Reviews() {
     userRole === "admin" || userRole === "operator";
   const isAdmin = userRole === "admin";
   const mockMode = useSelector((state) => state.mock.enabled);
-  const [allCompanies, setAllCompanies] = React.useState([]);
   const [companies, setCompanies] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [filters, setFilters] = React.useState({});
   const [currentPage, setCurrentPage] = React.useState(1);
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
+  const [totalPages, setTotalPages] = React.useState(0);
+  const [totalItems, setTotalItems] = React.useState(0);
   const [writeToUsModalOpen, setWriteToUsModalOpen] = React.useState(false);
   const [authModalOpen, setAuthModalOpen] = React.useState(false);
 
@@ -116,48 +120,56 @@ export default function Reviews() {
     };
   }, [dispatch]);
 
+  // Reset page when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
+  // Load companies when dependencies change
   React.useEffect(() => {
     loadCompanies();
-  }, [filters, mockMode]); // Reload when mock mode changes
-
-  React.useEffect(() => {
-    updatePaginatedCompanies();
-  }, [allCompanies, currentPage, itemsPerPage]);
-
-  function updatePaginatedCompanies() {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    setCompanies(allCompanies.slice(startIndex, endIndex));
-    // Reset to page 1 if current page is out of bounds
-    const totalPages = Math.ceil(allCompanies.length / itemsPerPage);
-    if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(1);
-    }
-  }
+  }, [filters, currentPage, itemsPerPage, mockMode]);
 
   async function loadCompanies() {
     setLoading(true);
     try {
-      const response = await getAllCompanies(filters);
-      // Handle different response structures
-      let companiesData = [];
-      if (Array.isArray(response.data)) {
-        companiesData = response.data;
-      } else if (response.data?.docs && Array.isArray(response.data.docs)) {
-        companiesData = response.data.docs;
-      } else if (response.data?.data && Array.isArray(response.data.data)) {
-        companiesData = response.data.data;
-      }
+      const response = await getAllCompanies({
+        ...filters,
+        page: currentPage,
+        size: itemsPerPage
+      });
 
-      const filtered = canSeePendingCompanies
+      // Handle response structure
+      // Controller now sorts out data format and returns { data: [], pagination: {} }
+      const companiesData = response.data || [];
+      const pagination = response.pagination || {};
+
+      let filtered = canSeePendingCompanies
         ? companiesData
         : companiesData.filter((c) => c.status === "approved");
-      setAllCompanies(filtered);
-      setCurrentPage(1); // Reset to first page when filters change
+
+      // While backend should handle sorting, we might need to apply displayOrder sorting client-side
+      // if the backend sort isn't perfect, but ideally backend does it.
+      // For now, let's trust the backend order or re-apply sort if needed.
+      // Assuming backend handles basic sorting, but we might want to prioritize displayOrder here if mixed.
+      // Since it's paginated, sorting MUST be done on backend. 
+      // We will assume backend returns sorted data.
+
+      setCompanies(filtered);
+
+      // Update pagination state
+      if (pagination.totalPages) setTotalPages(pagination.totalPages);
+      else if (pagination.totalItems) setTotalPages(Math.ceil(pagination.totalItems / itemsPerPage));
+      else setTotalPages(1); // Fallback
+
+      if (pagination.totalItems) setTotalItems(pagination.totalItems);
+      else setTotalItems(filtered.length); // Fallback (likely only works for small sets)
+
     } catch (error) {
       console.error("Error loading companies:", error);
-      // Set empty array on error to prevent page from breaking
-      setAllCompanies([]);
+      setCompanies([]);
+      setTotalPages(0);
+      setTotalItems(0);
     } finally {
       setLoading(false);
     }
@@ -170,12 +182,11 @@ export default function Reviews() {
 
   function handleItemsPerPageChange(items) {
     setItemsPerPage(items);
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1);
   }
 
-  const totalPages = Math.ceil(allCompanies.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, allCompanies.length);
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
 
   const pageTitle = activeCategory
     ? `${categoryLabels[activeCategory]} Reviews | XK Trading Floor`
@@ -188,6 +199,31 @@ export default function Reviews() {
   const heroDescription = activeCategory
     ? categoryDescriptions[activeCategory]
     : "Browse brokers, prop firms, and crypto exchanges. Read authentic reviews from traders and find the best deals with promo codes.";
+
+  // Handle drag-and-drop reordering within the current page (admin only)
+  const handleReorderCompanies = async (newPageCompanies) => {
+    setCompanies(newPageCompanies);
+
+    // setAllCompanies logic removed as we use server-side pagination now
+
+    // Persist ordering to backend (and mock store) using displayOrder
+    try {
+      const reorderedPage = newPageCompanies;
+      const baseIndex = (currentPage - 1) * itemsPerPage;
+
+      await Promise.all(
+        reorderedPage.map((company, idx) => {
+          const id = company.id || company._id;
+          if (!id) return Promise.resolve();
+          const displayOrder = baseIndex + idx;
+          return updateCompany(id, { displayOrder });
+        })
+      );
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to persist company display order:", error);
+    }
+  };
 
   return (
     <div className="bg-black text-white min-h-screen">
@@ -235,17 +271,15 @@ export default function Reviews() {
               <button
                 type="button"
                 onClick={() => dispatch(updateMockMode(!mockMode))}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${
-                  mockMode ? "bg-blue-600" : "bg-gray-600"
-                }`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${mockMode ? "bg-blue-600" : "bg-gray-600"
+                  }`}
                 role="switch"
                 aria-checked={mockMode}
                 aria-label="Toggle mock data mode"
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    mockMode ? "translate-x-6" : "translate-x-1"
-                  }`}
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${mockMode ? "translate-x-6" : "translate-x-1"
+                    }`}
                 />
               </button>
               <span className="text-xs text-gray-500 whitespace-nowrap">
@@ -302,15 +336,47 @@ export default function Reviews() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-gray-400">
-                    Showing {startIndex + 1}-{endIndex} of {allCompanies.length}{" "}
-                    {allCompanies.length === 1 ? "company" : "companies"}
+                    Showing {startIndex + 1}-{endIndex} of {totalItems}{" "}
+                    {totalItems === 1 ? "company" : "companies"}
                   </div>
                 </div>
-                <div className="space-y-4">
-                  {companies.map((company) => (
-                    <CompanyCard key={company.id} company={company} user={user} />
-                  ))}
-                </div>
+                {isAdmin ? (
+                  <Reorder.Group
+                    axis="y"
+                    values={companies}
+                    onReorder={handleReorderCompanies}
+                    className="space-y-4"
+                  >
+                    {companies.map((company) => (
+                      <Reorder.Item
+                        key={company.id || company._id}
+                        value={company}
+                        className="flex items-stretch gap-3"
+                      >
+                        <button
+                          type="button"
+                          className="mt-4 h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-full border border-gray-700 bg-gray-800/70 text-gray-400 cursor-grab active:cursor-grabbing"
+                          aria-label="Drag to reorder company"
+                        >
+                          <GripVertical className="h-4 w-4" />
+                        </button>
+                        <div className="flex-1">
+                          <CompanyCard company={company} user={user} />
+                        </div>
+                      </Reorder.Item>
+                    ))}
+                  </Reorder.Group>
+                ) : (
+                  <div className="space-y-4">
+                    {companies.map((company) => (
+                      <CompanyCard
+                        key={company.id || company._id}
+                        company={company}
+                        user={user}
+                      />
+                    ))}
+                  </div>
+                )}
                 {totalPages > 1 && (
                   <Pagination
                     currentPage={currentPage}

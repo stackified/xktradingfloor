@@ -1,0 +1,115 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "XK Trading Floor Logo" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - img "XK Trading Floor Logo" [ref=e7]
+        - navigation [ref=e8]:
+          - link "Home" [ref=e9] [cursor=pointer]:
+            - /url: /
+          - link "Academy" [ref=e10] [cursor=pointer]:
+            - /url: /academy
+          - link "Blog" [ref=e11] [cursor=pointer]:
+            - /url: /blog
+            - text: Blog
+          - link "Reviews" [ref=e13] [cursor=pointer]:
+            - /url: /reviews
+            - generic [ref=e14]: Reviews
+            - img [ref=e15]
+          - link "About" [ref=e17] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=e18] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=e19]:
+          - link "Log in" [ref=e20] [cursor=pointer]:
+            - /url: /login
+          - link "Sign up" [ref=e21] [cursor=pointer]:
+            - /url: /signup
+    - main [ref=e22]:
+      - generic [ref=e23]:
+        - generic [ref=e25]:
+          - heading "Insights & Market Analysis" [level=1] [ref=e26]
+          - paragraph [ref=e27]: Stay ahead of the markets with in-depth research, tutorials, and expert opinions.
+          - button "Write Blog" [ref=e29] [cursor=pointer]:
+            - img [ref=e30]
+            - text: Write Blog
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - generic [ref=e33]:
+              - img [ref=e34]
+              - textbox "Search by title or author" [ref=e37]
+            - generic [ref=e38]:
+              - button "All" [ref=e39] [cursor=pointer]
+              - button "Trading" [ref=e40] [cursor=pointer]
+              - button "Stocks" [ref=e41] [cursor=pointer]
+              - button "Forex" [ref=e42] [cursor=pointer]
+              - button "Crypto" [ref=e43] [cursor=pointer]
+              - button "Options" [ref=e44] [cursor=pointer]
+              - button "Personal Finance" [ref=e45] [cursor=pointer]
+            - generic [ref=e137]:
+              - button "Prev" [disabled] [ref=e138]
+              - generic [ref=e139]: Page 1 of 1
+              - button "Next" [disabled] [ref=e140]
+          - complementary [ref=e142]:
+            - generic [ref=e144]:
+              - generic [ref=e145]:
+                - img [ref=e146]
+                - heading "Latest Posts" [level=3] [ref=e149]
+              - list
+            - generic [ref=e152]:
+              - img [ref=e153]
+              - heading "Popular Tags" [level=3] [ref=e156]
+            - generic [ref=e158]:
+              - generic [ref=e159]:
+                - img [ref=e160]
+                - heading "Newsletter" [level=3] [ref=e163]
+              - generic [ref=e164]: Get weekly insights in your inbox.
+              - generic [ref=e165]:
+                - textbox "Email address" [ref=e166]
+                - button "Subscribe" [ref=e167] [cursor=pointer]
+    - contentinfo [ref=e168]:
+      - generic [ref=e169]:
+        - generic [ref=e170]:
+          - link "XK Trading Floor Logo" [ref=e171] [cursor=pointer]:
+            - /url: /
+            - img "XK Trading Floor Logo" [ref=e172]
+          - paragraph [ref=e173]: Learn, trade, and grow with a modern trading community.
+        - generic [ref=e174]:
+          - heading "Links" [level=4] [ref=e175]
+          - list [ref=e176]:
+            - listitem [ref=e177]:
+              - link "Academy" [ref=e178] [cursor=pointer]:
+                - /url: /academy
+            - listitem [ref=e179]:
+              - link "Blog" [ref=e180] [cursor=pointer]:
+                - /url: /blog
+            - listitem [ref=e181]:
+              - link "Reviews" [ref=e182] [cursor=pointer]:
+                - /url: /reviews
+        - generic [ref=e183]:
+          - heading "Company" [level=4] [ref=e184]
+          - list [ref=e185]:
+            - listitem [ref=e186]:
+              - link "About" [ref=e187] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e188]:
+              - link "Contact" [ref=e189] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e190]:
+              - link "Privacy" [ref=e191] [cursor=pointer]:
+                - /url: /privacy-policy
+            - listitem [ref=e192]:
+              - link "Terms" [ref=e193] [cursor=pointer]:
+                - /url: /terms
+        - generic [ref=e194]:
+          - heading "Stay updated" [level=4] [ref=e195]
+          - generic [ref=e196]:
+            - textbox "Email address" [ref=e197]
+            - button "Subscribe" [ref=e198] [cursor=pointer]
+      - generic [ref=e199]: © 2025 XK Trading Floor
+  - generic "Notifications"
+```

@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "build:local": "cross-env VITE_BASE_PATH=/ vite build",
     "build:gith": "cross-env VITE_BASE_PATH=/xktradingfloor/ vite build",
@@ -30,6 +30,7 @@
     "recharts": "^2.15.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@vitejs/plugin-react": "^5.1.0",
     "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",

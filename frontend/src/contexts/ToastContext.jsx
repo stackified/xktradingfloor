@@ -108,7 +108,7 @@ function ToastContainer({ toasts, removeToast }) {
 /**
  * Individual Toast Item Component
  */
-function ToastItem({ toast, onClose }) {
+const ToastItem = React.forwardRef(({ toast, onClose }, ref) => {
   const { message, type } = toast;
 
   const typeConfig = {
@@ -147,6 +147,7 @@ function ToastItem({ toast, onClose }) {
 
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, x: 100, scale: 0.95 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 100, scale: 0.95 }}
@@ -198,7 +199,9 @@ function ToastItem({ toast, onClose }) {
       </button>
     </motion.div>
   );
-}
+});
+
+ToastItem.displayName = "ToastItem";
 
 /**
  * Hook to use toast notifications

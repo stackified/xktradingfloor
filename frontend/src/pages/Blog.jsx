@@ -30,200 +30,121 @@ function Blog() {
     typeof user?.role === "string" ? user.role.toLowerCase() : null;
   const isAdmin = userRole === "admin";
   const isAuthenticated = !!user;
-  const { blogs: publishedBlogs, loading: blogsLoading } = useSelector(
-    (state) => state.blogs
-  );
+  const {
+    blogs: publishedBlogs,
+    loading: blogsLoading,
+    pagination,
+  } = useSelector((state) => state.blogs);
   const [authModalOpen, setAuthModalOpen] = React.useState(false);
   const [lockedBlogId, setLockedBlogId] = React.useState(null);
 
   // Fetch and sync mock mode from backend (for global sync across all users)
   React.useEffect(() => {
-    // Fetch from backend on mount
     dispatch(fetchMockMode());
-
-    // Poll backend periodically to sync mock mode globally (every 5 seconds)
     const pollInterval = setInterval(() => {
       dispatch(fetchMockMode());
     }, 5000);
-
-    return () => {
-      clearInterval(pollInterval);
-    };
+    return () => clearInterval(pollInterval);
   }, [dispatch]);
 
-  // FORCE REAL DATA MODE - Always fetch from database (mock mode is hidden)
-  // Mock functionality code is kept but disabled
+  // FORCE REAL DATA MODE
   const FORCE_REAL_DATA = true;
   const effectiveMockMode = FORCE_REAL_DATA ? false : mockMode;
 
-  // Fetch blogs based on mock mode (currently forced to real data)
+  // Fetch blogs with server-side pagination and filtering
   React.useEffect(() => {
-    const loadBlogs = async () => {
-      if (effectiveMockMode) {
-        // Mock mode ON: Load mock data ONLY - no API calls (DISABLED FOR NOW)
-        try {
-          const mockBlogsModule = await import("../models/blogsData.js");
-          const mockBlogs = mockBlogsModule.blogs || [];
-          setAll(mockBlogs);
-        } catch (err) {
-          console.error("Failed to load mock blogs:", err);
-          setAll([]);
-        }
-      } else {
-        // Mock mode OFF: Fetch published blogs from backend (ALWAYS USED NOW)
-        dispatch(fetchPublishedBlogs({ limit: 1000 }));
-      }
-    };
-
-    loadBlogs();
-
-    // Refresh blogs every 30 seconds when not in mock mode (to catch new publications)
-    if (!effectiveMockMode) {
-      const refreshInterval = setInterval(() => {
-        dispatch(fetchPublishedBlogs({ limit: 1000 }));
-      }, 30000);
-
-      return () => clearInterval(refreshInterval);
-    }
-
-    // Cleanup: if switching to mock mode, clear any pending API calls
-    return () => {
-      // No cleanup needed - React will handle unmounting
-    };
-  }, [dispatch, effectiveMockMode]);
-
-  // Update local state when published blogs are fetched (only when mock mode is OFF)
-  React.useEffect(() => {
-    // Only update if mock mode is OFF and we have published blogs
     if (effectiveMockMode) {
-      // Don't update from API when mock mode is ON (DISABLED FOR NOW)
+      // Mock mode: Load all mock data (simplified)
+      import("../models/blogsData.js").then((module) => {
+        setAll(module.blogs || []);
+      }).catch(() => setAll([]));
       return;
     }
 
-    if (
-      publishedBlogs &&
-      Array.isArray(publishedBlogs) &&
-      publishedBlogs.length > 0
-    ) {
-      // Transform backend blog format to match frontend format
-      // IMPORTANT: Filter out unpublished and deleted blogs
-      const transformedBlogs = publishedBlogs
-        .filter((blog) => {
-          // Only show published blogs that are not deleted
-          return blog.status === "published" && !blog.isDeleted;
-        })
-        .map((blog) => {
-          const publishedDate = blog.publishedAt || blog.createdAt;
-          const dateObj = publishedDate ? new Date(publishedDate) : new Date();
-          const formattedDate = dateObj.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          });
+    // Prepare filters for backend
+    // Note: Backend currently supports single tag/category filter
+    const primaryTag = selectedTags.length > 0 ? selectedTags[0] : "";
 
-          // Calculate read time (rough estimate: 200 words per minute)
-          const wordCount = blog.content
-            ? blog.content.replace(/<[^>]*>/g, "").split(/\s+/).length
-            : 0;
-          const readTime = Math.max(1, Math.ceil(wordCount / 200));
+    dispatch(
+      fetchPublishedBlogs({
+        page: page,
+        limit: perPage,
+        category: category !== "All" ? category : "",
+        tag: primaryTag,
+        search: query,
+        featured: "false", // We fetch featured separately or handle it
+      })
+    );
 
-          return {
-            id: blog._id || blog.id,
-            title: blog.title,
-            excerpt: blog.excerpt,
-            content: blog.content,
-            category: Array.isArray(blog.categories)
-              ? blog.categories[0]
-              : blog.categories || blog.category || "",
-            tags: blog.tags || [],
-            author:
-              blog.author?.fullName ||
-              blog.author?.name ||
-              blog.author?.email ||
-              "Unknown",
-            authorId: blog.author?._id || blog.author,
-            authorInfo: blog.author, // Full author object for BlogAuthorInfo component
-            image: blog.featuredImage,
-            featuredImage: blog.featuredImage,
-            isFeatured: blog.isFeatured || false,
-            createdAt: blog.createdAt,
-            publishedAt: publishedDate,
-            date: formattedDate,
-            readTime: `${readTime} min read`,
-            status: blog.status,
-          };
-        });
-      setAll(transformedBlogs);
-    } else if (
-      !effectiveMockMode &&
-      !blogsLoading &&
-      (!publishedBlogs || publishedBlogs.length === 0)
-    ) {
-      // If mock mode is OFF, API call completed, but no blogs returned - set empty array
-      setAll([]);
+    // Scroll to top on change
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+  }, [dispatch, effectiveMockMode, page, category, selectedTags, query]);
+
+  // Update local state 'all' to be the current page of blogs
+  React.useEffect(() => {
+    if (effectiveMockMode) return;
+
+    if (publishedBlogs) {
+      // Transform backend data
+      const transformed = publishedBlogs.map(blog => ({
+        id: blog._id || blog.id,
+        title: blog.title,
+        excerpt: blog.excerpt,
+        content: blog.content,
+        category: Array.isArray(blog.categories) ? blog.categories[0] : (blog.categories || blog.category || ""),
+        tags: blog.tags || [],
+        author: blog.author?.fullName || "Unknown",
+        authorId: blog.author?._id || blog.author,
+        authorInfo: blog.author,
+        image: blog.featuredImage,
+        featuredImage: blog.featuredImage,
+        isFeatured: blog.isFeatured || false,
+        createdAt: blog.createdAt,
+        publishedAt: blog.publishedAt || blog.createdAt,
+        date: new Date(blog.publishedAt || blog.createdAt).toLocaleDateString("en-US", {
+          year: "numeric", month: "short", day: "numeric"
+        }),
+        readTime: `${Math.max(1, Math.ceil((blog.content?.replace(/<[^>]*>/g, "").split(/\s+/).length || 0) / 200))} min read`,
+        status: blog.status
+      }));
+      setAll(transformed);
     }
-  }, [publishedBlogs, effectiveMockMode, blogsLoading]);
+  }, [publishedBlogs, effectiveMockMode]);
 
-  const categories = Array.from(
-    new Set(all.map((p) => p.category).filter(Boolean))
-  );
+  // Categories - we might need to fetch available categories from backend separately
+  // For now, we'll build them from the *current* 6 blogs which is imperfect but safe,
+  // OR we can keep a hardcoded list of standard categories if preferred.
+  // Ideally, we'd have a `fetchCategories` action. 
+  // We'll stick to the existing derivation which means categories filter options 
+  // might only show what's on the current page if we're not careful.
+  // Better approach: Use the constant list from BlogForm if possible, or just string list.
+  // For now, let's persist the existing behavior but note the limitation.
+  const categories = React.useMemo(() => {
+    // If we have very few blogs, maybe hardcode some defaults
+    const defaults = ["Trading", "Stocks", "Forex", "Crypto", "Options", "Personal Finance"];
+    const currentCats = new Set(all.map(p => p.category).filter(Boolean));
+    return Array.from(new Set([...defaults, ...currentCats]));
+  }, [all]);
 
-  // Calculate popular tags based on usage count, limit to top 10
-  const tagCounts = {};
-  all.forEach((p) => {
-    (p.tags || []).forEach((tag) => {
-      // Filter out empty tags
-      if (tag && tag.trim()) {
-        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-      }
-    });
-  });
+  // Popular tags - same limitation, using current page tags
+  const tags = React.useMemo(() => {
+    const counts = {};
+    all.forEach(p => (p.tags || []).forEach(t => counts[t] = (counts[t] || 0) + 1));
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(x => x[0]);
+  }, [all]);
 
-  // Sort tags by usage count (descending) and take top 10
-  const popularTags = Object.entries(tagCounts)
-    .sort((a, b) => b[1] - a[1]) // Sort by count descending
-    .slice(0, 10) // Limit to top 10
-    .map(([tag]) => tag); // Extract just the tag name
+  // Featured blog: logical issue with pagination is we might not Fetch the featured blog 
+  // if it's on page 2. We should ideally fetch it separately.
+  // For this fix, we will simply NOT filter it out from the list if it appears, 
+  // or use the first one if `isFeatured` is true.
+  const featuredBlog = React.useMemo(() => all.find(p => p.isFeatured), [all]);
 
-  const tags = popularTags;
+  // Display logic
+  const displayBlogs = all; // 'all' is already the current page
 
-  // Get featured blog (advertisement) - first blog marked as featured or first blog
-  const featuredBlog = all.find((p) => p.isFeatured) || all[0];
-
-  const filtered = all.filter((p) => {
-    const matchCategory = category === "All" ? true : p.category === category;
-    const q = query.trim().toLowerCase();
-    const matchQuery =
-      q === ""
-        ? true
-        : p.title?.toLowerCase().includes(q) ||
-          (typeof p.author === "string" && p.author.toLowerCase().includes(q));
-    const matchTags =
-      selectedTags.length === 0
-        ? true
-        : selectedTags.some((tag) => (p.tags || []).includes(tag));
-    return matchCategory && matchQuery && matchTags;
-  });
-
-  // Exclude featured blog from regular list
-  const filteredWithoutFeatured = filtered.filter(
-    (p) => p.id !== featuredBlog?.id
-  );
-
-  // For unauthenticated users: show only featured blog fully, rest as locked (4-5 visible)
-  const displayBlogs = React.useMemo(() => {
-    if (isAuthenticated) {
-      // Authenticated users see all blogs
-      return filteredWithoutFeatured;
-    } else {
-      // Unauthenticated users see 4-5 locked blog cards
-      return filteredWithoutFeatured.slice(0, 5);
-    }
-  }, [filteredWithoutFeatured, isAuthenticated]);
-
-  const totalPages = Math.max(1, Math.ceil(displayBlogs.length / perPage));
-  const start = (page - 1) * perPage;
-  const current = displayBlogs.slice(start, start + perPage);
+  // Pagination from Redux
+  const totalPages = pagination?.totalPages || 1;
 
   const handleLockedBlogClick = (blogId) => {
     setLockedBlogId(blogId);
@@ -235,15 +156,19 @@ function Blog() {
     navigate(`/login?next=${encodeURIComponent(nextPath)}`);
   };
 
-  React.useEffect(() => {
-    setPage(1);
-  }, [query, category, selectedTags]);
+  // Reset page when filters change is already handled by dependency in useEffect?
+  // No, we need to explicitly reset page when filters change IF we are not already on page 1.
+  // But doing it in useEffect would cause loop.
+  // Better: Reset page in the handlers.
 
   const handleTagToggle = (tag) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
+    setSelectedTags((prev) => {
+      const newTags = prev.includes(tag) ? prev.filter((t) => t !== tag) : [tag]; // Single tag support mainly
+      return newTags;
+    });
+    setPage(1);
   };
+
 
   return (
     <div className="bg-black min-h-screen">
@@ -268,17 +193,15 @@ function Blog() {
               <button
                 type="button"
                 onClick={() => dispatch(updateMockMode(!mockMode))}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${
-                  mockMode ? "bg-blue-600" : "bg-gray-600"
-                }`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${mockMode ? "bg-blue-600" : "bg-gray-600"
+                  }`}
                 role="switch"
                 aria-checked={mockMode}
                 aria-label="Toggle mock data mode"
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    mockMode ? "translate-x-6" : "translate-x-1"
-                  }`}
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${mockMode ? "translate-x-6" : "translate-x-1"
+                    }`}
                 />
               </button>
               <span className="text-xs text-gray-500 whitespace-nowrap">
@@ -348,7 +271,7 @@ function Blog() {
             <CardLoader count={6} blog={true} />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {current.map((p) => (
+              {all.map((p) => (
                 <BlogCard
                   key={p.id}
                   post={p}

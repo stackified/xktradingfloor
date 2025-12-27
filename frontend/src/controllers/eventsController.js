@@ -47,7 +47,8 @@ export async function getAllEvents(filters = {}) {
       }
 
       const params = { page, size, search };
-      
+      let paginationData = { currentPage: 1, totalPages: 1, totalItems: 0 };
+
       // Try public endpoint first (if it exists), then fallback to admin endpoint
       let response;
       try {
@@ -85,6 +86,15 @@ export async function getAllEvents(filters = {}) {
           image: event.featuredImage || event.image,
           date: event.dateTime || event.date,
         }));
+
+        // Extract pagination
+        if (response.data.data.totalPages || response.data.data.totalItems) {
+          paginationData = {
+            currentPage: response.data.data.currentPage || response.data.data.page || 1,
+            totalPages: response.data.data.totalPages || response.data.data.pages || 1,
+            totalItems: response.data.data.totalItems || response.data.data.total || 0
+          };
+        }
       } else if (Array.isArray(response.data?.data)) {
         backendEvents = response.data.data.map((event) => ({
           ...event,
@@ -92,7 +102,14 @@ export async function getAllEvents(filters = {}) {
           image: event.featuredImage || event.image,
           date: event.dateTime || event.date,
         }));
+        // Try to find pagination in sibling property
+        if (response.data.pagination) {
+          paginationData = response.data.pagination;
+        }
       }
+
+      return { data: backendEvents, pagination: paginationData };
+
     } catch (error) {
       // If backend fails and mock mode is OFF, return empty array
       if (!mockMode) {
@@ -100,19 +117,27 @@ export async function getAllEvents(filters = {}) {
         console.warn("Failed to fetch events from backend:", error.message);
         // Return empty array - events will not be shown if backend blocks access
         // Backend needs to provide public endpoint for unauthorized users
-        return [];
+        return { data: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } };
       }
     }
   }
 
-  // If mock mode is OFF, return only backend data
+  // If mock mode is OFF, return only backend data (should be handled in try/catch return, but safety net)
   if (!mockMode) {
-    return backendEvents;
+    return { data: backendEvents, pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } };
   }
 
   // If mock mode is ON, return ONLY mock data
   const { default: mockEvents } = await import("../models/eventsData.js");
-  return mockEvents?.events || [];
+  const data = mockEvents?.events || [];
+  return {
+    data,
+    pagination: {
+      currentPage: 1,
+      totalPages: 1,
+      totalItems: data.length
+    }
+  };
 }
 
 // Get event by ID
@@ -216,7 +241,7 @@ export async function registerForEvent(formData) {
       if (error.response?.status === 400) {
         throw new Error(
           error.response?.data?.message ||
-            "Name, email, and phone are required for registration"
+          "Name, email, and phone are required for registration"
         );
       }
       // If backend fails and mock mode is OFF, throw error
@@ -236,7 +261,7 @@ export async function registerForEvent(formData) {
 // Body: FormData with title, description, excerpt, type, dateTime, location, price, seats, freebiesIncluded[], featuredImage
 export async function createEvent(formData) {
   const mockMode = await isMockModeEnabled();
-  
+
   if (!mockMode) {
     try {
       const response = await api.post("/admin/event/addevent", formData, {
@@ -244,7 +269,7 @@ export async function createEvent(formData) {
           "Content-Type": "multipart/form-data",
         },
       });
-      
+
       if (response.data?.success) {
         return {
           success: true,
@@ -261,7 +286,7 @@ export async function createEvent(formData) {
       throw new Error(errorMessage);
     }
   }
-  
+
   // Mock implementation
   return {
     success: true,
@@ -275,7 +300,7 @@ export async function createEvent(formData) {
 // Body: FormData with any fields to update
 export async function updateEvent(eventId, formData) {
   const mockMode = await isMockModeEnabled();
-  
+
   if (!mockMode) {
     try {
       const response = await api.put(
@@ -287,7 +312,7 @@ export async function updateEvent(eventId, formData) {
           },
         }
       );
-      
+
       if (response.data?.success) {
         return {
           success: true,
@@ -304,7 +329,7 @@ export async function updateEvent(eventId, formData) {
       throw new Error(errorMessage);
     }
   }
-  
+
   // Mock implementation
   return {
     success: true,
@@ -317,13 +342,13 @@ export async function updateEvent(eventId, formData) {
 // Backend endpoint: DELETE /api/admin/event/:eventId/deleteEvent
 export async function deleteEvent(eventId) {
   const mockMode = await isMockModeEnabled();
-  
+
   if (!mockMode) {
     try {
       const response = await api.delete(
         `/admin/event/${eventId}/deleteEvent`
       );
-      
+
       if (response.data?.success) {
         return {
           success: true,
@@ -339,7 +364,7 @@ export async function deleteEvent(eventId) {
       throw new Error(errorMessage);
     }
   }
-  
+
   // Mock implementation
   return {
     success: true,

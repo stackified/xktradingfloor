@@ -21,12 +21,12 @@ function EventCard({ evt, onClick }) {
   return (
     <motion.div whileHover={{ y: -4 }} className="card overflow-hidden cursor-pointer" onClick={onClick}>
       <div className="h-40 w-full bg-muted">
-        <ImageWithFallback 
-          src={imageSrc} 
-          fallback="/assets/placeholder.jpg" 
-          alt={evt.title} 
-          className="h-full w-full object-cover" 
-          useDynamicFallback={true} 
+        <ImageWithFallback
+          src={imageSrc}
+          fallback="/assets/placeholder.jpg"
+          alt={evt.title}
+          className="h-full w-full object-cover"
+          useDynamicFallback={true}
         />
       </div>
       <div className="card-body">
@@ -43,7 +43,10 @@ function FeaturedEvents() {
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    (async () => setEvents(await getAllEvents()))();
+    (async () => {
+      const response = await getAllEvents();
+      setEvents(response.data || []);
+    })();
   }, []);
 
   return (
@@ -75,11 +78,11 @@ function FeaturedEvents() {
           <Link to="/academy" className="text-sm text-blue-400 hover:text-blue-300 hover:underline ml-auto">View All</Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {events.slice(0,4).map((evt) => (
-            <EventCard 
-              key={evt.id} 
-              evt={evt} 
-              onClick={() => navigate(`/events/${evt.id}`, { state: { event: evt } })} 
+          {events.slice(0, 4).map((evt) => (
+            <EventCard
+              key={evt.id}
+              evt={evt}
+              onClick={() => navigate(`/events/${evt.id}`, { state: { event: evt } })}
             />
           ))}
         </div>
