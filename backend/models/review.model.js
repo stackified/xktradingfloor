@@ -9,6 +9,7 @@ const ReviewSchema = new Schema(
         title: String,
         body: String,
         comment: String,
+        screenshot: String
     },
     {
         timestamps: true,
