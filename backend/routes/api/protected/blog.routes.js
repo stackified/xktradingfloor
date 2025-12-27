@@ -21,6 +21,8 @@ router.post('/addblog',
 
 router.post('/getmyblogs', blogController.getAllBlogs);
 
+router.get('/:blogid/getblogbyid', blogController.getBlogById);
+
 router.put('/:blogid/updateblog',
     pdfUpload.fileUpload(
         "blogs",
