@@ -21,8 +21,8 @@ const getViewerIdentifier = (req) => {
 };
 
 const RESTRICTED_FIELDS = [
-    'status',
-    'publishedAt',
+    // 'status',
+    // 'publishedAt',
     'isFeatured',
     'isFlagged',
     'flagReason',
