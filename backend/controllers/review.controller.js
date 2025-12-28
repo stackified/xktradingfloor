@@ -271,8 +271,7 @@ exports.deleteReview = async (req, res) => {
 
         if (
             review.userId.toString() !== user._id.toString() &&
-            user.role !== "Admin"
-        ) {
+            user.role !== "Admin" && user.role !== "admin") {
             return sendErrorResponse(
                 res,
                 "You can only delete your own reviews",

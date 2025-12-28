@@ -9,7 +9,9 @@ const ReviewSchema = new Schema(
         title: String,
         body: String,
         comment: String,
-        screenshot: String
+        screenshot: {
+            type: String, default: null
+        },
     },
     {
         timestamps: true,
