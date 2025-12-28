@@ -132,6 +132,7 @@ exports.createReview = async (req, res) => {
         }
 
         const { companyId, rating, title, body, comment } = req.body;
+
         if (!companyId || !rating) {
             return sendErrorResponse(
                 res,
@@ -141,8 +142,6 @@ exports.createReview = async (req, res) => {
                 true
             );
         };
-
-        console.log(rating, "rating");
 
         // rating should be 1 or between 5 not more than 5 
         if (rating && (rating < 1 || rating > 5)) {
@@ -172,6 +171,18 @@ exports.createReview = async (req, res) => {
             );
         }
 
+        let screenshot = "";
+        if (req?.files?.screenshot) {
+            screenshot = req.files.screenshot[0];
+            const pathN = screenshot?.path;
+            const npathN = pathN.replaceAll("\\", "/");
+            screenshot.path = npathN;
+
+            // Upload to Cloudflare R2
+            const url = await r2.uploadPublic(screenshot?.path, `${screenshot?.filename}`, `Reviews`);
+            screenshot = url;
+        }
+
         const review = new ReviewModel({
             companyId,
             userId: user._id,
@@ -179,6 +190,7 @@ exports.createReview = async (req, res) => {
             title,
             body,
             comment: comment,
+            screenshot
         });
 
         const saved = await review.save();
@@ -259,8 +271,7 @@ exports.deleteReview = async (req, res) => {
 
         if (
             review.userId.toString() !== user._id.toString() &&
-            user.role !== "Admin"
-        ) {
+            user.role !== "Admin" && user.role !== "admin") {
             return sendErrorResponse(
                 res,
                 "You can only delete your own reviews",
