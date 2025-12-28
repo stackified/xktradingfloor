@@ -18,6 +18,7 @@ import {
 } from "../../../redux/slices/blogsSlice.js";
 import RichTextEditor from "../../shared/RichTextEditor.jsx";
 import ChipInput from "../../shared/ChipInput.jsx";
+import CustomSelect from "../../shared/CustomSelect.jsx";
 import { getUserCookie } from "../../../utils/cookies.js";
 
 const BLOG_CATEGORIES = [
@@ -407,7 +408,7 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
                 value={formState.title}
                 onChange={handleChange}
                 placeholder="e.g., How I built my trading playbook"
-                className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500"
+                className="input"
                 required
               />
             </div>
@@ -427,9 +428,7 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
                 onChange={handleChange}
                 rows={3}
                 placeholder="Short elevator pitch for your blog (minimum 20 characters)."
-                className={`textarea textarea-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500 ${
-                  summaryError ? "border-red-500/50" : ""
-                }`}
+                className={`textarea ${summaryError ? "border-red-500/50" : ""}`}
               />
               {summaryError && (
                 <p className="text-xs text-red-400">{summaryError}</p>
@@ -457,20 +456,14 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
                 <label className="text-sm font-medium text-gray-300">
                   Category<span className="text-red-400">*</span>
                 </label>
-                <select
-                  name="category"
+                <CustomSelect
                   value={formState.category}
-                  onChange={handleChange}
-                  className="select select-bordered w-full border-white/10 bg-gray-950/40 text-white"
-                  required
-                >
-                  <option value="">Select a category...</option>
-                  {BLOG_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(e) => handleChange({ target: { name: 'category', value: e.target.value } })}
+                  options={[
+                    { value: "", label: "Select a category..." },
+                    ...BLOG_CATEGORIES.map(cat => ({ value: cat, label: cat }))
+                  ]}
+                />
               </div>
             </div>
 

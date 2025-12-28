@@ -28,11 +28,11 @@ function Login() {
         // The backend sets httpOnly cookie 'token' automatically
         // We also store token in user cookie for Authorization header
         dispatch(loginSuccess(res.data));
-        
+
         // Show success toast with personalized message
         const userName = res.data.fullName || res.data.name || res.data.email?.split("@")[0] || "User";
         toast.success(`Welcome back, ${userName}!`, 4000);
-        
+
         // Small delay to show toast before navigation
         setTimeout(() => {
           // Redirect based on user role (case-insensitive)
@@ -97,7 +97,7 @@ function Login() {
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
-                    className="input pl-10 h-12 bg-gray-800/50 border-gray-700 focus:border-blue-500 focus:ring-blue-500/20"
+                    className="input pl-10 h-12"
                     placeholder="Enter your email"
                     type="email"
                     value={form.email}
@@ -117,7 +117,7 @@ function Login() {
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
-                    className="input pl-10 h-12 bg-gray-800/50 border-gray-700 focus:border-blue-500 focus:ring-blue-500/20"
+                    className="input pl-10 h-12"
                     placeholder="Enter your password"
                     type="password"
                     value={form.password}

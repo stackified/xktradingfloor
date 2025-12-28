@@ -23,6 +23,7 @@ import { getUserCookie } from "../../utils/cookies.js";
 import ProtectedRoute from "../../components/dashboard/ProtectedRoute.jsx";
 import ConfirmModal from "../../components/shared/ConfirmModal.jsx";
 import FlagModal from "../../components/shared/FlagModal.jsx";
+import CustomSelect from "../../components/shared/CustomSelect.jsx";
 
 function AdminBlogsContent() {
   const navigate = useNavigate();
@@ -249,17 +250,15 @@ function AdminBlogsContent() {
           </div>
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-10" />
-              <select
+              <CustomSelect
                 value={viewFilter}
                 onChange={(e) => setViewFilter(e.target.value)}
-                className="w-full pl-10 pr-10 py-2.5 rounded-lg bg-gray-900/70 border border-white/10 text-white text-sm appearance-none cursor-pointer transition-all hover:border-white/20 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
-              >
-                <option value="all" className="bg-gray-900 text-gray-300">All Blogs</option>
-                <option value="flagged" className="bg-gray-900 text-red-300">Flagged Blogs</option>
-                <option value="own" className="bg-gray-900 text-blue-300">My Blogs</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                options={[
+                  { value: "all", label: "All Blogs" },
+                  { value: "flagged", label: "Flagged Blogs" },
+                  { value: "own", label: "My Blogs" }
+                ]}
+              />
             </div>
             <button
               onClick={() => navigate("/admin/blogs/create")}

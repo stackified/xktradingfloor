@@ -38,9 +38,9 @@ function FreeResources() {
           <h2 className="text-xl font-semibold">Free Learning Resources</h2>
           <div className="flex items-center gap-2 flex-wrap">
             {['all', 'ebook', 'guide', 'video', 'sheet'].map(t => (
-              <button 
-                key={t} 
-                className={`btn rounded-full whitespace-nowrap ${filter===t? 'btn-primary':'btn-secondary'} opacity-100 visible`} 
+              <button
+                key={t}
+                className={`btn rounded-full whitespace-nowrap ${filter === t ? 'btn-primary' : 'btn-secondary'} opacity-100 visible`}
                 onClick={() => setFilter(t)}
                 style={{ visibility: 'visible', opacity: 1 }}
               >
@@ -57,7 +57,7 @@ function FreeResources() {
               href={f.link}
               target={f.link?.startsWith('http') ? '_blank' : undefined}
               rel={f.link?.startsWith('http') ? 'noreferrer' : undefined}
-              className="card block"
+              className="card block transition-all duration-300 hover:shadow-[0_0_40px_rgba(59,130,246,0.5)] hover:border-blue-500/50 hover:bg-gray-800/80"
             >
               <div className="card-body">
                 <div className="h-10 w-10 rounded bg-accent/10 text-accent flex items-center justify-center mb-3">

@@ -1,4 +1,5 @@
 import React from 'react';
+import CustomSelect from '../shared/CustomSelect.jsx';
 
 function CompanyFilters({ filters, onChange }) {
   const categories = ['All', 'Broker', 'PropFirm', 'Crypto'];
@@ -38,17 +39,11 @@ function CompanyFilters({ filters, onChange }) {
           {/* Rating Filter */}
           <div>
             <label className="text-sm text-gray-400 mb-2 block">Minimum Rating</label>
-            <select
+            <CustomSelect
               value={filters.minRating || 'all'}
               onChange={(e) => onChange({ ...filters, minRating: e.target.value === 'all' ? '' : parseFloat(e.target.value) })}
-              className="input text-sm"
-            >
-              {ratingRanges.map(range => (
-                <option key={range.value} value={range.value}>
-                  {range.label}
-                </option>
-              ))}
-            </select>
+              options={ratingRanges}
+            />
           </div>
 
           {/* Search */}

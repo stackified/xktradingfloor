@@ -16,6 +16,7 @@ import {
 import { createEvent, updateEvent, getEventById } from "../../../controllers/eventsController.js";
 import { useToast } from "../../../contexts/ToastContext.jsx";
 import ChipInput from "../../shared/ChipInput.jsx";
+import CustomSelect from "../../shared/CustomSelect.jsx";
 
 const EVENT_TYPES = ["online", "campus"];
 
@@ -90,8 +91,8 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
         type === "checkbox"
           ? checked
           : type === "number"
-          ? parseFloat(value) || 0
-          : value,
+            ? parseFloat(value) || 0
+            : value,
     }));
   };
 
@@ -267,24 +268,14 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
                 Type <span className="text-red-400">*</span>
               </label>
               <div className="relative">
-                <select
-                  name="type"
+                <CustomSelect
                   value={formState.type}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2.5 pr-10 rounded-lg bg-gray-900/70 border border-white/10 text-white appearance-none cursor-pointer focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
-                >
-                  {EVENT_TYPES.map((type) => (
-                    <option key={type} value={type} className="bg-gray-900">
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </option>
-                  ))}
-                </select>
-                {formState.type === "online" ? (
-                  <Globe className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                ) : (
-                  <Building2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                )}
+                  onChange={(e) => handleChange({ target: { name: 'type', value: e.target.value } })}
+                  options={EVENT_TYPES.map(type => ({
+                    value: type,
+                    label: type.charAt(0).toUpperCase() + type.slice(1)
+                  }))}
+                />
               </div>
             </div>
 

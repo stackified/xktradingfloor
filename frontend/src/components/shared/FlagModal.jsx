@@ -1,6 +1,7 @@
 import React from "react";
 import { X, Flag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import CustomSelect from "./CustomSelect.jsx";
 
 const FLAG_REASONS = [
   { value: "spam", label: "Spam" },
@@ -65,27 +66,22 @@ function FlagModal({ isOpen, onClose, onConfirm, title = "Flag Content" }) {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              
+
               <div className="space-y-4 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Reason for Flagging <span className="text-red-400">*</span>
                   </label>
-                  <select
+                  <CustomSelect
                     value={selectedReason}
                     onChange={(e) => setSelectedReason(e.target.value)}
-                    className="select select-bordered w-full border-white/10 bg-gray-950/40 text-white"
-                    required
-                  >
-                    <option value="">Select a reason...</option>
-                    {FLAG_REASONS.map((reason) => (
-                      <option key={reason.value} value={reason.value}>
-                        {reason.label}
-                      </option>
-                    ))}
-                  </select>
+                    options={[
+                      { value: "", label: "Select a reason..." },
+                      ...FLAG_REASONS
+                    ]}
+                  />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Additional Details
@@ -99,7 +95,7 @@ function FlagModal({ isOpen, onClose, onConfirm, title = "Flag Content" }) {
                   />
                 </div>
               </div>
-              
+
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={onClose}

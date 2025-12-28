@@ -28,7 +28,7 @@ function ChipInput({ value, onChange, placeholder = "Type and press comma to add
       {label && (
         <label className="text-sm font-medium text-gray-300">{label}</label>
       )}
-      <div className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500 min-h-[3rem] flex flex-wrap items-center gap-2 p-2">
+      <div className="input min-h-[3rem] flex flex-wrap items-center gap-2 p-2">
         {chips.map((chip, index) => (
           <span
             key={index}

@@ -9,6 +9,13 @@ import { getCdnAssetUrl, getCdnBaseUrl } from "./cdn.js";
 export const getAssetPath = (path) => {
   if (!path) return path;
 
+  // If path starts with /images/ or /uploads/, it's a backend asset
+  // In development, vite proxy will forward it to backend
+  // In production, these should be served by the backend or CDN
+  if (path.startsWith('/images/') || path.startsWith('/uploads/')) {
+    return path;
+  }
+
   // If CDN is configured, use CDN URL
   const cdnBaseUrl = getCdnBaseUrl();
   if (cdnBaseUrl) {

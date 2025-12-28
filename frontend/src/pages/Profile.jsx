@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateProfile } from '../redux/slices/authSlice.js';
 import { getUserCookie } from '../utils/cookies.js';
+import CustomSelect from "../components/shared/CustomSelect.jsx";
 
 export default function Profile() {
   const dispatch = useDispatch();
@@ -53,13 +54,17 @@ export default function Profile() {
             </label>
             <label className="flex flex-col gap-1">
               <span className="text-sm text-gray-300">Country</span>
-              <select className="input" value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} aria-label="Country">
-                <option value="IN">India</option>
-                <option value="US">United States</option>
-                <option value="GB">United Kingdom</option>
-                <option value="DE">Germany</option>
-                <option value="SG">Singapore</option>
-              </select>
+              <CustomSelect
+                value={form.country}
+                onChange={(e) => setForm({ ...form, country: e.target.value })}
+                options={[
+                  { value: "IN", label: "India" },
+                  { value: "US", label: "United States" },
+                  { value: "GB", label: "United Kingdom" },
+                  { value: "DE", label: "Germany" },
+                  { value: "SG", label: "Singapore" }
+                ]}
+              />
             </label>
             <label className="flex flex-col gap-1 sm:col-span-2">
               <span className="text-sm text-gray-300">Bio</span>

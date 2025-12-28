@@ -14,6 +14,7 @@ import {
   Clock,
   FileText,
 } from "lucide-react";
+import CustomSelect from "../../shared/CustomSelect.jsx";
 
 const statusStyles = {
   draft: "bg-yellow-500/10 text-yellow-300 border-yellow-500/40",
@@ -55,7 +56,7 @@ function BlogList({
 
   return (
     <div className="space-y-5">
-      <div className="card border-white/10 bg-gradient-to-br from-gray-900/80 to-gray-800/60 backdrop-blur-sm">
+      <div className="card border-white/10 bg-gradient-to-br from-gray-900/80 to-gray-800/60 backdrop-blur-sm relative z-30">
         <div className="card-body">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="relative">
@@ -64,23 +65,22 @@ function BlogList({
                 value={searchQuery}
                 onChange={(event) => onSearchChange(event.target.value)}
                 placeholder="Search by title, author, or tag"
-                className="input input-bordered bg-gray-900/70 border-white/10 text-white placeholder:text-gray-500 pl-10 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                className="input pl-10"
                 type="search"
               />
             </div>
             <div className="relative">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-10" />
-              <select
+              <CustomSelect
+                icon={Filter}
                 value={statusFilter}
                 onChange={(event) => onStatusFilterChange(event.target.value)}
-                className="w-full pl-10 pr-10 py-2.5 rounded-lg bg-gray-900/70 border border-white/10 text-white text-sm appearance-none cursor-pointer transition-all hover:border-white/20 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
-              >
-                <option value="" className="bg-gray-900 text-gray-300">All statuses</option>
-                <option value="draft" className="bg-gray-900 text-yellow-300">Draft</option>
-                <option value="published" className="bg-gray-900 text-emerald-300">Published</option>
-                <option value="archived" className="bg-gray-900 text-slate-300">Archived</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                options={[
+                  { value: "", label: "All statuses" },
+                  { value: "draft", label: "Draft" },
+                  { value: "published", label: "Published" },
+                  { value: "archived", label: "Archived" }
+                ]}
+              />
             </div>
           </div>
         </div>
@@ -153,13 +153,12 @@ function BlogList({
 
                   <div className="flex flex-col gap-3 lg:w-auto">
                     <div
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold backdrop-blur-sm ${
-                        blog.status === "published"
-                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-lg shadow-emerald-500/10"
-                          : blog.status === "draft"
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold backdrop-blur-sm ${blog.status === "published"
+                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-lg shadow-emerald-500/10"
+                        : blog.status === "draft"
                           ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/50 shadow-lg shadow-yellow-500/10"
                           : "bg-slate-500/20 text-slate-300 border border-slate-500/50 shadow-lg shadow-slate-500/10"
-                      }`}
+                        }`}
                     >
                       {blog.status === "published" ? (
                         <CheckCircle2 className="h-3 w-3" />

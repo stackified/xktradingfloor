@@ -96,7 +96,7 @@ function CompanyReviewCard({ review, currentUserId, onUpdate, onDelete }) {
           <div className="flex items-start justify-between gap-2">
             <div>
               <div className="font-semibold flex items-center gap-2">
-                {review.userName}
+                {review.userName || review.userId?.fullName || review.userId?.email || "Anonymous"}
                 {review.isPinned && <span className="text-[10px] bg-accent/20 text-accent px-1.5 rounded uppercase font-bold tracking-wider">PINNED</span>}
                 {review.isHidden && <span className="text-[10px] bg-red-500/20 text-red-400 px-1.5 rounded uppercase font-bold tracking-wider">HIDDEN</span>}
               </div>

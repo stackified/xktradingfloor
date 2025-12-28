@@ -12,6 +12,7 @@ import {
 } from "../../../controllers/companiesController.js";
 import { getUserCookie } from "../../../utils/cookies.js";
 import RichTextEditor from "../../shared/RichTextEditor.jsx";
+import CustomSelect from "../../shared/CustomSelect.jsx";
 
 const MAX_SHORT_DESCRIPTION = 150;
 
@@ -154,8 +155,8 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
         imageFiles.length > 0
           ? imageFiles
           : images
-              .map((img) => img.file || img.url)
-              .filter((img) => img instanceof File || typeof img === "string");
+            .map((img) => img.file || img.url)
+            .filter((img) => img instanceof File || typeof img === "string");
 
       const finalData = {
         ...companyData,
@@ -409,7 +410,7 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white"
+                className="input"
                 required
               />
             </div>
@@ -419,18 +420,17 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                 <label className="text-sm font-medium text-gray-300">
                   Category <span className="text-red-400">*</span>
                 </label>
-                <select
+                <CustomSelect
                   value={form.category}
                   onChange={(e) =>
                     setForm({ ...form, category: e.target.value })
                   }
-                  className="select select-bordered w-full border-white/10 bg-gray-950/40 text-white"
-                  required
-                >
-                  <option value="Broker">Broker</option>
-                  <option value="PropFirm">Prop Firm</option>
-                  <option value="Crypto">Crypto Exchange</option>
-                </select>
+                  options={[
+                    { value: "Broker", label: "Broker" },
+                    { value: "PropFirm", label: "Prop Firm" },
+                    { value: "Crypto", label: "Crypto Exchange" }
+                  ]}
+                />
               </div>
 
               {user?.role === "admin" && (
@@ -438,17 +438,17 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                   <label className="text-sm font-medium text-gray-300">
                     Status
                   </label>
-                  <select
+                  <CustomSelect
                     value={form.status}
                     onChange={(e) =>
                       setForm({ ...form, status: e.target.value })
                     }
-                    className="select select-bordered w-full border-white/10 bg-gray-950/40 text-white"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="blocked">Blocked</option>
-                  </select>
+                    options={[
+                      { value: "pending", label: "Pending" },
+                      { value: "approved", label: "Approved" },
+                      { value: "blocked", label: "Blocked" }
+                    ]}
+                  />
                 </div>
               )}
             </div>
@@ -516,7 +516,7 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                 type="text"
                 value={form.details}
                 onChange={handleShortDescriptionChange}
-                className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white"
+                className="input"
                 placeholder="Brief one-line description (max 150 characters)"
                 required
                 maxLength={MAX_SHORT_DESCRIPTION}
@@ -654,7 +654,7 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                       <label className="block text-xs text-gray-400 mb-1">
                         Discount Type
                       </label>
-                      <select
+                      <CustomSelect
                         value={promoForm.discountType}
                         onChange={(e) =>
                           setPromoForm({
@@ -662,12 +662,12 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                             discountType: e.target.value,
                           })
                         }
-                        className="input input-sm w-full"
+                        options={[
+                          { value: "percentage", label: "Percentage" },
+                          { value: "fixed", label: "Fixed Amount" }
+                        ]}
                         disabled={promoSubmitting}
-                      >
-                        <option value="percentage">Percentage</option>
-                        <option value="fixed">Fixed Amount</option>
-                      </select>
+                      />
                     </div>
                     <div>
                       <label className="block text-xs text-gray-400 mb-1">
@@ -749,8 +749,8 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                             {promoSubmitting
                               ? "Saving..."
                               : editingPromo
-                              ? "Update"
-                              : "Add Promo Code"}
+                                ? "Update"
+                                : "Add Promo Code"}
                           </button>
                           <button
                             type="button"

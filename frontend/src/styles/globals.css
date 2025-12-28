@@ -17,8 +17,13 @@
 }
 
 /* Inputs */
-.input {
-  @apply w-full rounded-md bg-card border border-border px-3 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/40;
+.input,
+.textarea {
+  @apply w-full rounded-lg bg-gray-900/70 border border-white/10 px-4 py-2.5 text-sm text-white placeholder-gray-500 transition-all focus:border-blue-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.textarea {
+  @apply min-h-[100px] resize-y;
 }
 
 /* Cards */

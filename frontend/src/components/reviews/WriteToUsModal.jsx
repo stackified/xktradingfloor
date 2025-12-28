@@ -2,6 +2,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { requestCompanyAddition } from "../../controllers/companiesController.js";
+import CustomSelect from "../shared/CustomSelect.jsx";
 
 function WriteToUsModal({ isOpen, onClose, onSubmit }) {
   const [formData, setFormData] = React.useState({
@@ -33,12 +34,12 @@ function WriteToUsModal({ isOpen, onClose, onSubmit }) {
       };
 
       await requestCompanyAddition(companyData);
-      
+
       setSubmitted(true);
       if (onSubmit) {
         onSubmit(formData);
       }
-      
+
       setTimeout(() => {
         setSubmitted(false);
         onClose();
@@ -199,19 +200,19 @@ function WriteToUsModal({ isOpen, onClose, onSubmit }) {
                       >
                         Category *
                       </label>
-                      <select
+                      <CustomSelect
                         id="category"
-                        name="category"
+
                         required
                         value={formData.category}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">Select a category</option>
-                        <option value="Broker">Broker</option>
-                        <option value="PropFirm">PropFirm</option>
-                        <option value="Crypto">Crypto</option>
-                      </select>
+                        onChange={(e) => handleChange({ target: { name: 'category', value: e.target.value } })}
+                        options={[
+                          "Broker",
+                          "PropFirm",
+                          "Crypto"
+                        ]}
+                        placeholder="Select a category"
+                      />
                     </div>
 
                     <div>

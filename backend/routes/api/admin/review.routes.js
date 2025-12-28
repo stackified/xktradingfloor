@@ -11,8 +11,4 @@ router.get('/:userId/getreviewsbyusers', reviewController.getReviewsByUserId);
 // router.put('/reviews/:id/status', reviewController.updateReviewStatus);
 router.delete('/:reviewId/deletereview', reviewController.deleteReview);
 
-// Admin actions
-router.patch('/:reviewId/hide', reviewController.toggleReviewVisibility);
-router.patch('/:reviewId/pin', reviewController.toggleReviewPin);
-
 module.exports = router;

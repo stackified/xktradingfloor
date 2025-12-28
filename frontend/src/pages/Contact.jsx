@@ -12,6 +12,7 @@ import {
   Instagram,
 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import CustomSelect from "../components/shared/CustomSelect.jsx";
 
 function Contact() {
   const [ok, setOk] = React.useState(false);
@@ -86,7 +87,7 @@ function Contact() {
                     </span>
                     <input
                       required
-                      className="input bg-gray-800/50 border-gray-700 focus:border-blue-500"
+                      className="input"
                       aria-label="Your Name"
                       value={form.name}
                       onChange={(e) =>
@@ -100,7 +101,7 @@ function Contact() {
                     </span>
                     <input
                       required
-                      className="input bg-gray-800/50 border-gray-700 focus:border-blue-500"
+                      className="input"
                       type="email"
                       aria-label="Email"
                       value={form.email}
@@ -113,22 +114,22 @@ function Contact() {
                     <span className="text-sm font-medium text-gray-300">
                       Inquiry Type
                     </span>
-                    <select
-                      className="input bg-gray-800/50 border-gray-700 focus:border-blue-500"
-                      aria-label="Inquiry Type"
+                    <CustomSelect
                       value={form.type}
                       onChange={(e) =>
                         setForm({ ...form, type: e.target.value })
                       }
-                    >
-                      <option>General Inquiry</option>
-                      <option>Podcast Guest Request</option>
-                      <option>YouTube Sponsorship</option>
-                      <option>Partnership Opportunity</option>
-                      <option>Technical Support</option>
-                      <option>Media/Press Inquiry</option>
-                      <option>Other</option>
-                    </select>
+                      options={[
+                        "General Inquiry",
+                        "Podcast Guest Request",
+                        "YouTube Sponsorship",
+                        "Partnership Opportunity",
+                        "Technical Support",
+                        "Media/Press Inquiry",
+                        "Other"
+                      ]}
+                      className="w-full"
+                    />
                   </label>
                   <label className="flex flex-col gap-2">
                     <span className="text-sm font-medium text-gray-300">
@@ -136,7 +137,7 @@ function Contact() {
                     </span>
                     <textarea
                       required
-                      className="input bg-gray-800/50 border-gray-700 focus:border-blue-500 h-32 resize-none"
+                      className="textarea h-32 resize-none"
                       aria-label="Message"
                       value={form.message}
                       onChange={(e) =>

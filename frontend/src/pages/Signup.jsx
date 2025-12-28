@@ -7,6 +7,7 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { signup } from '../controllers/authController.js';
 import { loginSuccess } from '../redux/slices/authSlice.js';
+import CustomSelect from "../components/shared/CustomSelect.jsx";
 
 function Signup() {
   const dispatch = useDispatch();
@@ -71,10 +72,10 @@ function Signup() {
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
-                    className="input pl-10 h-12 bg-gray-800/50 border-gray-700 focus:border-blue-500 focus:ring-blue-500/20"
+                    className="input pl-10 h-12"
                     placeholder="Enter your full name"
                     value={form.name}
-                    onChange={(e) => setForm({...form, name: e.target.value})}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
                     required
                   />
                 </div>
@@ -88,11 +89,11 @@ function Signup() {
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
-                    className="input pl-10 h-12 bg-gray-800/50 border-gray-700 focus:border-blue-500 focus:ring-blue-500/20"
+                    className="input pl-10 h-12"
                     placeholder="Enter your email"
                     type="email"
                     value={form.email}
-                    onChange={(e) => setForm({...form, email: e.target.value})}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
                     required
                   />
                 </div>
@@ -105,19 +106,13 @@ function Signup() {
                 </label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 z-10" />
-                  <select
-                    className="input pl-10 h-12 bg-gray-800/50 border-gray-700 focus:border-blue-500 focus:ring-blue-500/20 appearance-none cursor-pointer"
+                  <CustomSelect
+                    className="w-full"
+                    placeholder="Select your country"
                     value={form.country}
-                    onChange={(e) => setForm({...form, country: e.target.value})}
-                    required
-                  >
-                    <option value="">Select your country</option>
-                    {countries.map((country) => (
-                      <option key={country} value={country}>
-                        {country}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(e) => setForm({ ...form, country: e.target.value })}
+                    options={countries}
+                  />
                 </div>
               </div>
 
@@ -129,11 +124,11 @@ function Signup() {
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
-                    className="input pl-10 h-12 bg-gray-800/50 border-gray-700 focus:border-blue-500 focus:ring-blue-500/20"
+                    className="input pl-10 h-12"
                     placeholder="Create a password"
                     type="password"
                     value={form.password}
-                    onChange={(e) => setForm({...form, password: e.target.value})}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
                     required
                   />
                 </div>

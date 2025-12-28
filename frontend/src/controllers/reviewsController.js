@@ -232,7 +232,7 @@ export async function createReview(reviewData) {
         payload.append("body", reviewData.body || reviewData.description || "");
         payload.append("comment", reviewData.comment || reviewData.description || reviewData.body || "");
         payload.append("screenshot", reviewData.screenshot);
-        headers["Content-Type"] = "multipart/form-data";
+        // headers["Content-Type"] = "multipart/form-data"; // Let browser set this with boundary
       } else {
         payload = {
           companyId: reviewData.companyId,
@@ -342,7 +342,7 @@ export async function updateReview(reviewId, updates) {
           }
         });
         payload.append("screenshot", updates.screenshot);
-        headers["Content-Type"] = "multipart/form-data";
+        // headers["Content-Type"] = "multipart/form-data"; // Let browser set this with boundary
       } else {
         payload = updates;
       }

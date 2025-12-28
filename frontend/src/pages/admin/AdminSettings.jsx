@@ -1,10 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { 
-  Users, 
-  UserPlus, 
-  Search, 
-  ChevronLeft, 
+import {
+  Users,
+  UserPlus,
+  Search,
+  ChevronLeft,
   ChevronRight,
   Edit2,
   Shield,
@@ -20,6 +20,7 @@ import {
   updateUserStatus,
 } from "../../controllers/userManagementController.js";
 import ConfirmModal from "../../components/shared/ConfirmModal.jsx";
+import CustomSelect from "../../components/shared/CustomSelect.jsx";
 
 // Input sanitization helper to prevent XSS
 function sanitizeInput(input) {
@@ -53,11 +54,10 @@ function RoleBadge({ role }) {
 function StatusBadge({ isActive }) {
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-        isActive
-          ? "bg-green-500/20 text-green-300 border border-green-500/30"
-          : "bg-red-500/20 text-red-300 border border-red-500/30"
-      }`}
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isActive
+        ? "bg-green-500/20 text-green-300 border border-green-500/30"
+        : "bg-red-500/20 text-red-300 border border-red-500/30"
+        }`}
     >
       {isActive ? (
         <>
@@ -100,7 +100,7 @@ function CreateOperatorModal({ isOpen, onClose, onSuccess }) {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.fullName.trim()) {
       newErrors.fullName = "Full name is required";
     } else if (formData.fullName.trim().length < 2) {
@@ -355,15 +355,15 @@ function RoleChangeModal({ isOpen, onClose, user, onSuccess }) {
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 New Role
               </label>
-              <select
+              <CustomSelect
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                options={[
+                  "User",
+                  "Operator"
+                ]}
                 disabled={isAdminUser || loading}
-              >
-                <option value="User">User</option>
-                <option value="Operator">Operator</option>
-              </select>
+              />
             </div>
           )}
 
@@ -412,7 +412,7 @@ export default function AdminSettings() {
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
   const [sortBy, setSortBy] = React.useState("createdAt");
   const [sortOrder, setSortOrder] = React.useState("desc");
-  
+
   // Modal states
   const [createModalOpen, setCreateModalOpen] = React.useState(false);
   const [roleChangeModal, setRoleChangeModal] = React.useState({ isOpen: false, user: null });
@@ -567,16 +567,17 @@ export default function AdminSettings() {
             </div>
 
             {/* Role Filter */}
-            <select
+            <CustomSelect
               value={roleFilter}
               onChange={(e) => handleRoleFilterChange(e.target.value)}
-              className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Roles</option>
-              <option value="User">Users</option>
-              <option value="Operator">Operators</option>
-              <option value="Admin">Admins</option>
-            </select>
+              options={[
+                { value: "", label: "All Roles" },
+                { value: "User", label: "Users" },
+                { value: "Operator", label: "Operators" },
+                { value: "Admin", label: "Admins" }
+              ]}
+              className="w-48"
+            />
           </div>
         </div>
 
@@ -676,11 +677,10 @@ export default function AdminSettings() {
                                   newStatus: !user.isActive,
                                 })
                               }
-                              className={`${
-                                user.isActive
-                                  ? "text-red-400 hover:text-red-300"
-                                  : "text-green-400 hover:text-green-300"
-                              } transition-colors`}
+                              className={`${user.isActive
+                                ? "text-red-400 hover:text-red-300"
+                                : "text-green-400 hover:text-green-300"
+                                } transition-colors`}
                               title={user.isActive ? "Deactivate" : "Activate"}
                             >
                               {user.isActive ? (
@@ -736,11 +736,10 @@ export default function AdminSettings() {
                             newStatus: !user.isActive,
                           })
                         }
-                        className={`flex-1 px-3 py-1.5 rounded text-sm transition-colors flex items-center justify-center gap-1 ${
-                          user.isActive
-                            ? "bg-red-600/20 hover:bg-red-600/30 text-red-300"
-                            : "bg-green-600/20 hover:bg-green-600/30 text-green-300"
-                        }`}
+                        className={`flex-1 px-3 py-1.5 rounded text-sm transition-colors flex items-center justify-center gap-1 ${user.isActive
+                          ? "bg-red-600/20 hover:bg-red-600/30 text-red-300"
+                          : "bg-green-600/20 hover:bg-green-600/30 text-green-300"
+                          }`}
                       >
                         {user.isActive ? (
                           <>
@@ -818,9 +817,8 @@ export default function AdminSettings() {
         title={statusChangeConfirm.newStatus ? "Activate User" : "Deactivate User"}
         message={
           statusChangeConfirm.user
-            ? `Are you sure you want to ${
-                statusChangeConfirm.newStatus ? "activate" : "deactivate"
-              } ${statusChangeConfirm.user.fullName || statusChangeConfirm.user.email}?`
+            ? `Are you sure you want to ${statusChangeConfirm.newStatus ? "activate" : "deactivate"
+            } ${statusChangeConfirm.user.fullName || statusChangeConfirm.user.email}?`
             : ""
         }
         confirmText={statusChangeConfirm.newStatus ? "Activate" : "Deactivate"}

@@ -14,6 +14,16 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       open: true,
+      proxy: {
+        '/images': {
+          target: process.env.VITE_BACKEND_URL || 'http://localhost:8000',
+          changeOrigin: true,
+        },
+        '/uploads': {
+          target: process.env.VITE_BACKEND_URL || 'http://localhost:8000',
+          changeOrigin: true,
+        },
+      },
     },
     base: normalizedBasePath,
     build: {

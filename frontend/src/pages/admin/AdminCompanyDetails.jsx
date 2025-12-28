@@ -33,6 +33,7 @@ import StarRating from "../../components/reviews/StarRating.jsx";
 import ConfirmModal from "../../components/shared/ConfirmModal.jsx";
 import { useSelector } from "react-redux";
 import { getUserCookie } from "../../utils/cookies.js";
+import CustomSelect from "../../components/shared/CustomSelect.jsx";
 
 function AdminCompanyDetailsContent() {
   const { companyId } = useParams();
@@ -295,13 +296,12 @@ function AdminCompanyDetailsContent() {
                       {company.category}
                     </span>
                     <span
-                      className={`px-3 py-1 rounded text-sm ${
-                        company.status === "approved"
-                          ? "bg-emerald-500/20 text-emerald-400"
-                          : company.status === "pending"
+                      className={`px-3 py-1 rounded text-sm ${company.status === "approved"
+                        ? "bg-emerald-500/20 text-emerald-400"
+                        : company.status === "pending"
                           ? "bg-yellow-500/20 text-yellow-400"
                           : "bg-red-500/20 text-red-400"
-                      }`}
+                        }`}
                     >
                       {company.status}
                     </span>
@@ -335,11 +335,10 @@ function AdminCompanyDetailsContent() {
                 </button>
                 <button
                   onClick={handleToggleStatus}
-                  className={`btn btn-outline ${
-                    company.status === "approved"
-                      ? "border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/10"
-                      : "border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10"
-                  }`}
+                  className={`btn btn-outline ${company.status === "approved"
+                    ? "border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/10"
+                    : "border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10"
+                    }`}
                 >
                   {company.status === "approved" ? (
                     <>
@@ -523,7 +522,7 @@ function AdminCompanyDetailsContent() {
                           <label className="block text-xs text-gray-400 mb-1">
                             Type
                           </label>
-                          <select
+                          <CustomSelect
                             value={promoForm.discountType}
                             onChange={(e) =>
                               setPromoForm({
@@ -531,12 +530,12 @@ function AdminCompanyDetailsContent() {
                                 discountType: e.target.value,
                               })
                             }
-                            className="input input-sm w-full"
+                            options={[
+                              { value: "percentage", label: "%" },
+                              { value: "fixed", label: "Fixed" }
+                            ]}
                             disabled={promoSubmitting}
-                          >
-                            <option value="percentage">%</option>
-                            <option value="fixed">Fixed</option>
-                          </select>
+                          />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
@@ -621,8 +620,8 @@ function AdminCompanyDetailsContent() {
                           {promoSubmitting
                             ? "Saving..."
                             : editingPromo
-                            ? "Update"
-                            : "Add"}
+                              ? "Update"
+                              : "Add"}
                         </button>
                         <button
                           onClick={() => {
@@ -750,11 +749,10 @@ function AdminCompanyDetailsContent() {
 function ReviewCard({ review, onPin, onHide, onDelete }) {
   return (
     <div
-      className={`p-4 rounded-lg border ${
-        review.isPinned
-          ? "border-amber-500/40 bg-amber-500/5"
-          : "border-white/10 bg-gray-900/30"
-      }`}
+      className={`p-4 rounded-lg border ${review.isPinned
+        ? "border-amber-500/40 bg-amber-500/5"
+        : "border-white/10 bg-gray-900/30"
+        }`}
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
@@ -776,11 +774,10 @@ function ReviewCard({ review, onPin, onHide, onDelete }) {
         <div className="flex gap-2">
           <button
             onClick={onPin}
-            className={`btn btn-xs btn-outline ${
-              review.isPinned
-                ? "border-amber-500/40 text-amber-300"
-                : "border-white/20 text-white"
-            }`}
+            className={`btn btn-xs btn-outline ${review.isPinned
+              ? "border-amber-500/40 text-amber-300"
+              : "border-white/20 text-white"
+              }`}
             title={review.isPinned ? "Unpin review" : "Pin review"}
           >
             {review.isPinned ? (

@@ -174,7 +174,7 @@ function AboutEditorContent() {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white"
+                className="input"
                 required
               />
             </div>
@@ -188,7 +188,7 @@ function AboutEditorContent() {
                 name="designation"
                 value={formData.designation}
                 onChange={handleChange}
-                className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white"
+                className="input"
                 placeholder="e.g., Founder, CEO, Co-founder"
                 required
               />

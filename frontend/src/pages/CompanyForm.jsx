@@ -11,6 +11,7 @@ import {
   deletePromoCode,
   updatePromoCode,
 } from "../controllers/companiesController.js";
+import CustomSelect from "../components/shared/CustomSelect.jsx";
 
 function CompanyForm() {
   const { companyId } = useParams();
@@ -434,18 +435,17 @@ function CompanyForm() {
                   <label className="block text-sm text-gray-400 mb-2">
                     Category *
                   </label>
-                  <select
+                  <CustomSelect
                     value={form.category}
                     onChange={(e) =>
                       setForm({ ...form, category: e.target.value })
                     }
-                    className="input"
-                    required
-                  >
-                    <option value="Broker">Broker</option>
-                    <option value="PropFirm">Prop Firm</option>
-                    <option value="Crypto">Crypto Exchange</option>
-                  </select>
+                    options={[
+                      "Broker",
+                      "PropFirm",
+                      "Crypto"
+                    ]}
+                  />
                 </div>
 
                 <div>
@@ -569,7 +569,7 @@ function CompanyForm() {
                         <label className="block text-xs text-gray-400 mb-1">
                           Discount Type
                         </label>
-                        <select
+                        <CustomSelect
                           value={promoForm.discountType}
                           onChange={(e) =>
                             setPromoForm({
@@ -577,12 +577,12 @@ function CompanyForm() {
                               discountType: e.target.value,
                             })
                           }
-                          className="input text-sm"
+                          options={[
+                            { value: "percentage", label: "Percentage" },
+                            { value: "fixed", label: "Fixed Amount" }
+                          ]}
                           disabled={promoSubmitting}
-                        >
-                          <option value="percentage">Percentage</option>
-                          <option value="fixed">Fixed Amount</option>
-                        </select>
+                        />
                       </div>
                       <div>
                         <label className="block text-xs text-gray-400 mb-1">
@@ -665,7 +665,7 @@ function CompanyForm() {
                                   onClick={() =>
                                     handleUpdatePromoCode(
                                       form.promoCodes[editingPromoIndex].id ||
-                                        form.promoCodes[editingPromoIndex]._id,
+                                      form.promoCodes[editingPromoIndex]._id,
                                       editingPromoIndex
                                     )
                                   }
@@ -819,8 +819,8 @@ function CompanyForm() {
                 {submitting
                   ? "Saving..."
                   : isEdit
-                  ? "Update Company"
-                  : "Create Company"}
+                    ? "Update Company"
+                    : "Create Company"}
               </button>
               <Link to="/reviews/operator" className="btn btn-secondary">
                 Cancel

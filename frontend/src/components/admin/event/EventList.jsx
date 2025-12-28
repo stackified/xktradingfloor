@@ -13,8 +13,9 @@ import {
   Globe,
   Building2,
 } from "lucide-react";
+import CustomSelect from "../../shared/CustomSelect.jsx";
 
-const noop = () => {};
+const noop = () => { };
 
 function EventList({
   events = [],
@@ -44,7 +45,7 @@ function EventList({
 
   return (
     <div className="space-y-5">
-      <div className="card border-white/10 bg-gradient-to-br from-gray-900/80 to-gray-800/60 backdrop-blur-sm">
+      <div className="card border-white/10 bg-gradient-to-br from-gray-900/80 to-gray-800/60 backdrop-blur-sm relative z-30">
         <div className="card-body">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="relative">
@@ -53,28 +54,21 @@ function EventList({
                 value={searchQuery}
                 onChange={(event) => onSearchChange(event.target.value)}
                 placeholder="Search by title, description, or location"
-                className="input input-bordered bg-gray-900/70 border-white/10 text-white placeholder:text-gray-500 pl-10 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                className="input pl-10"
                 type="search"
               />
             </div>
             <div className="relative group">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-hover:text-blue-400 transition-colors pointer-events-none z-10" />
-              <select
+              <CustomSelect
+                icon={Filter}
                 value={typeFilter}
                 onChange={(event) => onTypeFilterChange(event.target.value)}
-                className="w-full px-10 py-2.5 pr-10 rounded-lg bg-gray-900/70 border border-white/10 text-white text-sm font-medium appearance-none cursor-pointer backdrop-blur-sm transition-all duration-300 hover:border-white/20 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
-              >
-                <option value="" className="bg-gray-900 text-gray-300">
-                  All types
-                </option>
-                <option value="online" className="bg-gray-900 text-blue-300">
-                  Online
-                </option>
-                <option value="campus" className="bg-gray-900 text-purple-300">
-                  Campus
-                </option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                options={[
+                  { value: "", label: "All types" },
+                  { value: "online", label: "Online" },
+                  { value: "campus", label: "Campus" }
+                ]}
+              />
             </div>
           </div>
         </div>
@@ -121,11 +115,10 @@ function EventList({
                         {event.title || "Untitled event"}
                       </h3>
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold backdrop-blur-sm ${
-                          event.type === "online"
-                            ? "bg-blue-500/20 text-blue-300 border border-blue-500/50 shadow-lg shadow-blue-500/10"
-                            : "bg-purple-500/20 text-purple-300 border border-purple-500/50 shadow-lg shadow-purple-500/10"
-                        }`}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold backdrop-blur-sm ${event.type === "online"
+                          ? "bg-blue-500/20 text-blue-300 border border-blue-500/50 shadow-lg shadow-blue-500/10"
+                          : "bg-purple-500/20 text-purple-300 border border-purple-500/50 shadow-lg shadow-purple-500/10"
+                          }`}
                       >
                         {event.type === "online" ? (
                           <Globe className="h-3 w-3" />

@@ -1,11 +1,12 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import CustomSelect from '../shared/CustomSelect.jsx';
 
 function Pagination({ currentPage, totalPages, onPageChange, itemsPerPage, onItemsPerPageChange }) {
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
-    
+
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -33,7 +34,7 @@ function Pagination({ currentPage, totalPages, onPageChange, itemsPerPage, onIte
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -44,16 +45,17 @@ function Pagination({ currentPage, totalPages, onPageChange, itemsPerPage, onIte
       {/* Items per page selector */}
       <div className="flex items-center gap-2">
         <span className="text-sm text-gray-400">Show:</span>
-        <select
+        <CustomSelect
           value={itemsPerPage}
           onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-          className="input text-sm py-1 px-2"
-        >
-          <option value={5}>5</option>
-          <option value={10}>10</option>
-          <option value={15}>15</option>
-          <option value={20}>20</option>
-        </select>
+          options={[
+            { value: 5, label: "5" },
+            { value: 10, label: "10" },
+            { value: 15, label: "15" },
+            { value: 20, label: "20" }
+          ]}
+          className="w-20"
+        />
         <span className="text-sm text-gray-400">per page</span>
       </div>
 
@@ -82,11 +84,10 @@ function Pagination({ currentPage, totalPages, onPageChange, itemsPerPage, onIte
               <button
                 key={page}
                 onClick={() => onPageChange(page)}
-                className={`px-3 py-1 rounded text-sm transition-colors ${
-                  currentPage === page
-                    ? 'bg-accent text-white'
-                    : 'hover:bg-gray-800 text-gray-300'
-                }`}
+                className={`px-3 py-1 rounded text-sm transition-colors ${currentPage === page
+                  ? 'bg-accent text-white'
+                  : 'hover:bg-gray-800 text-gray-300'
+                  }`}
               >
                 {page}
               </button>
