@@ -2,6 +2,7 @@ const ReviewModel = require("../models/review.model");
 const CompanyModel = require("../models/company.model");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const { getPagination, getPaginationData } = require("../utils/fn");
+const { r2 } = require("../utils/environment");
 
 // Helper to recalculate and persist company rating aggregates
 async function recalculateCompanyRating(companyId) {
