@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { MessageCircle } from 'lucide-react';
 import ImageWithFallback from '../shared/ImageWithFallback.jsx';
+import DiscordAuthGate from '../shared/DiscordAuthGate.jsx';
 
 function CommunitySection() {
   return (
@@ -46,14 +47,12 @@ function CommunitySection() {
                 Whether you're new or experienced, you'll find a team ready to help you reach the next level.
               </p>
             </motion.div>
-            <a
-              href="https://discord.gg/qEWw7sMn"
-              target="_blank"
-              rel="noopener noreferrer"
+            <DiscordAuthGate
+              discordUrl="https://discord.gg/c2rtKXU56s"
               className="btn inline-flex items-center justify-center rounded-full bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3 font-medium"
             >
               Join the Community
-            </a>
+            </DiscordAuthGate>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, x: 30, scale: 0.95 }}

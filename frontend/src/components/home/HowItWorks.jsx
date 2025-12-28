@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ImageWithFallback from "../shared/ImageWithFallback.jsx";
+import DiscordAuthGate from "../shared/DiscordAuthGate.jsx";
 
 const steps = [
   {
@@ -44,8 +45,9 @@ const steps = [
       "Write your trading story, publish blogs, review brokers and prop firms, and discover trading events happening around the world.",
     image: "/assets/join_academy.jpg",
     ctaText: "Join Discord",
-    ctaLink: "https://discord.gg/qEWw7sMn",
+    ctaLink: "https://discord.gg/c2rtKXU56s",
     isExternal: true,
+    isDiscord: true,
     color: "purple",
   },
 ];
@@ -117,7 +119,14 @@ function StepCard({ step, index, isInView }) {
             </p>
           </div>
 
-          {step.isExternal ? (
+          {step.isDiscord ? (
+            <DiscordAuthGate
+              discordUrl={step.ctaLink}
+              className={`${colors.button} text-white px-6 py-3 rounded-full font-medium w-fit transition-all hover:scale-105 shadow-lg`}
+            >
+              {step.ctaText}
+            </DiscordAuthGate>
+          ) : step.isExternal ? (
             <a
               href={step.ctaLink}
               target="_blank"
@@ -233,11 +242,10 @@ function HowItWorks() {
           <button
             onClick={scrollLeft}
             disabled={currentIndex === 0}
-            className={`absolute left-0 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-gray-800/90 backdrop-blur-sm border border-gray-700 flex items-center justify-center hover:bg-gray-700 transition-all ${
-              currentIndex === 0
+            className={`absolute left-0 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-gray-800/90 backdrop-blur-sm border border-gray-700 flex items-center justify-center hover:bg-gray-700 transition-all ${currentIndex === 0
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:scale-110"
-            }`}
+              }`}
             aria-label="Previous step"
           >
             <ChevronLeft className="h-6 w-6 text-white" />
@@ -245,11 +253,10 @@ function HowItWorks() {
           <button
             onClick={scrollRight}
             disabled={currentIndex === steps.length - 1}
-            className={`absolute right-0 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-gray-800/90 backdrop-blur-sm border border-gray-700 flex items-center justify-center hover:bg-gray-700 transition-all ${
-              currentIndex === steps.length - 1
+            className={`absolute right-0 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-gray-800/90 backdrop-blur-sm border border-gray-700 flex items-center justify-center hover:bg-gray-700 transition-all ${currentIndex === steps.length - 1
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:scale-110"
-            }`}
+              }`}
             aria-label="Next step"
           >
             <ChevronRight className="h-6 w-6 text-white" />
@@ -280,11 +287,10 @@ function HowItWorks() {
               <button
                 key={index}
                 onClick={() => scrollToIndex(index)}
-                className={`h-2 rounded-full transition-all ${
-                  index === currentIndex
+                className={`h-2 rounded-full transition-all ${index === currentIndex
                     ? "w-8 bg-blue-500"
                     : "w-2 bg-gray-700 hover:bg-gray-600"
-                }`}
+                  }`}
                 aria-label={`Go to step ${index + 1}`}
               />
             ))}

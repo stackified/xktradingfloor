@@ -7,6 +7,7 @@ import { Rocket, ShieldCheck, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
+import DiscordAuthGate from "../components/shared/DiscordAuthGate.jsx";
 
 // Simple image component without loader for fast loading
 function SimpleImage({ src, fallback, alt, className }) {
@@ -317,15 +318,12 @@ function About() {
                   Become part of a growing, supportive trading community.
                 </p>
               </div>
-              <a
-                href="https://discord.gg/qEWw7sMn"
-                target="_blank"
-                rel="noopener noreferrer"
+              <DiscordAuthGate
+                discordUrl="https://discord.gg/c2rtKXU56s"
                 className="btn inline-flex items-center justify-center rounded-full bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3 font-medium whitespace-nowrap"
-                aria-label="Join Discord"
               >
                 Get Started
-              </a>
+              </DiscordAuthGate>
             </div>
           </motion.div>
         </div>

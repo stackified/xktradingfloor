@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getAssetPath } from "../../utils/assets.js";
+import DiscordAuthGate from "../shared/DiscordAuthGate.jsx";
 
 function HeroSection() {
   return (
@@ -94,14 +95,12 @@ function HeroSection() {
             >
               Find the Right Broker
             </Link>
-            <a
-              href="https://discord.gg/qEWw7sMn"
-              target="_blank"
-              rel="noopener noreferrer"
+            <DiscordAuthGate
+              discordUrl="https://discord.gg/c2rtKXU56s"
               className="btn rounded-full btn-secondary border-2 border-gray-600 hover:border-gray-500 bg-gray-800/50 hover:bg-gray-800 text-white hover:scale-105 transition-all px-6 py-3"
             >
               Join XK Trading Floor
-            </a>
+            </DiscordAuthGate>
           </motion.div>
         </motion.div>
         <motion.div
