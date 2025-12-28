@@ -233,9 +233,22 @@ exports.updateReview = async (req, res) => {
             return sendErrorResponse(res, "You can only update your own reviews", 403, true, true);
         }
 
+        let screenshot = "";
+        if (req?.files?.screenshot) {
+            screenshot = req.files.screenshot[0];
+            const pathN = screenshot?.path;
+            const npathN = pathN.replaceAll("\\", "/");
+            screenshot.path = npathN;
+
+            // Upload to Cloudflare R2
+            const url = await r2.uploadPublic(screenshot?.path, `${screenshot?.filename}`, `Reviews`);
+            screenshot = url;
+        }
+
         if (updates.body && !updates.comment) {
             updates.comment = updates.body;
         }
+        updates.screenshot = screenshot;
 
         Object.assign(review, updates);
         const updated = await review.save();
