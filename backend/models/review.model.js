@@ -9,6 +9,7 @@ const ReviewSchema = new Schema(
         title: String,
         body: String,
         comment: String,
+<<<<<<< HEAD
         screenshot: { type: String, default: null },
         isVerified: { type: Boolean, default: false },
         isHidden: { type: Boolean, default: false },
@@ -21,6 +22,11 @@ const ReviewSchema = new Schema(
                 createdAt: { type: Date, default: Date.now }
             }
         ],
+=======
+        screenshot: {
+            type: String, default: null
+        },
+>>>>>>> 13dc31adec0b33360974b835ddf23c4460c8512e
     },
     {
         timestamps: true,

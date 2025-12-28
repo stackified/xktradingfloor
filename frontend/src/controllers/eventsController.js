@@ -54,7 +54,7 @@ export async function getAllEvents(filters = {}) {
       try {
         // Try public endpoint first
         response = await api.post(
-          "/public/events/getallevents",
+          "/events/getallevents",
           requestBody,
           {
             params,
@@ -152,7 +152,7 @@ export async function getEventById(id) {
       let response;
       try {
         // Try public endpoint first
-        response = await api.get(`/public/events/${id}/geteventbyid`);
+        response = await api.get(`/events/${id}/geteventbyid`);
       } catch (publicError) {
         // If public endpoint doesn't exist (404) or fails, try admin endpoint
         // This allows unauthorized users to still see events if backend allows it

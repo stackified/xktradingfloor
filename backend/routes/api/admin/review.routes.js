@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const reviewController = require('../../../controllers/review.controller');
+const pdfUpload = require('../../../middleware/file-upload.middleware');
 
-router.post('/addReview', reviewController.createReview);
+router.post('/addReview', pdfUpload.fileUpload('reviews', ['image'], [{ name: 'screenshot', maxCount: 1 }]),
+    reviewController.createReview);
 router.get('/:userId/getreviewsbyusers', reviewController.getReviewsByUserId);
 // router.get('/reviews/:id', reviewController.getReviewById);
 // router.put('/reviews/:id', reviewController.updateReview);

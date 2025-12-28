@@ -2,6 +2,7 @@ const ReviewModel = require("../models/review.model");
 const CompanyModel = require("../models/company.model");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const { getPagination, getPaginationData } = require("../utils/fn");
+const r2 = require("../helpers/r2.helper");
 
 // Helper to recalculate and persist company rating aggregates
 async function recalculateCompanyRating(companyId) {
@@ -133,6 +134,7 @@ exports.createReview = async (req, res) => {
 
         const { companyId, rating, title, body, comment } = req.body;
 
+<<<<<<< HEAD
         // Handle screenshot upload
         let screenshot = null;
         if (req.file) {
@@ -142,6 +144,8 @@ exports.createReview = async (req, res) => {
             screenshot = req.body.screenshot;
         }
 
+=======
+>>>>>>> 13dc31adec0b33360974b835ddf23c4460c8512e
         if (!companyId || !rating) {
             return sendErrorResponse(
                 res,
@@ -178,6 +182,18 @@ exports.createReview = async (req, res) => {
             );
         }
 
+        let screenshot = "";
+        if (req?.files?.screenshot) {
+            screenshot = req.files.screenshot[0];
+            const pathN = screenshot?.path;
+            const npathN = pathN.replaceAll("\\", "/");
+            screenshot.path = npathN;
+
+            // Upload to Cloudflare R2
+            const url = await r2.uploadPublic(screenshot?.path, `${screenshot?.filename}`, `Reviews`);
+            screenshot = url;
+        }
+
         const review = new ReviewModel({
             companyId,
             userId: user._id,
@@ -185,7 +201,11 @@ exports.createReview = async (req, res) => {
             title,
             body,
             comment: comment,
+<<<<<<< HEAD
             screenshot, // Save screenshot
+=======
+            screenshot
+>>>>>>> 13dc31adec0b33360974b835ddf23c4460c8512e
         });
 
         const saved = await review.save();
@@ -227,9 +247,22 @@ exports.updateReview = async (req, res) => {
             return sendErrorResponse(res, "You can only update your own reviews", 403, true, true);
         }
 
+        let screenshot = "";
+        if (req?.files?.screenshot) {
+            screenshot = req.files.screenshot[0];
+            const pathN = screenshot?.path;
+            const npathN = pathN.replaceAll("\\", "/");
+            screenshot.path = npathN;
+
+            // Upload to Cloudflare R2
+            const url = await r2.uploadPublic(screenshot?.path, `${screenshot?.filename}`, `Reviews`);
+            screenshot = url;
+        }
+
         if (updates.body && !updates.comment) {
             updates.comment = updates.body;
         }
+        updates.screenshot = screenshot;
 
         // Handle screenshot update if new file is uploaded
         if (req.file) {
@@ -271,8 +304,12 @@ exports.deleteReview = async (req, res) => {
 
         if (
             review.userId.toString() !== user._id.toString() &&
+<<<<<<< HEAD
             user.role !== "Admin" && user.role !== "admin" // Fix role check
         ) {
+=======
+            user.role !== "Admin" && user.role !== "admin") {
+>>>>>>> 13dc31adec0b33360974b835ddf23c4460c8512e
             return sendErrorResponse(
                 res,
                 "You can only delete your own reviews",

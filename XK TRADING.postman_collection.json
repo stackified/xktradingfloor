@@ -1,0 +1,1554 @@
+{
+	"info": {
+		"_postman_id": "ec737c29-1daa-4ce0-9edc-2b0f546518f8",
+		"name": "XK TRADING",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "48234894",
+		"_collection_link": "https://hiralkotwani01-1006617.postman.co/workspace/Hiral-Kotwani's-Workspace~ab3ccf92-0d77-479d-8e66-dd1b1fd305c2/collection/48234894-ec737c29-1daa-4ce0-9edc-2b0f546518f8?action=share&source=collection_link&creator=48234894"
+	},
+	"item": [
+		{
+			"name": "Admin Side",
+			"item": [
+				{
+					"name": "Auth",
+					"item": [
+						{
+							"name": "Login",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"xahil01@gmail.com\",\r\n    \"password\": \"123456\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:8000/api/auth/login"
+							},
+							"response": []
+						},
+						{
+							"name": "Sign Up",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"htk.opash@gmail.com\",\r\n    \"password\": \"123456\",\r\n    \"role\": \"User\",\r\n    \"fullName\": \"Hiral Kotwani\",\r\n    \"mobileNumber\": \"94863784632\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:8000/api/auth/signup"
+							},
+							"response": []
+						},
+						{
+							"name": "Forget Password",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"htk.opash@gmail.com\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:8000/api/auth/forget-password"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Blogs",
+					"item": [
+						{
+							"name": "Create Blog",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTIyZDlhZGUzNzc4NDY0MTM1OWZiOGUiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjM4OTE2OTYsImV4cCI6MTc2NTEwMTI5Nn0.wmCtWA8YozfmtP-J8JNFrwhEy1TcjIMjBjKJV4xAKcQ"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "title",
+											"value": "Mastering Risk Management in Forex Trading",
+											"type": "text"
+										},
+										{
+											"key": "slug",
+											"value": "mastering-risk-management-in-forex-trading",
+											"type": "text"
+										},
+										{
+											"key": "content",
+											"value": "<p>Effective trading isn't about predicting the market; it's about managing your exposure...</p><h3>Why Risk Management Matters</h3><p>Every professional trader focuses on preserving capital first...</p>",
+											"type": "text"
+										},
+										{
+											"key": "excerpt",
+											"value": "Risk management is the backbone of profitable trading. Here’s how professionals control losses...",
+											"type": "text"
+										},
+										{
+											"key": "categories",
+											"value": "Forex",
+											"type": "text"
+										},
+										{
+											"key": "tags",
+											"value": "risk",
+											"type": "text"
+										},
+										{
+											"key": "status",
+											"value": "published",
+											"type": "text"
+										},
+										{
+											"key": "isFeatured",
+											"value": "true",
+											"type": "text"
+										},
+										{
+											"key": "seoKeywords",
+											"value": "risk management",
+											"type": "text"
+										},
+										{
+											"key": "seoKeywords",
+											"value": "forex trading",
+											"type": "text"
+										},
+										{
+											"key": "seoKeywords",
+											"value": "trading strategies",
+											"type": "text"
+										},
+										{
+											"key": "featuredImage",
+											"type": "file",
+											"src": "/C:/Users/Admin/Downloads/WhatsApp Image 2025-08-31 at 11.41.30 PM.jpeg"
+										},
+										{
+											"key": "images",
+											"value": "",
+											"type": "text"
+										},
+										{
+											"key": "images",
+											"value": "",
+											"type": "text"
+										}
+									]
+								},
+								"url": "http://localhost:8000/api/admin/blogs/addblog"
+							},
+							"response": []
+						},
+						{
+							"name": "Get blog by id",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTIyZDlhZGUzNzc4NDY0MTM1OWZiOGUiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjM4OTE2OTYsImV4cCI6MTc2NTEwMTI5Nn0.wmCtWA8YozfmtP-J8JNFrwhEy1TcjIMjBjKJV4xAKcQ"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8000/api/admin/blogs/:blogid/getblogbyid",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"admin",
+										"blogs",
+										":blogid",
+										"getblogbyid"
+									],
+									"variable": [
+										{
+											"key": "blogid",
+											"value": "6922dd3abdbc718f8443bdf7"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete blog (soft delete)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTIyZDlhZGUzNzc4NDY0MTM1OWZiOGUiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjM4OTE2OTYsImV4cCI6MTc2NTEwMTI5Nn0.wmCtWA8YozfmtP-J8JNFrwhEy1TcjIMjBjKJV4xAKcQ"
+									}
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8000/api/admin/blogs/:blogid/deleteblog",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"admin",
+										"blogs",
+										":blogid",
+										"deleteblog"
+									],
+									"variable": [
+										{
+											"key": "blogid",
+											"value": "6922dd3abdbc718f8443bdf7"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete blog (Permananet)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTIyZDlhZGUzNzc4NDY0MTM1OWZiOGUiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjM4OTE2OTYsImV4cCI6MTc2NTEwMTI5Nn0.wmCtWA8YozfmtP-J8JNFrwhEy1TcjIMjBjKJV4xAKcQ"
+									}
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8000/api/admin/blogs/:blogid/permanentdeleteblog",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"admin",
+										"blogs",
+										":blogid",
+										"permanentdeleteblog"
+									],
+									"variable": [
+										{
+											"key": "blogid",
+											"value": "6922dd3abdbc718f8443bdf7"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Blog details",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTIyZDlhZGUzNzc4NDY0MTM1OWZiOGUiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjM4OTE2OTYsImV4cCI6MTc2NTEwMTI5Nn0.wmCtWA8YozfmtP-J8JNFrwhEy1TcjIMjBjKJV4xAKcQ"
+									}
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "status",
+											"value": "published",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "http://localhost:8000/api/admin/blogs/:blogid/updateblog",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"admin",
+										"blogs",
+										":blogid",
+										"updateblog"
+									],
+									"variable": [
+										{
+											"key": "blogid",
+											"value": "6922dcc757d01b4cb2177382"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Blogs",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTIyZDlhZGUzNzc4NDY0MTM1OWZiOGUiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjM4OTE2OTYsImV4cCI6MTc2NTEwMTI5Nn0.wmCtWA8YozfmtP-J8JNFrwhEy1TcjIMjBjKJV4xAKcQ"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:8000/api/admin/blogs/getallblogs"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Companies",
+					"item": [
+						{
+							"name": "Reviews",
+							"item": [
+								{
+									"name": "Add Review",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": {
+												"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTEiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjUwMzIzNjcsImV4cCI6MTc2NjI0MTk2N30.Qgi4jhf-clIdTvyEc8oaR_Jz8TO-0eg-1nUvYPz_ul4"
+											}
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"companyId\": \"692a819217836e8fc7f1c566\",\r\n    \"rating\": 5,\r\n    \"title\": \"Alpha Brokers is best\",\r\n    \"body\": \"Brokers....\",\r\n    \"comment\": \"\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": "http://localhost:8000/api/admin/review/addreview"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Review",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": {
+												"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjQzOTMzNDUsImV4cCI6MTc2NTYwMjk0NX0.w7hKG6BvO2mqkbshNoBaasxufw_vJzSBn_aF6RuQ6Ao"
+											}
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "http://localhost:8000/api/admin/review/:reviewId/deleteReview",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"api",
+												"admin",
+												"review",
+												":reviewId",
+												"deleteReview"
+											],
+											"variable": [
+												{
+													"key": "reviewId",
+													"value": "692de14bdce88e3c524f8d8a"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get All Reviews by all Users",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": {
+												"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjQzOTMzNDUsImV4cCI6MTc2NTYwMjk0NX0.w7hKG6BvO2mqkbshNoBaasxufw_vJzSBn_aF6RuQ6Ao"
+											}
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "http://localhost:8000/api/admin/review/:userId/getreviewsbyusers?page=1&size=10",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"api",
+												"admin",
+												"review",
+												":userId",
+												"getreviewsbyusers"
+											],
+											"query": [
+												{
+													"key": "page",
+													"value": "1"
+												},
+												{
+													"key": "size",
+													"value": "10"
+												}
+											],
+											"variable": [
+												{
+													"key": "userId",
+													"value": "6925feebb9d482cb6c5a7f12"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Promo Codes",
+							"item": [
+								{
+									"name": "Add Promo code",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": {
+												"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjQzOTMzNDUsImV4cCI6MTc2NTYwMjk0NX0.w7hKG6BvO2mqkbshNoBaasxufw_vJzSBn_aF6RuQ6Ao"
+											}
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"code\": \"xk10\",\r\n    \"discount\": 10,\r\n    \"discountType\": \"percentage\",\r\n    \"validFrom\": \"\",\r\n    \"validTo\": \"\",\r\n    \"featured\": true\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://localhost:8000/api/admin/company/:companyId/addpromocode",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"api",
+												"admin",
+												"company",
+												":companyId",
+												"addpromocode"
+											],
+											"variable": [
+												{
+													"key": "companyId",
+													"value": "692a819217836e8fc7f1c566"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "UPDATE PROMO CODE",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": {
+												"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjQzOTMzNDUsImV4cCI6MTc2NTYwMjk0NX0.w7hKG6BvO2mqkbshNoBaasxufw_vJzSBn_aF6RuQ6Ao"
+											}
+										},
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"code\": \"xk20\",\r\n    \"discount\": 20\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://localhost:8000/api/admin/company/:companyId/updatepromocode/:promoId",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"api",
+												"admin",
+												"company",
+												":companyId",
+												"updatepromocode",
+												":promoId"
+											],
+											"variable": [
+												{
+													"key": "companyId",
+													"value": "692a819217836e8fc7f1c566"
+												},
+												{
+													"key": "promoId",
+													"value": "promo-1765008954908"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Promo code",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": {
+												"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjQzOTMzNDUsImV4cCI6MTc2NTYwMjk0NX0.w7hKG6BvO2mqkbshNoBaasxufw_vJzSBn_aF6RuQ6Ao"
+											}
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "http://localhost:8000/api/admin/company/:companyId/deletepromocode/:promoId",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"api",
+												"admin",
+												"company",
+												":companyId",
+												"deletepromocode",
+												":promoId"
+											],
+											"variable": [
+												{
+													"key": "companyId",
+													"value": "692a819217836e8fc7f1c566"
+												},
+												{
+													"key": "promoId",
+													"value": "promo-1765008954908"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Add Company",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjQzOTMzNDUsImV4cCI6MTc2NTYwMjk0NX0.w7hKG6BvO2mqkbshNoBaasxufw_vJzSBn_aF6RuQ6Ao"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "name",
+											"value": "Alpha Brokers",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "Alpha Brokers is a leading global brokerage firm providing comprehensive trading services with competitive spreads, advanced trading platforms, and exceptional customer support. We cater to traders of all levels with flexible account options and extensive market access.",
+											"type": "text"
+										},
+										{
+											"key": "details",
+											"value": "Alpha Brokers is a leading global brokerage firm providing comprehensive",
+											"type": "text"
+										},
+										{
+											"key": "category",
+											"value": "Broker",
+											"type": "text"
+										},
+										{
+											"key": "website",
+											"value": "https://alphabroker.in/",
+											"type": "text"
+										},
+										{
+											"key": "logo",
+											"type": "file",
+											"src": "/C:/Users/Admin/Downloads/1763910500239-481755ce-WhatsApp_Image_2025-08-31_at_11.41.30_PM.jpeg"
+										},
+										{
+											"key": "status",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "ratingsAggregate",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "totalReviews",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "operatorId",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": "http://localhost:8000/api/admin/company/addcompany"
+							},
+							"response": []
+						},
+						{
+							"name": "Get all companies",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTEiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjUwMzIzNjcsImV4cCI6MTc2NjI0MTk2N30.Qgi4jhf-clIdTvyEc8oaR_Jz8TO-0eg-1nUvYPz_ul4"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    // \"category\": \"Broker\",\r\n    // \"status\": \"approved\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8000/api/admin/company/getallcompanies?page=1&size=10&search=",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"admin",
+										"company",
+										"getallcompanies"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										},
+										{
+											"key": "search",
+											"value": ""
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get company by id",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjQzOTMzNDUsImV4cCI6MTc2NTYwMjk0NX0.w7hKG6BvO2mqkbshNoBaasxufw_vJzSBn_aF6RuQ6Ao"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8000/api/admin/company/:companyId/getcompanybyid",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"admin",
+										"company",
+										":companyId",
+										"getcompanybyid"
+									],
+									"variable": [
+										{
+											"key": "companyId",
+											"value": "692a81d1bf6c8890a9c284d1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Company",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjQzOTMzNDUsImV4cCI6MTc2NTYwMjk0NX0.w7hKG6BvO2mqkbshNoBaasxufw_vJzSBn_aF6RuQ6Ao"
+									}
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8000/api/admin/company/:companyId/deletecompany",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"admin",
+										"company",
+										":companyId",
+										"deletecompany"
+									],
+									"variable": [
+										{
+											"key": "companyId",
+											"value": "692a81d1bf6c8890a9c284d1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Company",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjUzOTEzOTEsImV4cCI6MTc2NjYwMDk5MX0.gEi8UVy3himFiRz3CNVlCQzzuE12V4d7MPaXM5mDiLo"
+									}
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "status",
+											"value": "pending",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "http://localhost:8000/api/admin/company/:companyId/updatecompany",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"admin",
+										"company",
+										":companyId",
+										"updatecompany"
+									],
+									"variable": [
+										{
+											"key": "companyId",
+											"value": "6939bc0f6e10cfc50049c0ff"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Users",
+					"item": [
+						{
+							"name": "Add operators or supervisor",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTEiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjUwMzIzNjcsImV4cCI6MTc2NjI0MTk2N30.Qgi4jhf-clIdTvyEc8oaR_Jz8TO-0eg-1nUvYPz_ul4"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"fullName\": \"Hiral Kotwani\",\r\n    \"role\": \"Operator\",\r\n    \"password\": \"123456\",\r\n    \"mobileNumber\": \"542332322\",\r\n    \"email\": \"hk@1234\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:8000/api/admin/users/addAdminUser"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Event",
+					"item": [
+						{
+							"name": "Add Event",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjUzOTEzOTEsImV4cCI6MTc2NjYwMDk5MX0.gEi8UVy3himFiRz3CNVlCQzzuE12V4d7MPaXM5mDiLo"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "title",
+											"value": "Sample Event",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "This is a sample event description.",
+											"type": "text"
+										},
+										{
+											"key": "excerpt",
+											"value": "Short description",
+											"type": "text"
+										},
+										{
+											"key": "type",
+											"value": "online",
+											"type": "text"
+										},
+										{
+											"key": "dateTime",
+											"value": "2025-12-15T10:00:00.000Z",
+											"type": "text"
+										},
+										{
+											"key": "location",
+											"value": "Online",
+											"type": "text"
+										},
+										{
+											"key": "price",
+											"value": "0",
+											"type": "text"
+										},
+										{
+											"key": "seats",
+											"value": "100",
+											"type": "text"
+										},
+										{
+											"key": "freebiesIncluded",
+											"value": "Free T-shirt",
+											"type": "text"
+										},
+										{
+											"key": "freebiesIncluded",
+											"value": "Certificate",
+											"type": "text"
+										},
+										{
+											"key": "featuredImage",
+											"type": "file",
+											"src": "/C:/Users/Admin/Downloads/1764393422246-59468eb4-1763910500239-481755ce-WhatsApp_Image_2025-08-31_at_11.41.30_PM.jpeg"
+										}
+									]
+								},
+								"url": "http://localhost:8000/api/admin/event/addevent"
+							},
+							"response": []
+						},
+						{
+							"name": "Get all events",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjUzOTEzOTEsImV4cCI6MTc2NjYwMDk5MX0.gEi8UVy3himFiRz3CNVlCQzzuE12V4d7MPaXM5mDiLo"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"type\": \"online\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8000/api/admin/event/getallevents?search&page=1&size=10",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"admin",
+										"event",
+										"getallevents"
+									],
+									"query": [
+										{
+											"key": "search",
+											"value": null
+										},
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Event By Id",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjUzOTEzOTEsImV4cCI6MTc2NjYwMDk5MX0.gEi8UVy3himFiRz3CNVlCQzzuE12V4d7MPaXM5mDiLo"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8000/api/admin/event/:eventId/geteventbyid",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"admin",
+										"event",
+										":eventId",
+										"geteventbyid"
+									],
+									"variable": [
+										{
+											"key": "eventId",
+											"value": "693e51db40e87676f35b522e"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Event By Id",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjUzOTEzOTEsImV4cCI6MTc2NjYwMDk5MX0.gEi8UVy3himFiRz3CNVlCQzzuE12V4d7MPaXM5mDiLo"
+									}
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8000/api/admin/event/:eventId/deleteEvent",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"admin",
+										"event",
+										":eventId",
+										"deleteEvent"
+									],
+									"variable": [
+										{
+											"key": "eventId",
+											"value": "693e51df40e87676f35b5230"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Event",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjUzOTEzOTEsImV4cCI6MTc2NjYwMDk5MX0.gEi8UVy3himFiRz3CNVlCQzzuE12V4d7MPaXM5mDiLo"
+									}
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "featuredImage",
+											"type": "file",
+											"src": "/C:/Users/Admin/Downloads/1763909340928-e96a5a45-WhatsApp_Image_2025-08-31_at_11.41.30_PM.jpeg"
+										}
+									]
+								},
+								"url": {
+									"raw": "http://localhost:8000/api/admin/event/:eventId/updateEvent",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"admin",
+										"event",
+										":eventId",
+										"updateEvent"
+									],
+									"variable": [
+										{
+											"key": "eventId",
+											"value": "693e51db40e87676f35b522e"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Register for event by user",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjUzOTEzOTEsImV4cCI6MTc2NjYwMDk5MX0.gEi8UVy3himFiRz3CNVlCQzzuE12V4d7MPaXM5mDiLo"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Hiral Kotwani\",\r\n    \"email\": \"hiralkotwani@gmail.com\",\r\n    \"phone\": \"9664968992\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8000/api/admin/event/:eventId/register",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"admin",
+										"event",
+										":eventId",
+										"register"
+									],
+									"variable": [
+										{
+											"key": "eventId",
+											"value": "693e54aa0b26545f4d848493"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Update Mock Mode",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTAiLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NjQzOTMzNDUsImV4cCI6MTc2NTYwMjk0NX0.w7hKG6BvO2mqkbshNoBaasxufw_vJzSBn_aF6RuQ6Ao"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"enabled\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8000/api/admin/settings/mock-mode"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User Side",
+			"item": [
+				{
+					"name": "Blogs",
+					"item": [
+						{
+							"name": "Get All Published Blogs",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:8000/api/blogs/getpublishedblogs"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Company",
+					"item": [
+						{
+							"name": "Get All approved companies",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    // \"category\": \"Broker\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:8000/api/companies/getallcompanies"
+							},
+							"response": []
+						},
+						{
+							"name": "Add Review",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Protected Routes",
+					"item": [
+						{
+							"name": "Company",
+							"item": [
+								{
+									"name": "Addition of company request",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": {
+												"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTIiLCJyb2xlIjoiVXNlciIsImlhdCI6MTc2NTM5MTM2NCwiZXhwIjoxNzY2NjAwOTY0fQ.OWfzTCIXkX4uAeiQc_e4ax05YfxW7SJHBj91JVzwW14"
+											}
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "logo",
+													"type": "file",
+													"src": []
+												},
+												{
+													"key": "name",
+													"value": "HK",
+													"type": "text"
+												},
+												{
+													"key": "description",
+													"value": "dsjfdsjb",
+													"type": "text"
+												},
+												{
+													"key": "details",
+													"value": "dsfdsfd",
+													"type": "text"
+												},
+												{
+													"key": "category",
+													"value": "Broker",
+													"type": "text"
+												},
+												{
+													"key": "website",
+													"value": "https://alphabroker.in/",
+													"type": "text"
+												}
+											]
+										},
+										"url": "http://localhost:8000/api/company/request"
+									},
+									"response": []
+								},
+								{
+									"name": "Get company by id",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": {
+												"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTIiLCJyb2xlIjoiVXNlciIsImlhdCI6MTc2NTY5Njg4MCwiZXhwIjoxNzY2OTA2NDgwfQ.lHAP18Pvv7G-bCPAhwGH78TIecexeVG1UDkMpCiNmvw"
+											}
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "http://localhost:8000/api/company/:companyId/getcompanybyid",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"api",
+												"company",
+												":companyId",
+												"getcompanybyid"
+											],
+											"variable": [
+												{
+													"key": "companyId",
+													"value": "69381561f3a1f5a840a235e4"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Blogs",
+							"item": [
+								{
+									"name": "Create Blog",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": {
+												"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTIiLCJyb2xlIjoiVXNlciIsImlhdCI6MTc2NTY5Njg4MCwiZXhwIjoxNzY2OTA2NDgwfQ.lHAP18Pvv7G-bCPAhwGH78TIecexeVG1UDkMpCiNmvw"
+											}
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "title",
+													"value": "Mastering Risk Management in Forex Trading",
+													"type": "text"
+												},
+												{
+													"key": "slug",
+													"value": "mastering-risk-management-in-forex-trading",
+													"type": "text"
+												},
+												{
+													"key": "content",
+													"value": "<p>Effective trading isn't about predicting the market; it's about managing your exposure...</p><h3>Why Risk Management Matters</h3><p>Every professional trader focuses on preserving capital first...</p>",
+													"type": "text"
+												},
+												{
+													"key": "excerpt",
+													"value": "Risk management is the backbone of profitable trading. Here’s how professionals control losses...",
+													"type": "text"
+												},
+												{
+													"key": "categories",
+													"value": "Forex",
+													"type": "text"
+												},
+												{
+													"key": "tags",
+													"value": "risk",
+													"type": "text"
+												},
+												{
+													"key": "status",
+													"value": "published",
+													"type": "text"
+												},
+												{
+													"key": "isFeatured",
+													"value": "true",
+													"type": "text"
+												},
+												{
+													"key": "seoKeywords",
+													"value": "risk management",
+													"type": "text"
+												},
+												{
+													"key": "seoKeywords",
+													"value": "forex trading",
+													"type": "text"
+												},
+												{
+													"key": "seoKeywords",
+													"value": "trading strategies",
+													"type": "text"
+												},
+												{
+													"key": "featuredImage",
+													"type": "file",
+													"src": "/C:/Users/Admin/Downloads/WhatsApp Image 2025-08-31 at 11.41.30 PM.jpeg"
+												},
+												{
+													"key": "images",
+													"value": "",
+													"type": "text"
+												},
+												{
+													"key": "images",
+													"value": "",
+													"type": "text"
+												}
+											]
+										},
+										"url": "http://localhost:8000/api/blogs/addblog"
+									},
+									"response": []
+								},
+								{
+									"name": "Update Blog details",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": {
+												"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTIiLCJyb2xlIjoiVXNlciIsImlhdCI6MTc2NTY5Njg4MCwiZXhwIjoxNzY2OTA2NDgwfQ.lHAP18Pvv7G-bCPAhwGH78TIecexeVG1UDkMpCiNmvw"
+											}
+										},
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "status",
+													"value": "published",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "http://localhost:8000/api/blogs/:blogid/updateblog",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"api",
+												"blogs",
+												":blogid",
+												"updateblog"
+											],
+											"variable": [
+												{
+													"key": "blogid",
+													"value": "693e676cbbda4315e01c5caa"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get My Blogs",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": {
+												"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTIiLCJyb2xlIjoiVXNlciIsImlhdCI6MTc2NTY5Njg4MCwiZXhwIjoxNzY2OTA2NDgwfQ.lHAP18Pvv7G-bCPAhwGH78TIecexeVG1UDkMpCiNmvw"
+											}
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n//     \"status\": \"\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": "http://localhost:8000/api/blogs/getmyblogs"
+									},
+									"response": []
+								},
+								{
+									"name": "Get blog by id",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": {
+												"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTIiLCJyb2xlIjoiVXNlciIsImlhdCI6MTc2NTczMjc1MSwiZXhwIjoxNzY2OTQyMzUxfQ.vTP9LjwQtXJiV2hyCz8745CooV8kXGiOFekwkDqId5c"
+											}
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "http://localhost:8000/api/blogs/:blogid/getblogbyid",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"api",
+												"blogs",
+												":blogid",
+												"getblogbyid"
+											],
+											"variable": [
+												{
+													"key": "blogid",
+													"value": "69389119e154bbf817bc1836"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete blog",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": {
+												"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTI1ZmVlYmI5ZDQ4MmNiNmM1YTdmMTIiLCJyb2xlIjoiVXNlciIsImlhdCI6MTc2NTY5Njg4MCwiZXhwIjoxNzY2OTA2NDgwfQ.lHAP18Pvv7G-bCPAhwGH78TIecexeVG1UDkMpCiNmvw"
+											}
+										},
+										"method": "PUT",
+										"header": [],
+										"url": {
+											"raw": "http://localhost:8000/api/blogs/:blogid/deleteblog",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"api",
+												"blogs",
+												":blogid",
+												"deleteblog"
+											],
+											"variable": [
+												{
+													"key": "blogid",
+													"value": "693e676cbbda4315e01c5caa"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Mock Mode",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8000/api/settings/mock-mode"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
