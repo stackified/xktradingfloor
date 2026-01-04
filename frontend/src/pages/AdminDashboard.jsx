@@ -27,6 +27,7 @@ import {
   AlertCircle,
   TrendingUp,
   FileText,
+  Mail,
 } from "lucide-react";
 import { getAllCompanies } from "../controllers/companiesController.js";
 import {
@@ -736,7 +737,7 @@ function AdminDashboard() {
       )}
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Link
           to="/admin/blogs"
           className="card hover:border-blue-500/50 transition-all hover:scale-105"
@@ -773,6 +774,18 @@ function AdminDashboard() {
               Companies
             </div>
             <div className="text-sm text-gray-400">Manage & approve</div>
+          </div>
+        </Link>
+        <Link
+          to="/admin/email-campaigns"
+          className="card hover:border-orange-500/50 transition-all hover:scale-105"
+        >
+          <div className="card-body">
+            <div className="font-semibold mb-1 flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              Email Campaigns
+            </div>
+            <div className="text-sm text-gray-400">Send bulk emails</div>
           </div>
         </Link>
       </div>

@@ -36,6 +36,7 @@ import AdminCompanyForm from "../components/admin/companies/CompanyForm.jsx";
 import AdminEvents from "../pages/admin/AdminEvents.jsx";
 import AboutEditor from "../pages/admin/AboutEditor.jsx";
 import AdminSettings from "../pages/admin/AdminSettings.jsx";
+import EmailCampaigns from "../pages/admin/EmailCampaigns.jsx";
 import MyBlogs from "../pages/MyBlogs.jsx";
 import OperatorBlogs from "../pages/operator/OperatorBlogs.jsx";
 import OperatorReviews from "../pages/operator/OperatorReviews.jsx";
@@ -235,6 +236,16 @@ export default function AppRouter() {
           element={
             <ProtectedRoute role="admin">
               <AdminSettings />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Email Campaigns Route */}
+        <Route
+          path="/admin/email-campaigns"
+          element={
+            <ProtectedRoute role="admin">
+              <EmailCampaigns />
             </ProtectedRoute>
           }
         />

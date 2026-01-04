@@ -40,6 +40,7 @@ xktradingfloor/
 - **🛍️ Merchandise**: E-commerce functionality with shopping cart
 - **👤 Dashboards**: Personalized dashboards for users, operators, and admins
 - **🔐 Authentication**: User registration, login, and role-based access control
+- **📧 Email Campaigns**: Admin email campaign management with CSV upload, draft management, and campaign history
 - **📧 Email Notifications**: Automated emails via SendGrid
 - **☁️ Cloud Storage**: Secure file upload and storage via AWS S3
 - **🛡️ Error Monitoring**: Real-time error tracking and performance monitoring via Sentry
