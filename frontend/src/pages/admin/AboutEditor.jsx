@@ -5,12 +5,13 @@ import { Helmet } from "react-helmet-async";
 import RichTextEditor from "../../components/shared/RichTextEditor.jsx";
 import ProtectedRoute from "../../components/dashboard/ProtectedRoute.jsx";
 import ConfirmModal from "../../components/shared/ConfirmModal.jsx";
+import { getAssetPath } from "../../utils/assets.js";
 
 const DEFAULT_ABOUT_DATA = {
   name: "Sahil",
   designation: "Founder",
   description: "Passionate about empowering traders through education and technology. Building XK Trading Floor to create a transparent and supportive trading community.",
-  image: "/assets/leadership/Sahil.png",
+  image: getAssetPath("/assets/leadership/Sahil.png"),
 };
 
 function getAboutData() {

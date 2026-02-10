@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
 import DiscordAuthGate from "../components/shared/DiscordAuthGate.jsx";
+import { getAssetPath } from "../utils/assets.js";
 
 // Simple image component without loader for fast loading
 function SimpleImage({ src, fallback, alt, className }) {
@@ -34,7 +35,7 @@ const DEFAULT_ABOUT_DATA = {
   designation: "Founder",
   description:
     "Passionate about empowering traders through education and technology. Building XK Trading Floor to create a transparent and supportive trading community.",
-  image: "/assets/leadership/Sahil.png",
+  image: getAssetPath("/assets/leadership/Sahil.png"),
 };
 
 function getAboutData() {
@@ -328,8 +329,8 @@ function About() {
                   <div className="relative rounded-2xl overflow-hidden border border-gray-800/50 bg-gradient-to-br from-gray-900/50 to-gray-800/30 p-2">
                     <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
                       <SimpleImage
-                        src="/assets/logo.png"
-                        fallback="/assets/placeholder.jpg"
+                        src={getAssetPath("/assets/logo.png")}
+                        fallback={getAssetPath("/assets/placeholder.jpg")}
                         alt="XK Trading Floor"
                         className="w-full h-full object-contain p-8 bg-black/60"
                       />
