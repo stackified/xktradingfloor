@@ -140,7 +140,7 @@ function About() {
         </div>
       </section>
 
-      {/* Founder Section - Modern Sleek Redesign */}
+      {/* Founder Section - Commented out as per request
       <section className="py-20 bg-black relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
@@ -150,9 +150,9 @@ function About() {
             transition={{ duration: 0.6 }}
             className="relative"
           >
-            {/* Modern Layout: Image and Content Side by Side */}
+           
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-start">
-              {/* Image Section - Left Side (2 columns on large screens) */}
+             
               <motion.div
                 initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -161,10 +161,10 @@ function About() {
                 className="lg:col-span-2 relative"
               >
                 <div className="relative group">
-                  {/* Subtle background glow */}
+                 
                   <div className="absolute -inset-4 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-blue-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-                  {/* Image container with elegant border */}
+                 
                   <div className="relative rounded-2xl overflow-hidden border border-gray-800/50 bg-gradient-to-br from-gray-900/50 to-gray-800/30 p-2">
                     <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
                       <SimpleImage
@@ -173,17 +173,17 @@ function About() {
                         alt={aboutData.name}
                         className="w-full h-full object-cover"
                       />
-                      {/* Subtle overlay gradient */}
+                     
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
                     </div>
                   </div>
 
-                  {/* Decorative accent */}
+                 
                   <div className="absolute -bottom-2 -right-2 w-16 h-16 bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-full blur-2xl"></div>
                 </div>
               </motion.div>
 
-              {/* Content Section - Right Side (3 columns on large screens) */}
+             
               <motion.div
                 initial={{ opacity: 0, x: 30 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -191,7 +191,7 @@ function About() {
                 transition={{ duration: 0.6, delay: 0.3 }}
                 className="lg:col-span-3 space-y-6"
               >
-                {/* Header */}
+               
                 <div className="space-y-2">
                   <h2 className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight">
                     <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">
@@ -203,7 +203,7 @@ function About() {
                   </p>
                 </div>
 
-                {/* Description Content */}
+               
                 <div className="text-sm sm:text-base text-gray-300 leading-relaxed space-y-4">
                   <p>
                     Sahil discovered Forex trading in 2020 while searching for a
@@ -239,7 +239,7 @@ function About() {
                     every late night, and every step of growth.
                   </p>
 
-                  {/* Highlight Box */}
+                 
                   <div className="relative mt-6 p-5 rounded-xl bg-gradient-to-br from-gray-900/80 to-gray-800/60 border border-gray-700/50 backdrop-blur-sm">
                     <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-500 to-purple-500 rounded-l-xl"></div>
                     <div className="pl-4">
@@ -291,6 +291,147 @@ function About() {
                     And this is still only the beginning — for him, for XK
                     Trading Floor, and for every trader choosing to walk this
                     journey.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+      */}
+
+      {/* XK Trading Floor Section - Brand Focused */}
+      <section className="py-20 bg-black relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="relative"
+          >
+            {/* Modern Layout: Image and Content Side by Side */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-start">
+              {/* Image Section - Left Side (2 columns on large screens) */}
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="lg:col-span-2 relative"
+              >
+                <div className="relative group">
+                  {/* Subtle background glow */}
+                  <div className="absolute -inset-4 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-blue-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                  {/* Image container with elegant border */}
+                  <div className="relative rounded-2xl overflow-hidden border border-gray-800/50 bg-gradient-to-br from-gray-900/50 to-gray-800/30 p-2">
+                    <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+                      <SimpleImage
+                        src="/assets/logo.png"
+                        fallback="/assets/placeholder.jpg"
+                        alt="XK Trading Floor"
+                        className="w-full h-full object-contain p-8 bg-black/60"
+                      />
+                      {/* Subtle overlay gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+                    </div>
+                  </div>
+
+                  {/* Decorative accent */}
+                  <div className="absolute -bottom-2 -right-2 w-16 h-16 bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-full blur-2xl"></div>
+                </div>
+              </motion.div>
+
+              {/* Content Section - Right Side (3 columns on large screens) */}
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="lg:col-span-3 space-y-6"
+              >
+                {/* Header */}
+                <div className="space-y-2">
+                  <h2 className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight">
+                    <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">
+                      XK Trading Floor
+                    </span>
+                  </h2>
+                  <p className="text-sm sm:text-base text-gray-400 font-medium">
+                    Where Traders Evolve
+                  </p>
+                </div>
+
+                {/* Description Content */}
+                <div className="text-sm sm:text-base text-gray-300 leading-relaxed space-y-4">
+                  <p>
+                    XK Trading Floor was built with a single mission: to empower
+                    traders through transparency, education, and community. We
+                    believe that the trading industry has been clouded by noise
+                    and misinformation for too long.
+                  </p>
+                  <p>
+                    Our platform creates a space where traders can find honest
+                    reviews of prop firms and brokers, access real-world
+                    educational resources, and connect with a network of
+                    like-minded individuals. We are stripping away the complexity to
+                    provide the clear, actionable insights needed to succeed.
+                  </p>
+                  <p>
+                    Whether you are just starting your journey or are an
+                    experienced trader looking for a reliable community, XK Trading
+                    Floor is designed to support your growth every step of the
+                    way.
+                  </p>
+
+                  {/* Highlight Box */}
+                  <div className="relative mt-6 p-5 rounded-xl bg-gradient-to-br from-gray-900/80 to-gray-800/60 border border-gray-700/50 backdrop-blur-sm">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-500 to-purple-500 rounded-l-xl"></div>
+                    <div className="pl-4">
+                      <p className="font-semibold text-gray-200 mb-3 text-sm sm:text-base">
+                        XK Trading Floor is your trusted hub for:
+                      </p>
+                      <ul className="space-y-2.5">
+                        <li className="flex items-start gap-3">
+                          <span className="text-blue-400 mt-0.5 flex-shrink-0">
+                            •
+                          </span>
+                          <span className="text-sm sm:text-base">
+                            Honest broker & prop firm reviews
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <span className="text-blue-400 mt-0.5 flex-shrink-0">
+                            •
+                          </span>
+                          <span className="text-sm sm:text-base">
+                            Educational tools and content
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <span className="text-blue-400 mt-0.5 flex-shrink-0">
+                            •
+                          </span>
+                          <span className="text-sm sm:text-base">
+                            Real conversations with real traders
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <span className="text-blue-400 mt-0.5 flex-shrink-0">
+                            •
+                          </span>
+                          <span className="text-sm sm:text-base">
+                            A supportive community focused on growth
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <p className="font-semibold text-gray-200 text-base sm:text-lg">
+                    Our mission is simple: to create a transparent trading
+                    ecosystem where traders learn, grow, and evolve together.
                   </p>
                 </div>
               </motion.div>

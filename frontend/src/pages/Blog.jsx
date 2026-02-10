@@ -8,7 +8,6 @@ import BlogCategories from "../components/blog/BlogCategories.jsx";
 import BlogList from "../components/blog/BlogList.jsx";
 import BlogSidebar from "../components/blog/BlogSidebar.jsx";
 import BlogCard from "../components/blog/BlogCard.jsx";
-import RequireAuthModal from "../components/shared/RequireAuthModal.jsx";
 import CardLoader from "../components/shared/CardLoader.jsx";
 import { getUserCookie } from "../utils/cookies.js";
 import { updateMockMode, fetchMockMode } from "../redux/slices/mockSlice.js";
@@ -29,14 +28,11 @@ function Blog() {
   const userRole =
     typeof user?.role === "string" ? user.role.toLowerCase() : null;
   const isAdmin = userRole === "admin";
-  const isAuthenticated = !!user;
   const {
     blogs: publishedBlogs,
     loading: blogsLoading,
     pagination,
   } = useSelector((state) => state.blogs);
-  const [authModalOpen, setAuthModalOpen] = React.useState(false);
-  const [lockedBlogId, setLockedBlogId] = React.useState(null);
 
   // Fetch and sync mock mode from backend (for global sync across all users)
   React.useEffect(() => {
@@ -145,21 +141,6 @@ function Blog() {
 
   // Pagination from Redux
   const totalPages = pagination?.totalPages || 1;
-
-  const handleLockedBlogClick = (blogId) => {
-    setLockedBlogId(blogId);
-    setAuthModalOpen(true);
-  };
-
-  const handleAuthConfirm = () => {
-    const nextPath = lockedBlogId ? `/blog/${lockedBlogId}` : "/blog";
-    navigate(`/login?next=${encodeURIComponent(nextPath)}`);
-  };
-
-  // Reset page when filters change is already handled by dependency in useEffect?
-  // No, we need to explicitly reset page when filters change IF we are not already on page 1.
-  // But doing it in useEffect would cause loop.
-  // Better: Reset page in the handlers.
 
   const handleTagToggle = (tag) => {
     setSelectedTags((prev) => {
@@ -276,8 +257,7 @@ function Blog() {
                   key={p.id}
                   post={p}
                   onClick={() => navigate(`/blog/${p.id}`)}
-                  isLocked={!isAuthenticated && !p.isFeatured}
-                  onLockClick={() => handleLockedBlogClick(p.id)}
+                  isLocked={false}
                 />
               ))}
             </div>
@@ -311,16 +291,6 @@ function Blog() {
           />
         </div>
       </div>
-
-      {/* Require Auth Modal */}
-      <RequireAuthModal
-        isOpen={authModalOpen}
-        onClose={() => {
-          setAuthModalOpen(false);
-          setLockedBlogId(null);
-        }}
-        onConfirm={handleAuthConfirm}
-      />
     </div>
   );
 }
