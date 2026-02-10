@@ -1,18 +1,10 @@
 import axios from "axios";
 
-const inferDefaultBaseUrl = () => {
-  const hostname =
-    typeof window !== "undefined" ? window.location.hostname : "localhost";
-  // Default to port 8000 to match backend configuration (backend runs on port 8000)
-  const fallbackPort =
-    import.meta.env.VITE_BACKEND_PORT || process.env.VITE_BACKEND_PORT || 8000;
-  return `http://${hostname}:${fallbackPort}/api`;
-};
-
-const baseUrl =
-  (import.meta.env.VITE_API_BASE_URL &&
-    import.meta.env.VITE_API_BASE_URL.replace(/\/$/, "")) ||
-  inferDefaultBaseUrl();
+// Use relative path to leverage Vite proxy in development
+// checks if we are in production or not
+const baseUrl = import.meta.env.PROD
+  ? (import.meta.env.VITE_API_BASE_URL || "/api")
+  : "/api";
 
 // Axios instance for future backend integration
 const api = axios.create({

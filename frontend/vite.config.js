@@ -15,12 +15,16 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       open: true,
       proxy: {
+        '/api': {
+          target: process.env.VITE_BACKEND_URL || 'http://localhost:3000',
+          changeOrigin: true,
+        },
         '/images': {
-          target: process.env.VITE_BACKEND_URL || 'http://localhost:8000',
+          target: process.env.VITE_BACKEND_URL || 'http://localhost:3000',
           changeOrigin: true,
         },
         '/uploads': {
-          target: process.env.VITE_BACKEND_URL || 'http://localhost:8000',
+          target: process.env.VITE_BACKEND_URL || 'http://localhost:3000',
           changeOrigin: true,
         },
       },

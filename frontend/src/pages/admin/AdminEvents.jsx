@@ -42,8 +42,8 @@ function AdminEventsContent() {
         search: searchQuery || undefined,
         type: typeFilter || undefined,
       };
-      const data = await getAllEvents(filters);
-      setEvents(Array.isArray(data) ? data : []);
+      const response = await getAllEvents(filters);
+      setEvents(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       setError(err?.message || "Failed to load events");
       setEvents([]);
