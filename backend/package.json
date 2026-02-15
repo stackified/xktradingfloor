@@ -9,6 +9,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.937.0",
     "@aws-sdk/s3-request-presigner": "^3.937.0",
+    "@mailchimp/mailchimp_marketing": "^3.0.80",
     "@sendgrid/mail": "^8.1.4",
     "@sentry/node": "^10.11.0",
     "@sentry/profiling-node": "^10.11.0",
@@ -21,8 +22,8 @@
     "cors": "^2.8.5",
     "dayjs": "^1.11.19",
     "debug": "~2.6.9",
+    "dotenv": "^17.3.1",
     "ejs": "^3.1.10",
-    "dotenv": "^17.2.2",
     "express": "~4.16.1",
     "express-useragent": "^1.0.15",
     "helmet": "^8.1.0",
@@ -31,6 +32,7 @@
     "mongoose": "^8.18.1",
     "morgan": "~1.9.1",
     "multer": "^2.0.2",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "xlsx": "^0.18.5"
   }
 }

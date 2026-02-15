@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Email Sender - Orvano</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2B6EF2;
+            --primary-hover: #1E4FB3;
+            --bg-color: #0B0F19;
+            --card-bg: #0E1422;
+            --text-main: #FFFFFF;
+            --text-secondary: #9CA3AF;
+            --border: #1C2333;
+            --input-bg: #151b2d;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+            text-align: center;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        input[type="text"],
+        textarea,
+        select,
+        input[type="file"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: all 0.15s ease-in-out;
+            box-sizing: border-box;
+            font-family: inherit;
+            background-color: var(--input-bg);
+            color: var(--text-main);
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(43, 110, 242, 0.2);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        input[type="file"] {
+            padding: 0.5rem;
+            background: var(--input-bg);
+        }
+
+        /* Custom file input styling fix */
+        input[type="file"]::file-selector-button {
+            background-color: var(--border);
+            color: var(--text-main);
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            margin-right: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            background-color: #2d3748;
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.875rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s;
+            font-size: 0.875rem;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button:disabled {
+            background-color: #374151;
+            color: #9CA3AF;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #34D399;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .error {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #F87171;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .loader {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Bulk Email Sender</h1>
+        <p class="subtitle">Upload an Excel file to send emails via Mailchimp</p>
+
+        <form id="emailForm">
+            <div class="form-group">
+                <label for="excelFile">Excel File (.xlsx)</label>
+                <input type="file" id="excelFile" name="file" accept=".xlsx, .xls" required>
+                <small style="color: var(--text-secondary); font-size: 0.75rem; display: block; margin-top: 4px;">File
+                    must have an <b>email</b> column.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="template">Email Template</label>
+                <select id="template" name="template" required
+                    style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; background: #fff;">
+                    <option value="bulk">Custom HTML (Bulk)</option>
+                    <option value="welcome">Welcome Email</option>
+                    <option value="invite">Invitation Email</option>
+                    <option value="otp">OTP Verification</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="actionUrlGroup" style="display: none;">
+                <label for="actionUrl">Action URL (Button Link)</label>
+                <input type="text" id="actionUrl" name="actionUrl" placeholder="https://xktradingfloor.com/dashboard">
+            </div>
+
+            <div class="form-group">
+                <label for="subject">Email Subject</label>
+                <input type="text" id="subject" name="subject" placeholder="Enter campaign subject" required>
+            </div>
+
+            <div class="form-group">
+                <label for="message">Message / Custom Content</label>
+                <textarea id="message" name="message" placeholder="Enter your message here..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="companyName">Company Name (Optional)</label>
+                <input type="text" id="companyName" name="companyName" placeholder="XK Trading Floor">
+            </div>
+
+            <button type="submit" id="submitBtn">Send Campaign</button>
+        </form>
+
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('emailForm');
+        const statusDiv = document.getElementById('status');
+        const submitBtn = document.getElementById('submitBtn');
+        const templateSelect = document.getElementById('template');
+        const actionUrlGroup = document.getElementById('actionUrlGroup');
+        const messageGroup = document.getElementById('message').closest('.form-group');
+        const companyNameGroup = document.getElementById('companyName').closest('.form-group');
+
+        // Toggle visibility based on template
+        function updateVisibility() {
+            const value = templateSelect.value;
+
+            // Action URL: Only for Welcome and Invite
+            if (value === 'welcome' || value === 'invite') {
+                actionUrlGroup.style.display = 'block';
+            } else {
+                actionUrlGroup.style.display = 'none';
+            }
+
+            // Message: Only for Bulk (Custom HTML)
+            if (value === 'bulk') {
+                messageGroup.style.display = 'block';
+                document.getElementById('message').setAttribute('required', 'required');
+            } else {
+                messageGroup.style.display = 'none';
+                document.getElementById('message').removeAttribute('required');
+            }
+        }
+
+        templateSelect.addEventListener('change', updateVisibility);
+
+        // Initial call
+        updateVisibility();
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // UI Reset
+            statusDiv.style.display = 'none';
+            statusDiv.className = '';
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loader"></span>Sending...';
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/api/marketing/send-bulk-email', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                statusDiv.style.display = 'block';
+
+                if (response.ok) {
+                    statusDiv.className = 'success';
+                    statusDiv.innerHTML = `
+                    <strong>Success!</strong> ${result.message}<br>
+                    <ul style="margin: 0.5rem 0 0 1rem; padding: 0;">
+                        <li>Total Uploaded: ${result.total_uploaded}</li>
+                        <li>Added/Updated: ${result.successful_adds}</li>
+                        <li>Failed: ${result.failed_adds.length}</li>
+                        <li>Tag: ${result.tag_used}</li>
+                    </ul>
+                `;
+                    form.reset();
+                    updateVisibility(); // Reset visibility state
+                } else {
+                    statusDiv.className = 'error';
+                    statusDiv.textContent = result.message || 'An error occurred.';
+                    if (result.error) {
+                        console.error('Server Error:', result.error);
+                    }
+                }
+            } catch (error) {
+                statusDiv.style.display = 'block';
+                statusDiv.className = 'error';
+                statusDiv.textContent = 'Network error. Please try again.';
+                console.error('Network Error:', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Campaign';
+            }
+        });
+    </script>
+
+</body>
+
+</html>

@@ -7,12 +7,16 @@ const adminRoutes = require("./admin/index");
 const constants = require("../../utils/constants");
 const publicRoutes = require("./public/index");
 const protectedRoutes = require("./protected/index");
+const marketingRoutes = require("./marketing.routes");
 
 // Auth APIs
 router.use("/auth", authRoutes);
 
 // Motor Insurance Routes
 router.use(publicRoutes);
+
+// Marketing Routes
+router.use("/marketing", marketingRoutes);
 
 // Middleware to check token
 router.use(authentication);
