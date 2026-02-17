@@ -1,13 +1,13 @@
 import React from "react";
-import { Send, Save, Mail, Loader2, AlertCircle } from "lucide-react";
+import { Send, Save, Mail, Loader2, AlertCircle, FileSpreadsheet } from "lucide-react";
 import RichTextEditor from "../../shared/RichTextEditor.jsx";
+import RecipientUploader from "./RecipientUploader.jsx";
 
 /**
  * EmailComposer Component
- * Allows composing emails with rich text editor
+ * Allows composing emails with rich text editor and file upload
  */
 function EmailComposer({
-  selectedUsers = [],
   onSend,
   onSaveDraft,
   initialDraft = null,
@@ -15,6 +15,7 @@ function EmailComposer({
 }) {
   const [subject, setSubject] = React.useState(initialDraft?.subject || "");
   const [content, setContent] = React.useState(initialDraft?.content || "");
+  const [recipientFile, setRecipientFile] = React.useState(null);
   const [errors, setErrors] = React.useState({});
   const [lastSaved, setLastSaved] = React.useState(null);
 
@@ -42,8 +43,8 @@ function EmailComposer({
       newErrors.content = "Email content is required";
     }
 
-    if (selectedUsers.length === 0) {
-      newErrors.recipients = "Please select at least one recipient";
+    if (!recipientFile) {
+      newErrors.recipients = "Please upload a recipient file (Excel/CSV)";
     }
 
     setErrors(newErrors);
@@ -56,14 +57,12 @@ function EmailComposer({
     }
 
     try {
-      await onSend({
-        subject: subject.trim(),
-        content: content.trim(),
-        recipientIds: selectedUsers.map((user) => user.id || user._id).filter(Boolean),
-        recipientEmails: selectedUsers
-          .map((user) => user.email)
-          .filter((email) => email && email.includes("@")),
-      });
+      const formData = new FormData();
+      formData.append("file", recipientFile);
+      formData.append("subject", subject.trim());
+      formData.append("message", content.trim());
+
+      await onSend(formData);
     } catch (error) {
       setErrors({ send: error.message || "Failed to send email" });
     }
@@ -78,10 +77,8 @@ function EmailComposer({
       await onSaveDraft({
         subject: subject.trim(),
         content: content.trim(),
-        recipientIds: selectedUsers.map((user) => user.id || user._id).filter(Boolean),
-        recipientEmails: selectedUsers
-          .map((user) => user.email)
-          .filter((email) => email && email.includes("@")),
+        // Drafts don't support files yet in the current backend structure, 
+        // but we keep the logic structure for consistency
       });
 
       if (!silent) {
@@ -95,8 +92,6 @@ function EmailComposer({
     }
   };
 
-  const recipientCount = selectedUsers.length;
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -107,26 +102,39 @@ function EmailComposer({
             Compose Email
           </h3>
           <p className="text-sm text-gray-400 mt-1">
-            {recipientCount > 0 ? (
-              <>
-                Sending to <strong className="text-white">{recipientCount}</strong>{" "}
-                recipient{recipientCount !== 1 ? "s" : ""}
-              </>
-            ) : (
-              "Select recipients from the user table above"
-            )}
+            Fill in the details and upload your recipient list to start the campaign
           </p>
         </div>
+      </div>
+
+      {/* Recipient Upload Section */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+          <FileSpreadsheet className="w-4 h-4" />
+          Recipient List (Excel/CSV) <span className="text-red-400">*</span>
+        </label>
+        <RecipientUploader
+          onFileSelect={(file) => {
+            setRecipientFile(file);
+            setErrors(prev => ({ ...prev, recipients: "" }));
+          }}
+          onRemoveFile={() => setRecipientFile(null)}
+        />
+        {errors.recipients && (
+          <p className="text-xs text-red-400">{errors.recipients}</p>
+        )}
       </div>
 
       {/* Errors */}
       {Object.keys(errors).length > 0 && (
         <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
           {Object.entries(errors).map(([key, message]) => (
-            <div key={key} className="flex items-center gap-2 text-red-300 text-sm">
-              <AlertCircle className="w-4 h-4" />
-              <span>{message}</span>
-            </div>
+            message && (
+              <div key={key} className="flex items-center gap-2 text-red-300 text-sm">
+                <AlertCircle className="w-4 h-4" />
+                <span>{message}</span>
+              </div>
+            )
           ))}
         </div>
       )}
@@ -153,9 +161,8 @@ function EmailComposer({
             }
           }}
           placeholder="Enter email subject..."
-          className={`w-full px-4 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            errors.subject ? "border-red-500/50" : "border-gray-700"
-          }`}
+          className={`w-full px-4 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.subject ? "border-red-500/50" : "border-gray-700"
+            }`}
         />
         {errors.subject && (
           <p className="text-xs text-red-400">{errors.subject}</p>
@@ -165,7 +172,7 @@ function EmailComposer({
       {/* Content */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-300">
-          Content <span className="text-red-400">*</span>
+          Message <span className="text-red-400">*</span>
         </label>
         <RichTextEditor
           value={content}
@@ -186,18 +193,18 @@ function EmailComposer({
       <div className="flex items-center gap-3 pt-4 border-t border-gray-800">
         <button
           onClick={handleSend}
-          disabled={isLoading || recipientCount === 0}
+          disabled={isLoading || !recipientFile}
           className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Sending...
+              Sending Bulk Campaign...
             </>
           ) : (
             <>
               <Send className="w-4 h-4" />
-              Send Email
+              Send Bulk Email
             </>
           )}
         </button>
@@ -211,11 +218,11 @@ function EmailComposer({
         </button>
       </div>
 
-      {/* Warning if no recipients */}
-      {recipientCount === 0 && (
-        <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-300 text-sm">
+      {/* Info if no file */}
+      {!recipientFile && (
+        <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg text-blue-300 text-sm">
           <AlertCircle className="w-4 h-4 inline mr-2" />
-          Please select at least one recipient from the user table to send an email.
+          Please upload a recipient file to enable the send button.
         </div>
       )}
     </div>

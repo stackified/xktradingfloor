@@ -1,16 +1,13 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
-import { Mail, FileText, History, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Mail, FileText, History, AlertCircle } from "lucide-react";
 import { useToast } from "../../contexts/ToastContext.jsx";
-import CSVUploader from "../../components/admin/email/CSVUploader.jsx";
-import UserTable from "../../components/admin/email/UserTable.jsx";
 import EmailComposer from "../../components/admin/email/EmailComposer.jsx";
 import DraftManager from "../../components/admin/email/DraftManager.jsx";
 import CampaignHistory from "../../components/admin/email/CampaignHistory.jsx";
 import {
-  getUploadedUsers,
-  sendEmail,
+  sendBulkEmail,
   saveDraft,
   updateDraft,
   getDraftById,
@@ -23,105 +20,24 @@ import {
 function EmailCampaigns() {
   const toast = useToast();
   const [activeTab, setActiveTab] = React.useState("compose");
-  const [uploadedUsers, setUploadedUsers] = React.useState([]);
-  const [selectedUsers, setSelectedUsers] = React.useState([]);
   const [currentDraft, setCurrentDraft] = React.useState(null);
-  const [isLoading, setIsLoading] = React.useState(false);
   const [isSending, setIsSending] = React.useState(false);
   const [error, setError] = React.useState("");
 
-  // Pagination state
-  const [pagination, setPagination] = React.useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-    itemsPerPage: 20,
-  });
-
-  // Search and filter state
-  const [searchQuery, setSearchQuery] = React.useState("");
-
-  // Fetch uploaded users
-  const fetchUsers = React.useCallback(
-    async (page = 1, search = "") => {
-      setIsLoading(true);
-      setError("");
-
-      try {
-        const result = await getUploadedUsers({
-          page,
-          limit: pagination.itemsPerPage,
-          search,
-          sortBy: "joinedAt",
-          sortOrder: "desc",
-        });
-
-        if (result.data) {
-          setUploadedUsers(Array.isArray(result.data.users) ? result.data.users : []);
-          if (result.data.pagination) {
-            setPagination(result.data.pagination);
-          }
-        }
-      } catch (err) {
-        setError(err.message || "Failed to load users");
-        setUploadedUsers([]);
-        toast.error(err.message || "Failed to load users");
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [pagination.itemsPerPage, toast]
-  );
-
-  // Initial load
-  React.useEffect(() => {
-    fetchUsers(1, searchQuery);
-  }, []);
-
-  // Handle CSV upload success
-  const handleCSVUploadSuccess = (result) => {
-    toast.success(
-      `Successfully uploaded ${result.data?.totalImported || 0} users`
-    );
-    // Refresh user list
-    fetchUsers(1, searchQuery);
-  };
-
-  // Handle CSV upload error
-  const handleCSVUploadError = (error) => {
-    toast.error(error.message || "Failed to upload CSV");
-  };
-
-  // Handle search change
-  const handleSearchChange = (query) => {
-    setSearchQuery(query);
-    setPagination((p) => ({ ...p, currentPage: 1 }));
-    fetchUsers(1, query);
-  };
-
-  // Handle page change
-  const handlePageChange = (newPage) => {
-    setPagination((p) => ({ ...p, currentPage: newPage }));
-    fetchUsers(newPage, searchQuery);
-  };
-
   // Handle send email
-  const handleSendEmail = async (emailData) => {
+  const handleSendEmail = async (formData) => {
     setIsSending(true);
     setError("");
 
     try {
-      const result = await sendEmail(emailData);
-      toast.success(
-        `Email campaign sent successfully to ${emailData.recipientIds.length} recipients`
-      );
+      const result = await sendBulkEmail(formData);
+      toast.success(result.message || "Email campaign sent successfully");
 
-      // Clear selection and reset form
-      setSelectedUsers([]);
+      // Reset form
       setCurrentDraft(null);
 
-      // Switch to history tab
-      setActiveTab("history");
+      // Switch to history tab (if supported)
+      // setActiveTab("history");
     } catch (err) {
       const errorMessage = err.message || "Failed to send email";
       setError(errorMessage);
@@ -152,17 +68,7 @@ function EmailCampaigns() {
     try {
       const result = await getDraftById(draft.id || draft._id);
       setCurrentDraft(result.data);
-      
-      // Set selected users from draft
-      if (result.data.recipientIds && result.data.recipientIds.length > 0) {
-        // Fetch user details for selected IDs
-        const allUsers = await getUploadedUsers({ limit: 1000 });
-        const draftUsers = allUsers.data?.users?.filter((user) =>
-          result.data.recipientIds.includes(user.id || user._id)
-        ) || [];
-        setSelectedUsers(draftUsers);
-      }
-      
+
       // Switch to compose tab
       setActiveTab("compose");
       toast.success("Draft loaded successfully");
@@ -172,7 +78,7 @@ function EmailCampaigns() {
   };
 
   const tabs = [
-    { id: "compose", label: "Compose", icon: Mail },
+    { id: "compose", label: "Compose & Send", icon: Mail },
     { id: "drafts", label: "Drafts", icon: FileText },
     { id: "history", label: "History", icon: History },
   ];
@@ -199,7 +105,7 @@ function EmailCampaigns() {
             Email Campaigns
           </h1>
           <p className="text-gray-400">
-            Upload user data from Whop and send bulk emails
+            Create and send bulk email campaigns using Mailchimp integration
           </p>
         </motion.div>
 
@@ -223,10 +129,9 @@ function EmailCampaigns() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`
                     px-6 py-3 font-medium text-sm transition-colors relative
-                    ${
-                      isActive
-                        ? "text-blue-400"
-                        : "text-gray-400 hover:text-gray-300"
+                    ${isActive
+                      ? "text-blue-400"
+                      : "text-gray-400 hover:text-gray-300"
                     }
                   `}
                 >
@@ -249,53 +154,9 @@ function EmailCampaigns() {
         {/* Tab Content */}
         <div className="mt-6">
           {activeTab === "compose" && (
-            <div className="space-y-6">
-              {/* CSV Upload Section */}
-              <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold text-white mb-4">
-                  Upload User Data
-                </h2>
-                <p className="text-sm text-gray-400 mb-4">
-                  Export user data from Whop as CSV and upload it here
-                </p>
-                <CSVUploader
-                  onUploadSuccess={handleCSVUploadSuccess}
-                  onUploadError={handleCSVUploadError}
-                />
-              </div>
-
-              {/* User Table Section */}
-              {uploadedUsers.length > 0 && (
-                <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
-                  <h2 className="text-xl font-semibold text-white mb-4">
-                    Select Recipients
-                  </h2>
-                  <UserTable
-                    users={uploadedUsers}
-                    selectedUsers={selectedUsers.map(
-                      (user) => user.id || user._id
-                    )}
-                    onSelectionChange={(selectedIds) => {
-                      const selected = uploadedUsers.filter(
-                        (user) => selectedIds.includes(user.id || user._id)
-                      );
-                      setSelectedUsers(selected);
-                    }}
-                    pagination={{
-                      ...pagination,
-                      onPageChange: handlePageChange,
-                    }}
-                    searchQuery={searchQuery}
-                    onSearchChange={handleSearchChange}
-                    loading={isLoading}
-                  />
-                </div>
-              )}
-
-              {/* Email Composer Section */}
+            <div className="max-w-4xl">
               <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
                 <EmailComposer
-                  selectedUsers={selectedUsers}
                   onSend={handleSendEmail}
                   onSaveDraft={handleSaveDraft}
                   initialDraft={currentDraft}

@@ -44,7 +44,7 @@ export async function uploadCSV(file) {
 export async function getUploadedUsers(params = {}) {
   try {
     const queryParams = new URLSearchParams();
-    
+
     if (params.page) queryParams.append("page", params.page);
     if (params.limit) queryParams.append("limit", params.limit);
     if (params.search) queryParams.append("search", params.search);
@@ -216,3 +216,22 @@ export async function getCampaignById(campaignId) {
   }
 }
 
+/**
+ * Send bulk email using the new marketing endpoint
+ * @param {FormData} formData - Form data containing file, subject, and message
+ * @returns {Promise<Object>}
+ */
+export async function sendBulkEmail(formData) {
+  try {
+    const response = await api.post("/marketing/send-bulk-email", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message || error.message || "Failed to send bulk email"
+    );
+  }
+}
