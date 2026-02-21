@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Login Detected</title>
+</head>
+
+<body
+    style="margin: 0; padding: 0; background-color: #020617; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #f8fafc;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #020617;">
+        <tr>
+            <td align="center" style="padding: 40px 0;">
+                <table width="600" border="0" cellspacing="0" cellpadding="0"
+                    style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);">
+                    <!-- Header -->
+                    <tr>
+                        <td align="center" style="padding: 30px 40px 10px 40px;">
+                            <div
+                                style="font-size: 18px; font-weight: bold; letter-spacing: 2px; color: #f1f5f9; text-transform: uppercase;">
+                                <span style="color: #38bdf8;">XK</span> TRADING FLOOR
+                            </div>
+                            <div
+                                style="margin-top: 15px; height: 1px; width: 100%; max-width: 480px; background: linear-gradient(90deg, transparent, #0ea5e9, transparent);">
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Title -->
+                    <tr>
+                        <td align="center" style="padding: 30px 40px 10px 40px;">
+                            <h1 style="margin: 0; font-size: 28px; font-weight: 600; color: #ffffff;">New Login Detected
+                            </h1>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td align="center" style="padding: 20px 50px 30px 50px;">
+                            <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #94a3b8;">
+                                Hello, we detected a new login to your XK Trading Floor account from a new device or
+                                location.
+                            </p>
+                            <div
+                                style="margin-top: 25px; padding: 20px; background-color: #1e293b; border-radius: 8px; text-align: left;">
+                                <div style="font-size: 14px; color: #cbd5e1; margin-bottom: 5px;"><strong>Time:</strong>
+                                    <%= locals.time || 'Just now' %>
+                                </div>
+                                <div style="font-size: 14px; color: #cbd5e1; margin-bottom: 5px;">
+                                    <strong>Location:</strong>
+                                    <%= locals.location || 'Unknown' %>
+                                </div>
+                                <div style="font-size: 14px; color: #cbd5e1;"><strong>Device:</strong>
+                                    <%= locals.device || 'Web Browser' %>
+                                </div>
+                            </div>
+                            <p style="margin: 25px 0 0 0; font-size: 14px; line-height: 1.6; color: #64748b;">
+                                If this was you, you can safely ignore this email. If not, please secure your account
+                                immediately.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Action -->
+                    <tr>
+                        <td align="center" style="padding: 10px 40px 50px 40px;">
+                            <a href="<%= secureUrl || 'https://xktradingfloor.com/security' %>"
+                                style="display: inline-block; padding: 14px 35px; background-color: #0c4a6e; border: 1px solid #0ea5e9; color: #ffffff; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);">
+                                Secure Account
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Footer Info -->
+                    <tr>
+                        <td align="center" style="padding: 0 40px 30px 40px; border-top: 1px solid #1e293b;">
+                            <div style="margin-top: 25px; font-size: 13px; color: #64748b; font-weight: 500;">
+                                Built by Traders, Powered by Transparency.
+                            </div>
+                            <div style="margin-top: 8px; font-size: 14px; color: #0ea5e9;">
+                                <a href="https://xktradingfloor.com"
+                                    style="color: #0ea5e9; text-decoration: none;">xktradingfloor.com</a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
