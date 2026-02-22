@@ -2,79 +2,61 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>
         <%= subject %>
     </title>
 </head>
 
-<body
-    style="margin: 0; padding: 0; background-color: #020617; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #f8fafc;">
+<body style="margin: 0; padding: 0; background-color: #020617; font-family: Helvetica, Arial, sans-serif;">
     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #020617;">
         <tr>
-            <td align="center" style="padding: 40px 0;">
+            <td align="center" style="padding: 48px 0;">
                 <table width="600" border="0" cellspacing="0" cellpadding="0"
-                    style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);">
+                    style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.4);">
                     <!-- Header -->
                     <tr>
-                        <td align="center" style="padding: 30px 40px 10px 40px;">
+                        <td align="center" style="padding: 40px 40px 0 40px;">
+                            <img src="https://xktradingfloor.com/assets/navbar%20logo.png" width="180"
+                                alt="XK TRADING FLOOR" style="display: block; border: 0;">
                             <div
-                                style="font-size: 18px; font-weight: bold; letter-spacing: 2px; color: #f1f5f9; text-transform: uppercase;">
-                                <span style="color: #38bdf8;">XK</span> TRADING FLOOR
-                            </div>
-                            <div
-                                style="margin-top: 15px; height: 1px; width: 100%; max-width: 480px; background: linear-gradient(90deg, transparent, #0ea5e9, transparent);">
+                                style="margin-top: 24px; height: 1px; width: 100%; background: linear-gradient(90deg, transparent, #0ea5e9, transparent);">
                             </div>
                         </td>
                     </tr>
-
-                    <!-- Title -->
-                    <tr>
-                        <td align="center" style="padding: 30px 40px 10px 40px;">
-                            <h1 style="margin: 0; font-size: 28px; font-weight: 600; color: #ffffff;">
-                                <%= subject %>
-                            </h1>
-                        </td>
-                    </tr>
-
                     <!-- Body -->
                     <tr>
-                        <td align="center" style="padding: 20px 50px 30px 50px;">
-                            <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #e2e8f0;">
+                        <td style="padding: 48px 48px 40px 48px;">
+                            <h1
+                                style="margin: 0; font-size: 32px; font-weight: 700; color: #ffffff; text-align: center;">
+                                <%= subject %>
+                            </h1>
+                            <p
+                                style="margin-top: 24px; font-size: 16px; line-height: 1.6; color: #e2e8f0; text-align: center;">
                                 <%= message %>
                             </p>
+                            <div style="margin-top: 40px; text-align: center;">
+                                <a href="<%= locals.platformUrl || 'https://xktradingfloor.com' %>"
+                                    style="display: inline-block; padding: 14px 40px; background-color: #0c4a6e; border: 1px solid #0ea5e9; color: #ffffff; text-decoration: none; border-radius: 50px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);">
+                                    Explore the Platform
+                                </a>
+                            </div>
                         </td>
                     </tr>
-
-                    <!-- Action (Optional) -->
-                    <% if (locals.actionUrl) { %>
-                        <tr>
-                            <td align="center" style="padding: 10px 40px 50px 40px;">
-                                <a href="<%= actionUrl %>"
-                                    style="display: inline-block; padding: 14px 35px; background-color: #0c4a6e; border: 1px solid #0ea5e9; color: #ffffff; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);">
-                                    <%= actionText || 'Explore Now' %>
-                                </a>
-                            </td>
-                        </tr>
-                        <% } %>
-
-                            <!-- Footer Info -->
-                            <tr>
-                                <td align="center" style="padding: 0 40px 30px 40px; border-top: 1px solid #1e293b;">
-                                    <div style="margin-top: 25px; font-size: 13px; color: #64748b; font-weight: 500;">
-                                        Built by Traders, Powered by Transparency.
-                                    </div>
-                                    <div style="margin-top: 8px; font-size: 14px; color: #0ea5e9;">
-                                        <a href="https://xktradingfloor.com"
-                                            style="color: #0ea5e9; text-decoration: none;">xktradingfloor.com</a>
-                                    </div>
-                                    <div style="margin-top: 15px; font-size: 11px; color: #475569;">
-                                        You are receiving this because you are part of XK Trading Floor.
-                                        <a href="*|UNSUB|*" style="color: #475569;">Unsubscribe</a>
-                                    </div>
-                                </td>
-                            </tr>
+                    <!-- Footer Info -->
+                    <tr>
+                        <td align="center" style="padding: 0 48px 48px 48px;">
+                            <p
+                                style="margin: 32px 0 0 0; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; text-align: center;">
+                                Built by Traders, Powered by Transparency.
+                            </p>
+                            <div style="margin-top: 16px; font-size: 14px; text-align: center;">
+                                <a href="https://xktradingfloor.com"
+                                    style="color: #0ea5e9; text-decoration: none;">xktradingfloor.com</a>
+                            </div>
+                        </td>
+                    </tr>
                 </table>
             </td>
         </tr>

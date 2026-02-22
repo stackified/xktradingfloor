@@ -1,108 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>
-        <%= subject %>
+        <%= locals.subject || 'XK Trading Floor' %>
     </title>
-    <style>
-        body {
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #0B0F19;
-            /* background */
-            margin: 0;
-            padding: 0;
-            color: #FFFFFF;
-            /* foreground */
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #0B0F19;
-        }
-
-        .card {
-            background-color: #0E1422;
-            /* card */
-            margin: 20px;
-            padding: 40px;
-            border-radius: 12px;
-            border: 1px solid #1C2333;
-            /* border */
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-        }
-
-        .header {
-            text-align: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #1C2333;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #FFFFFF;
-            text-decoration: none;
-        }
-
-        .content {
-            padding: 30px 0;
-            color: #FFFFFF;
-        }
-
-        h2 {
-            color: #FFFFFF;
-            font-size: 20px;
-            margin-bottom: 16px;
-        }
-
-        p {
-            color: #9CA3AF;
-            /* gray-400 */
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 24px;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: #6B7280;
-            /* gray-500 */
-            font-size: 12px;
-        }
-
-        .footer a {
-            color: #2B6EF2;
-            text-decoration: none;
-        }
-    </style>
 </head>
 
-<body>
-    <div class="container">
-        <div class="card">
-            <div class="header">
-                <a href="#" class="logo">
-                    <%= companyName %>
-                </a>
-            </div>
-            <div class="content">
-                <p><%- message.replace(/\n/g, '<br>' ) %></p>
-            </div>
-            <div class="footer">
-                <p>&copy; <%= new Date().getFullYear() %>
-                        <%= companyName %>. All rights reserved.</p>
-                <p>
-                    <a href="*|UNSUB|*">Unsubscribe</a> *|IF:ARCHIVE_PAGE|* | <a href="*|ARCHIVE_PAGE|*">View this email
-                        in your browser</a> *|END:IF|*
-                </p>
-            </div>
-        </div>
-    </div>
+<body style="margin: 0; padding: 0; background-color: #020617; font-family: Helvetica, Arial, sans-serif;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #020617;">
+        <tr>
+            <td align="center" style="padding: 48px 0;">
+                <table width="600" border="0" cellspacing="0" cellpadding="0"
+                    style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.4);">
+                    <!-- Header -->
+                    <tr>
+                        <td align="center" style="padding: 40px 40px 0 40px;">
+                            <img src="https://xktradingfloor.com/assets/navbar%20logo.png" width="180"
+                                alt="XK TRADING FLOOR" style="display: block; border: 0;">
+                            <div
+                                style="margin-top: 24px; height: 1px; width: 100%; background: linear-gradient(90deg, transparent, #0ea5e9, transparent);">
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 48px 48px 40px 48px;">
+                            <h1
+                                style="margin: 0; font-size: 32px; font-weight: 700; color: #ffffff; text-align: center;">
+                                <%= locals.subject || 'Bulk Campaign' %>
+                            </h1>
+                            <p
+                                style="margin-top: 24px; font-size: 16px; line-height: 1.6; color: #e2e8f0; text-align: center;">
+                                <%= message %>
+                            </p>
+                            <div style="margin-top: 40px; text-align: center;">
+                                <a href="<%= locals.platformUrl || 'https://xktradingfloor.com' %>"
+                                    style="display: inline-block; padding: 14px 40px; background-color: #0c4a6e; border: 1px solid #0ea5e9; color: #ffffff; text-decoration: none; border-radius: 50px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);">
+                                    Explore the Platform
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Footer Info -->
+                    <tr>
+                        <td align="center" style="padding: 0 48px 48px 48px;">
+                            <p
+                                style="margin: 32px 0 0 0; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; text-align: center;">
+                                Built by Traders, Powered by Transparency.
+                            </p>
+                            <div style="margin-top: 16px; font-size: 14px; text-align: center;">
+                                <a href="https://xktradingfloor.com"
+                                    style="color: #0ea5e9; text-decoration: none;">xktradingfloor.com</a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 
 </html>
