@@ -1,144 +1,80 @@
-const mailchimp = require("@mailchimp/mailchimp_marketing");
+const marketingService = require("../services/marketing.service");
 const xlsx = require("xlsx");
 const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
-const ejs = require("ejs");
 
-// Configure Mailchimp
-mailchimp.setConfig({
-    apiKey: process.env.MAILCHIMP_API_KEY,
-    server: process.env.MAILCHIMP_SERVER_PREFIX,
-});
-
+/**
+ * Controller for Marketing operations
+ */
 exports.sendBulkEmail = async (req, res) => {
     try {
-        if (!req.files.file) {
+        if (!req.files || !req.files.file) {
             return res.status(400).json({ message: "Please upload an Excel file." });
         }
 
         const { subject, message } = req.body;
         if (!subject || !message) {
-            return res
-                .status(400)
-                .json({ message: "Subject and Message are required." });
+            return res.status(400).json({ message: "Subject and Message are required." });
         }
 
-        // 1. Read Excel file
+        // Read Excel file
         const workbook = xlsx.readFile(req.files.file[0].path);
         const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const data = xlsx.utils.sheet_to_json(sheet);
+        const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-        // Extract emails and names
         const recipients = data
             .map((row) => {
                 const email = row.email || row.Email || row.EMAIL;
-                const name = row.name || row.Name || row.NAME || row['First Name'] || row['First Name'];
+                const name = row.name || row.Name || row.NAME || row["First Name"];
                 return { email, name };
             })
-            .filter((recipient) => recipient.email);
+            .filter((r) => r.email);
 
         if (recipients.length === 0) {
-            return res
-                .status(400)
-                .json({ message: "No valid email addresses found in the file." });
+            return res.status(400).json({ message: "No valid email addresses found." });
         }
 
-        const listId = process.env.MAILCHIMP_AUDIENCE_ID;
+        // Call service
+        const result = await marketingService.sendBulkEmail(
+            recipients,
+            subject,
+            message,
+            req.user ? req.user._id : null
+        );
 
-        // 2. Add members to list
-        const successfulAdds = [];
-        const failedAdds = [];
-
-        for (const recipient of recipients) {
-            try {
-                const subscriberHash = crypto
-                    .createHash("md5")
-                    .update(recipient.email.toLowerCase())
-                    .digest("hex");
-
-                const mergeFields = {};
-                if (recipient.name) {
-                    mergeFields.FNAME = recipient.name;
-                }
-
-                await mailchimp.lists.setListMember(listId, subscriberHash, {
-                    email_address: recipient.email,
-                    status_if_new: "subscribed",
-                    status: "subscribed",
-                    merge_fields: mergeFields
-                });
-                successfulAdds.push(recipient.email);
-            } catch (error) {
-                console.error(`Failed to add/update ${recipient.email}:`, error);
-                failedAdds.push({ email: recipient.email, error: error.detail || error.message });
-            }
-        }
-
-        if (successfulAdds.length === 0) {
-            return res.status(500).json({ message: "Failed to add any recipients to Mailchimp.", failures: failedAdds });
-        }
-
-
-        // 3. Create Campaign
-        const tagName = `Batch_${Date.now()}`;
-        const segment = await mailchimp.lists.createSegment(listId, {
-            name: tagName,
-            static_segment: successfulAdds
-        });
-
-        const campaign = await mailchimp.campaigns.create({
-            type: "regular",
-            recipients: {
-                list_id: listId,
-                segment_opts: {
-                    saved_segment_id: segment.id
-                }
-            },
-            settings: {
-                subject_line: subject,
-                from_name: process.env.MAILCHIMP_FROM_NAME || "XK Trading Floor",
-                reply_to: process.env.MAILCHIMP_FROM_EMAIL || "stackified01@gmail.com",
-            },
-        });
-
-        // 4. Set Content using EJS
-        let templateFile = "bulkTemplate.ejs";
-        let templateData = {
-            subject: subject,
-            message: message,
-            companyName: "XK Trading Floor",
-        };
-
-        const templatePath = path.join(__dirname, "../emails", templateFile);
-        const renderedHtml = await ejs.renderFile(templatePath, templateData);
-
-        await mailchimp.campaigns.setContent(campaign.id, {
-            html: renderedHtml,
-        });
-
-        // 5. Send Campaign
-        await mailchimp.campaigns.send(campaign.id);
-
-        // Cleanup
-        if (req.files.file && req.files.file[0]) {
+        // Cleanup file
+        if (fs.existsSync(req.files.file[0].path)) {
             fs.unlinkSync(req.files.file[0].path);
         }
 
         res.status(200).json({
-            message: "Campaign created and sent successfully.",
-            total_uploaded: recipients.length,
-            successful_adds: successfulAdds.length,
-            failed_adds: failedAdds,
-            tag_used: tagName
+            message: "Campaign sent successfully.",
+            ...result,
         });
-
     } catch (error) {
-        console.error("Error in sendBulkEmail:", error);
+        console.error("MarketingController.sendBulkEmail Error:", error);
+        // Cleanup on error
         if (req.files && req.files.file && req.files.file[0] && fs.existsSync(req.files.file[0].path)) {
             fs.unlinkSync(req.files.file[0].path);
         }
-        res.status(500).json({ message: "Internal Server Error", error: error.message });
+        res.status(500).json({ message: "Failed to send campaign.", error: error.message });
+    }
+};
+
+exports.getCampaignHistory = async (req, res) => {
+    try {
+        const history = await marketingService.getCampaignHistory();
+        res.status(200).json(history);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch history.", error: error.message });
+    }
+};
+
+exports.saveDraft = async (req, res) => {
+    try {
+        const { subject, body } = req.body;
+        const draft = await marketingService.saveDraft(subject, body, req.user ? req.user._id : null);
+        res.status(201).json({ message: "Draft saved.", draft });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to save draft.", error: error.message });
     }
 };
