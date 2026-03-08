@@ -2,6 +2,8 @@ const ReviewModel = require("../models/review.model");
 const CompanyModel = require("../models/company.model");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const { getPagination, getPaginationData } = require("../utils/fn");
+const emailService = require("../services/email.service");
+const environment = require("../utils/environment");
 const r2 = require("../helpers/r2.helper");
 
 // Helper to recalculate and persist company rating aggregates
@@ -196,6 +198,11 @@ exports.createReview = async (req, res) => {
 
         const saved = await review.save();
         await recalculateCompanyRating(companyId);
+
+        // Send Notification to the user
+        emailService.sendBrokerReviewNotification(user.email, {
+            reviewUrl: `${environment.frontendUrl}/broker/${companyId}`
+        }).catch(err => console.error("Review notification failed:", err));
 
         const r = saved.toObject();
         r.id = r._id.toString();

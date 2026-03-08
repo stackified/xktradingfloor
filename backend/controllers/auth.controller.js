@@ -6,7 +6,7 @@ const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const environment = require("../utils/environment");
 const constants = require("../utils/constants");
 const ModuleAcessModel = require("../models/permissions.model");
-const { sendHtmlEmail } = require("../helpers/email.helper");
+const emailService = require("../services/email.service");
 
 // sign up
 exports.signup = async (req, res) => {
@@ -35,6 +35,10 @@ exports.signup = async (req, res) => {
                 isActive: true
             });
             const savedUser = await user.save();
+            
+            // Send Welcome Email
+            emailService.sendWelcomeEmail(savedUser.email, savedUser.fullName).catch(err => console.error("Welcome email failed:", err));
+            
             return sendSuccessResponse(res, { data: savedUser });
         } else {
             let msg;
@@ -134,6 +138,13 @@ exports.login = async (req, res) => {
                 maxAge: environment.cookie.expireMs
             });
 
+
+            // Send Login Notification
+            emailService.sendLoginNotification(user.email, {
+                time: new Date().toLocaleString(),
+                location: req.ip || "Unknown"
+            }).catch(err => console.error("Login notification failed:", err));
+
             return sendSuccessResponse(res, {
                 message: "Success! You are logged in.",
                 token,
@@ -180,17 +191,7 @@ exports.forgetpassword = async (req, res) => {
         user.resetPasswordToken = hashToken;
         await user.save();
         console.log(user)
-        await sendHtmlEmail(
-            "views/templates/motor-insurance/forget.ejs",
-            {
-                to: email,
-                subject: `Reset your Methaq Insurance password`,
-            },
-            {
-                link: `${environment.frontendUrl}/auth/reset-password?token=${hashToken}`,
-                serverBaseUrl: environment.server
-            },
-        );
+        await emailService.sendPasswordResetEmail(email, `${environment.frontendUrl}/auth/reset-password?token=${hashToken}`);
         return sendSuccessResponse(res, {
             message: "Success! forget password link shared Successfully",
         });
@@ -276,7 +277,10 @@ exports.updatepassword = async (req, res) => {
 
             if (isMatch && (newPassword == confirmPassword)) {
                 user.password = newPassword;
-                user.save();
+                await user.save();
+
+                // Send Security Alert
+                emailService.sendSecurityAlert(user.email, {}).catch(err => console.error("Security alert failed:", err));
             }
             return sendSuccessResponse(res, { message: "password updated Successfully" })
         });
