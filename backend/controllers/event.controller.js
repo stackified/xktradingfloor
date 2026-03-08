@@ -1,6 +1,9 @@
 const EventModel = require("../models/event.model");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const { getPagination, getPaginationData, escapeRegex } = require("../utils/fn");
+const emailService = require("../services/email.service");
+const UserModel = require("../models/user.model");
+const environment = require("../utils/environment");
 const r2 = require("../helpers/r2.helper");
 
 // Create event
@@ -28,6 +31,21 @@ exports.createEvent = async (req, res) => {
 
         const event = new EventModel(eventData);
         const saved = await event.save();
+
+        // Send Notification to all active users
+        (async () => {
+            try {
+                const users = await UserModel.find({ isActive: true, isDeleted: false }, 'email');
+                for (const user of users) {
+                    emailService.sendEventNotification(user.email, {
+                        eventUrl: `${environment.frontendUrl}/events/${saved._id}`
+                    }).catch(err => console.error(`Event notification failed for ${user.email}:`, err));
+                }
+            } catch (err) {
+                console.error("Failed to send event notifications:", err);
+            }
+        })();
+
         return sendSuccessResponse(res, { message: "Event created", data: saved }, 201);
     } catch (error) {
         return sendErrorResponse(res, error);

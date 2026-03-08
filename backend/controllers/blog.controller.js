@@ -5,6 +5,8 @@ const crypto = require("crypto");
 const r2 = require("../helpers/r2.helper");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const { getPagination, getPaginationData, escapeRegex } = require("../utils/fn");
+const emailService = require("../services/email.service");
+const environment = require("../utils/environment");
 
 // Helper function to get unique viewer identifier
 const getViewerIdentifier = (req) => {
@@ -87,6 +89,22 @@ exports.createBlog = async (req, res) => {
 
         const blog = new BlogModel(blogData);
         const savedBlog = await blog.save();
+
+        // Send Notification to all active users if published
+        if (savedBlog.status === 'published') {
+            (async () => {
+                try {
+                    const users = await UserModel.find({ isActive: true, isDeleted: false }, 'email');
+                    for (const user of users) {
+                        emailService.sendBlogNotification(user.email, {
+                            articleUrl: `${environment.frontendUrl}/blog/${savedBlog.slug || savedBlog._id}`
+                        }).catch(err => console.error(`Blog notification failed for ${user.email}:`, err));
+                    }
+                } catch (err) {
+                    console.error("Failed to send blog notifications:", err);
+                }
+            })();
+        }
 
         return sendSuccessResponse(res, {
             message: role === "User"
@@ -424,6 +442,22 @@ exports.updateBlog = async (req, res) => {
 
         Object.assign(blog, updateData);
         const updatedBlog = await blog.save();
+
+        // Send Notification if status changed to published
+        if (updateData.status === 'published' && blog.status !== 'published') {
+            (async () => {
+                try {
+                    const users = await UserModel.find({ isActive: true, isDeleted: false }, 'email');
+                    for (const user of users) {
+                        emailService.sendBlogNotification(user.email, {
+                            articleUrl: `${environment.frontendUrl}/blog/${updatedBlog.slug || updatedBlog._id}`
+                        }).catch(err => console.error(`Blog notification failed for ${user.email}:`, err));
+                    }
+                } catch (err) {
+                    console.error("Failed to send blog notifications:", err);
+                }
+            })();
+        }
 
         return sendSuccessResponse(res, {
             message: "Blog post updated successfully",

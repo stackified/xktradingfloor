@@ -1,12 +1,30 @@
 const PodcastModel = require("../models/podcast.model");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const { getPagination, getPaginationData, escapeRegex } = require("../utils/fn");
+const emailService = require("../services/email.service");
+const UserModel = require("../models/user.model");
+const environment = require("../utils/environment");
 
 // Create podcast
 exports.createPodcast = async (req, res) => {
     try {
         const podcast = new PodcastModel(req.body);
         const saved = await podcast.save();
+        
+        // Send Notification to all active users
+        (async () => {
+            try {
+                const users = await UserModel.find({ isActive: true, isDeleted: false }, 'email');
+                for (const user of users) {
+                    emailService.sendPodcastNotification(user.email, {
+                        podcastUrl: `${environment.frontendUrl}/podcast/${saved._id}`
+                    }).catch(err => console.error(`Podcast notification failed for ${user.email}:`, err));
+                }
+            } catch (err) {
+                console.error("Failed to send podcast notifications:", err);
+            }
+        })();
+
         const p = saved.toObject();
         p.id = p._id.toString();
         return sendSuccessResponse(res, { message: "Podcast created", data: p }, 201);
