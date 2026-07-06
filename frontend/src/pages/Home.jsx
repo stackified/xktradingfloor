@@ -17,8 +17,9 @@ function Home() {
   return (
     <div className="overflow-hidden">
       <Helmet>
-        <title>Home | XK Trading Floor</title>
-        <meta name="description" content="Begin your trading journey with XK Trading Floor. Learn trading, explore EAs and indicators, and join a supportive trading community." />
+        <title>XK Trading Floor | Trusted Forex, Prop Firm & Crypto Reviews</title>
+        <meta name="description" content="Learn trading, compare brokers, discover prop firms, and read unbiased reviews from real traders." />
+        <link rel="canonical" href="https://xktradingfloor.com/" />
       </Helmet>
       <HeroSection />
       <WhatIsXK />

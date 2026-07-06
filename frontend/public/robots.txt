@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Disallow: /login
+Disallow: /signup
+Disallow: /dashboard
+Disallow: /admin
+
+Sitemap: https://xktradingfloor.com/sitemap-index.xml
