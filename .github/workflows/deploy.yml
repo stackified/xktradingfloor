@@ -1,18 +1,17 @@
-name: Deploy Frontend to GitHub Pages
+name: Deploy Frontend to Bluehost
 
 on:
   push:
     branches:
       - main
 
+concurrency:
+  group: deploy-bluehost
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
 
     steps:
       - name: Checkout repository
@@ -22,18 +21,30 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         working-directory: ./frontend
-        run: npm install
+        run: npm ci || npm install
 
-      - name: Build project for GitHub Pages
+      - name: Build for production (base = /)
         working-directory: ./frontend
-        run: npm run build:gith
+        run: npm run build:prod
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Deploy to Bluehost via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./frontend/docs
-          publish_branch: gh-pages
+          server: ${{ secrets.BLUEHOST_HOST }}
+          username: ${{ secrets.BLUEHOST_USER }}
+          password: ${{ secrets.BLUEHOST_PASSWORD }}
+          server-dir: ${{ secrets.BLUEHOST_PATH }}
+          local-dir: ./frontend/docs/
+          protocol: ftp
+          port: 21
+          dangerous-clean-slate: false
+          log-level: standard
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
