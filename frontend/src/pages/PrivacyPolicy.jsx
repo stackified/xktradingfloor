@@ -1,5 +1,5 @@
 import React from "react";
-import { Helmet } from "react-helmet-async";
+import Seo from "../components/shared/Seo.jsx";
 import { motion } from "framer-motion";
 import {
   Shield,
@@ -149,14 +149,11 @@ function PrivacyPolicy() {
 
   return (
     <div className="bg-black min-h-screen">
-      <Helmet>
-        <title>Privacy Policy | XK Trading Floor</title>
-        <meta
-          name="description"
-          content="Privacy Policy for XK Trading Floor. Learn how we collect, use, and protect your personal information."
-        />
-        <link rel="canonical" href="/privacy-policy" />
-      </Helmet>
+      <Seo
+        title="Privacy Policy"
+        description="Privacy Policy for XK Trading Floor. Learn how we collect, use, and protect your personal information."
+        path="/privacy-policy"
+      />
 
       {/* Hero Section */}
       <section className="relative py-20 bg-gradient-to-b from-gray-900 to-black border-b border-gray-800">

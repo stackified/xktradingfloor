@@ -1,5 +1,6 @@
 import React from "react";
-import { Helmet } from "react-helmet-async";
+import Seo from "../components/shared/Seo.jsx";
+import { eventJsonLd, breadcrumbJsonLd } from "../utils/structuredData.js";
 import { useParams, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { getEventById } from "../controllers/eventsController.js";
@@ -60,16 +61,21 @@ function EventDetails() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
-      <Helmet>
-        <title>{event.title} | XK Trading Floor</title>
-        <meta
-          name="description"
-          content={
-            event.excerpt ||
-            "View event details and register for XK Trading Floor workshops and webinars."
-          }
-        />
-      </Helmet>
+      <Seo
+        title={event.title}
+        description={event.excerpt || event.description?.slice(0, 160) || "View event details and register for XK Trading Floor workshops and webinars."}
+        path={`/events/${event._id}`}
+        image={event.featuredImage || event.image}
+        type="event"
+        jsonLd={[
+          eventJsonLd(event),
+          breadcrumbJsonLd([
+            { name: "Home", url: "/" },
+            { name: "Academy", url: "/academy" },
+            { name: event.title, url: `/events/${event._id}` },
+          ]),
+        ].filter(Boolean)}
+      />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 card overflow-hidden">
           <div className="w-full h-64 sm:h-80 md:h-96 bg-muted overflow-hidden">

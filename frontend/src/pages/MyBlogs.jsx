@@ -1,5 +1,5 @@
 import React from "react";
-import { Helmet } from "react-helmet-async";
+import Seo from "../components/shared/Seo.jsx";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Plus } from "lucide-react";
@@ -222,9 +222,7 @@ function MyBlogsContent() {
 
   return (
     <div className="bg-gray-950 text-white min-h-screen">
-      <Helmet>
-        <title>My Blogs | XK Trading Floor</title>
-      </Helmet>
+      <Seo title="My Blogs" path="/my-blogs" noindex />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}

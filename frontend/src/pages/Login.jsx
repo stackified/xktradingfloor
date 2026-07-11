@@ -1,5 +1,5 @@
 import React from "react";
-import { Helmet } from "react-helmet-async";
+import Seo from "../components/shared/Seo.jsx";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
@@ -59,13 +59,12 @@ function Login() {
 
   return (
     <div className="bg-black min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      <Helmet>
-        <title>Login | XK Trading Floor</title>
-        <meta
-          name="description"
-          content="Log in to your XK Trading Floor account to access your dashboard and trading resources."
-        />
-      </Helmet>
+      <Seo
+        title="Login"
+        description="Log in to your XK Trading Floor account."
+        path="/login"
+        noindex
+      />
 
       {/* Background Effects */}
       {/* <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10" /> */}

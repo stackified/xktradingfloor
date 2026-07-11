@@ -35,7 +35,7 @@ function CTASection() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-sm sm:text-base text-gray-300 mb-8"
           >
-            Access events, courses, reviews, and an active community.
+            Access events, mentorship, reviews, and an active community.
           </motion.p>
           <Link to="/signup" className="btn inline-flex items-center justify-center rounded-full bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3 font-medium">
             Sign Up Now

@@ -28,6 +28,10 @@ const ForgotPassword = React.lazy(() => import("../pages/ForgotPassword.jsx"));
 const ResetPassword = React.lazy(() => import("../pages/ResetPassword.jsx"));
 const About = React.lazy(() => import("../pages/About.jsx"));
 const Contact = React.lazy(() => import("../pages/Contact.jsx"));
+const Services = React.lazy(() => import("../pages/Services.jsx"));
+const VerifiedTraders = React.lazy(() => import("../pages/VerifiedTraders.jsx"));
+const LiveSpreads = React.lazy(() => import("../pages/LiveSpreads.jsx"));
+const Payouts = React.lazy(() => import("../pages/Payouts.jsx"));
 const PrivacyPolicy = React.lazy(() => import("../pages/PrivacyPolicy.jsx"));
 const Terms = React.lazy(() => import("../pages/Terms.jsx"));
 const AdminDashboard = React.lazy(() => import("../pages/AdminDashboard.jsx"));
@@ -68,12 +72,10 @@ function PageLoader() {
 function Layout({ children }) {
   const dispatch = useDispatch();
 
-  // Sync user from cookie on mount for cross-tab persistence
   React.useEffect(() => {
     dispatch(syncUserFromCookie());
   }, [dispatch]);
 
-  // Sync mock mode from backend globally (so admin changes affect all users across all browsers/devices)
   React.useEffect(() => {
     dispatch(fetchMockMode());
 
@@ -119,6 +121,7 @@ export default function AppRouter() {
           <Route path="/reviews/broker" element={<Reviews />} />
           <Route path="/reviews/propfirm" element={<Reviews />} />
           <Route path="/reviews/crypto" element={<Reviews />} />
+          <Route path="/reviews/traders" element={<VerifiedTraders />} />
           <Route
             path="/reviews/operator"
             element={
@@ -152,6 +155,9 @@ export default function AppRouter() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/live-spreads" element={<LiveSpreads />} />
+          <Route path="/payouts" element={<Payouts />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<Terms />} />
           <Route

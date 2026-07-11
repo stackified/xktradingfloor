@@ -1,5 +1,6 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import Seo from '../components/shared/Seo.jsx';
+import { articleJsonLd, breadcrumbJsonLd } from '../utils/structuredData.js';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
@@ -104,10 +105,24 @@ function BlogPost() {
 
   return (
     <div>
-      <Helmet>
-        <title>{post ? `${post.title} | XK Trading Floor` : 'Blog Post | XK Trading Floor'}</title>
-        <meta name="description" content={post?.excerpt || 'Read our latest trading insights and market analysis.'} />
-      </Helmet>
+      <Seo
+        title={post?.title || 'Blog Post'}
+        description={post?.excerpt || post?.metaDescription || 'Read our latest trading insights and market analysis.'}
+        path={post ? `/blog/${post.slug || post._id}` : '/blog'}
+        image={post?.coverImage || post?.image}
+        type="article"
+        publishedTime={post?.publishedAt || post?.createdAt}
+        modifiedTime={post?.updatedAt}
+        author={post?.author?.fullName || post?.author}
+        jsonLd={post ? [
+          articleJsonLd(post),
+          breadcrumbJsonLd([
+            { name: 'Home', url: '/' },
+            { name: 'Blog', url: '/blog' },
+            { name: post.title, url: `/blog/${post.slug || post._id}` },
+          ]),
+        ].filter(Boolean) : null}
+      />
       <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="bg-gray-900/50 border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="h-64 w-full rounded-xl overflow-hidden bg-muted mb-6">

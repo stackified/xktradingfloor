@@ -1,5 +1,5 @@
 import React from "react";
-import { Helmet } from "react-helmet-async";
+import Seo from "../components/shared/Seo.jsx";
 import { motion } from "framer-motion";
 import { FileText, AlertTriangle, Shield, User, Ban, Copyright, Download, Users, XCircle, RefreshCw, Mail, Globe, ExternalLink } from "lucide-react";
 
@@ -142,14 +142,11 @@ function Terms() {
 
   return (
     <div className="bg-black min-h-screen">
-      <Helmet>
-        <title>Terms & Conditions | XK Trading Floor</title>
-        <meta
-          name="description"
-          content="Terms & Conditions for XK Trading Floor. Read our terms of service and usage policies."
-        />
-        <link rel="canonical" href="/terms" />
-      </Helmet>
+      <Seo
+        title="Terms & Conditions"
+        description="Terms & Conditions for XK Trading Floor. Read our terms of service and usage policies."
+        path="/terms"
+      />
 
       {/* Hero Section */}
       <section className="relative py-20 bg-gradient-to-b from-gray-900 to-black border-b border-gray-800">
