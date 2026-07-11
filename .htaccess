@@ -1,0 +1,37 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Force HTTPS
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Serve real files/directories as-is (ads.txt, verification file, assets, etc.)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # SPA fallback: everything else -> index.html
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Correct MIME types + disable caching for verification files
+<Files "ads.txt">
+  ForceType text/plain
+  Header set Cache-Control "no-cache, no-store, must-revalidate"
+</Files>
+<Files "be15dc6047cf404fbb18108c7ca59347.html">
+  Header set Cache-Control "no-cache, no-store, must-revalidate"
+</Files>
+
+# Long cache for hashed build assets
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
+# Gzip
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/javascript application/json image/svg+xml
+</IfModule>

@@ -1,0 +1,1 @@
+import{j as r}from"./vendor-react-BhR5jwqz.js";import{m as i}from"./vendor-motion-D3O7n5_n.js";function t(){return r.jsx(i.hr,{initial:{scaleX:0},whileInView:{scaleX:1},viewport:{once:!0},transition:{duration:.5},className:"my-8 border-t-2 border-border origin-left"})}export{t as A};
