@@ -8,6 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import { signup } from '../controllers/authController.js';
 import { loginSuccess } from '../redux/slices/authSlice.js';
 import CustomSelect from "../components/shared/CustomSelect.jsx";
+import PasswordStrength from "../components/shared/PasswordStrength.jsx";
+import { validatePassword } from "../utils/passwordPolicy.js";
 
 function Signup() {
   const dispatch = useDispatch();
@@ -19,13 +21,25 @@ function Signup() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+
+    const passwordCheck = validatePassword(form.password);
+    if (!passwordCheck.valid) {
+      setError(passwordCheck.errors[0]);
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await signup(form);
+      const res = await signup({
+        fullName: form.name,
+        email: form.email,
+        password: form.password,
+        country: form.country,
+      });
       dispatch(loginSuccess(res.data));
       navigate('/');
     } catch (err) {
-      setError('Failed to create account. Please try again.');
+      setError(err.response?.data?.message || 'Failed to create account. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -129,9 +143,11 @@ function Signup() {
                     type="password"
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    minLength={8}
                     required
                   />
                 </div>
+                <PasswordStrength password={form.password} />
               </div>
 
               {/* Error Message */}

@@ -61,3 +61,37 @@ export async function logoutRequest() {
     return { data: { success: true } };
   }
 }
+
+export async function forgotPassword({ email }) {
+  try {
+    const response = await api.post("/auth/forget-password", {
+      email: String(email).trim().toLowerCase(),
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function validateResetToken(token) {
+  try {
+    const response = await api.get(
+      `/auth/reset-password/validate?token=${encodeURIComponent(token)}`
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function resetPassword({ token, newPassword, confirmPassword }) {
+  try {
+    const response = await api.post(
+      `/auth/reset-password?token=${encodeURIComponent(token)}`,
+      { newPassword, confirmPassword }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}

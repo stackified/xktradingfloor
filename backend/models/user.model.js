@@ -62,7 +62,14 @@ const UserSchema = new Schema(
             type: String
         },
         resetPasswordExpiry: {
-            type: String
+            type: Date
+        },
+        tokenVersion: {
+            type: Number,
+            default: 0,
+        },
+        lastPasswordResetRequestedAt: {
+            type: Date,
         },
     },
     {

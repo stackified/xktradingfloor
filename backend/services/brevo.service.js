@@ -5,7 +5,6 @@ const { BrevoClient } = require("@getbrevo/brevo");
  */
 class BrevoService {
     constructor() {
-        console.log("BREVO KEY:", process.env.BREVO_API_KEY);
         if (!process.env.BREVO_API_KEY) {
             throw new Error("BREVO_API_KEY is not set in environment variables.");
         }
@@ -34,7 +33,7 @@ class BrevoService {
                 htmlContent: html,
             });
 
-            console.log("Brevo Email Sent:", response);
+            console.log("Brevo Email Sent to recipient");
             return response;
         } catch (error) {
             console.error("Brevo Email Error:", error);
