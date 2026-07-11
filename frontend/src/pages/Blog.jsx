@@ -10,7 +10,7 @@ import BlogSidebar from "../components/blog/BlogSidebar.jsx";
 import BlogCard from "../components/blog/BlogCard.jsx";
 import CardLoader from "../components/shared/CardLoader.jsx";
 import { getUserCookie } from "../utils/cookies.js";
-import { updateMockMode, fetchMockMode } from "../redux/slices/mockSlice.js";
+import { updateMockMode } from "../redux/slices/mockSlice.js";
 import { fetchPublishedBlogs } from "../redux/slices/blogsSlice.js";
 
 function Blog() {
@@ -33,15 +33,6 @@ function Blog() {
     loading: blogsLoading,
     pagination,
   } = useSelector((state) => state.blogs);
-
-  // Fetch and sync mock mode from backend (for global sync across all users)
-  React.useEffect(() => {
-    dispatch(fetchMockMode());
-    const pollInterval = setInterval(() => {
-      dispatch(fetchMockMode());
-    }, 5000);
-    return () => clearInterval(pollInterval);
-  }, [dispatch]);
 
   // FORCE REAL DATA MODE
   const FORCE_REAL_DATA = true;
