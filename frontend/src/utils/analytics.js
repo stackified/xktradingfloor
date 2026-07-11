@@ -24,11 +24,20 @@ export const initGA = () => {
  * @param {string} title - Optional page title
  */
 export const trackPageView = (path, title = "") => {
-  if (typeof window !== "undefined" && window.gtag) {
-    window.gtag("config", GA_MEASUREMENT_ID, {
+  if (typeof window !== "undefined") {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "page_view",
       page_path: path,
       page_title: title || document.title,
     });
+
+    if (window.gtag) {
+      window.gtag("config", GA_MEASUREMENT_ID, {
+        page_path: path,
+        page_title: title || document.title,
+      });
+    }
   }
 };
 
