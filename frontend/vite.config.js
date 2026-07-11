@@ -32,12 +32,29 @@ export default defineConfig(({ mode }) => {
     base: normalizedBasePath,
     build: {
       outDir: "docs", // Output to docs folder for GitHub Pages
-      // Ensure assets are properly referenced
       assetsDir: "assets",
-      // Copy 404.html to root of build output
       rollupOptions: {
         input: {
           main: "./index.html",
+        },
+        output: {
+          manualChunks(id) {
+            if (!id.includes("node_modules")) return;
+
+            if (id.includes("recharts")) return "vendor-charts";
+            if (id.includes("framer-motion")) return "vendor-motion";
+            if (
+              id.includes("react-dom") ||
+              id.includes("react-router") ||
+              id.includes("/react/")
+            ) {
+              return "vendor-react";
+            }
+            if (id.includes("redux") || id.includes("@reduxjs")) {
+              return "vendor-redux";
+            }
+            return "vendor";
+          },
         },
       },
     },

@@ -227,6 +227,7 @@ function generateTextImage(
  * @param {string} alt - Alt text for accessibility (used for dynamic fallback if provided)
  * @param {string} className - Additional CSS classes
  * @param {boolean} useDynamicFallback - If true, generates dynamic image with alt text
+ * @param {boolean} priority - If true, loads image eagerly (for above-the-fold content)
  * @param {object} ...props - Other img element props
  */
 
@@ -237,6 +238,7 @@ export default function ImageWithFallback({
   className = "",
   useDynamicFallback = false,
   useCdn = true, // Enable CDN by default
+  priority = false,
   ...props
 }) {
   // Check if src is an external URL (starts with http:// or https://)
@@ -412,6 +414,10 @@ export default function ImageWithFallback({
     (!src && (dynamicFallback || imgSrc === fallbackUrl)) ||
     (imgSrc === fallbackUrl && src && imgSrc !== cdnUrl);
 
+  const loadingProps = priority
+    ? { loading: "eager", fetchPriority: "high" }
+    : { loading: "lazy", decoding: "async" };
+
   // If using fallback and alt text exists, wrap in container with text overlay
   if (isUsingFallback && alt) {
     return (
@@ -426,6 +432,7 @@ export default function ImageWithFallback({
           alt={alt}
           className={className}
           onError={handleError}
+          {...loadingProps}
           {...props}
         />
       </div>
@@ -438,6 +445,7 @@ export default function ImageWithFallback({
       alt={alt}
       className={className}
       onError={handleError}
+      {...loadingProps}
       {...props}
     />
   );

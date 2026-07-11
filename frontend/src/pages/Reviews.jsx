@@ -13,11 +13,7 @@ import CardLoader from "../components/shared/CardLoader.jsx";
 import WriteToUsModal from "../components/reviews/WriteToUsModal.jsx";
 import RequireAuthModal from "../components/shared/RequireAuthModal.jsx";
 import { getUserCookie } from "../utils/cookies.js";
-import {
-  updateMockMode,
-  fetchMockMode,
-  syncMockModeFromStorage,
-} from "../redux/slices/mockSlice.js";
+import { updateMockMode } from "../redux/slices/mockSlice.js";
 
 // Map URL category to actual category value
 const categoryMap = {
@@ -94,31 +90,6 @@ export default function Reviews() {
 
   // Get category from filters
   const activeCategory = filters.category || null;
-
-  // Fetch and sync mock mode from backend (for global sync across all users)
-  React.useEffect(() => {
-    // Fetch from backend on mount
-    dispatch(fetchMockMode());
-
-    // Poll backend periodically to sync mock mode globally (every 5 seconds)
-    const pollInterval = setInterval(() => {
-      dispatch(fetchMockMode());
-    }, 5000);
-
-    // Also listen for localStorage changes (for cross-tab sync on same device)
-    const handleStorageChange = (e) => {
-      if (e.key === "xk_mock_mode") {
-        dispatch(syncMockModeFromStorage());
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      clearInterval(pollInterval);
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, [dispatch]);
 
   // Reset page when filters change
   React.useEffect(() => {

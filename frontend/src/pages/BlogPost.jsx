@@ -4,7 +4,6 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchBlogById, fetchPublishedBlogs } from '../redux/slices/blogsSlice.js';
-import { fetchMockMode } from '../redux/slices/mockSlice.js';
 import { getAllBlogs, getBlogById } from '../controllers/blogsController.js';
 import BlogAuthorInfo from '../components/blog/BlogAuthorInfo.jsx';
 import ImageWithFallback from '../components/shared/ImageWithFallback.jsx';
@@ -17,10 +16,6 @@ function BlogPost() {
   const mockMode = useSelector((state) => state.mock.enabled);
   const [post, setPost] = React.useState(null);
   const [all, setAll] = React.useState([]);
-
-  React.useEffect(() => {
-    dispatch(fetchMockMode());
-  }, [dispatch]);
 
   React.useEffect(() => {
     const loadBlog = async () => {
