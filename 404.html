@@ -1,59 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>XK Trading Floor</title>
-    <script>
-      // GitHub Pages SPA routing fix
-      // This file is served when GitHub Pages can't find a file
-      // We need to load index.html while preserving the original path
 
-      // Dynamically detect base path from current location
-      // For GitHub Pages project site: /xktradingfloor/
-      // For root domain: /
-      // For localhost: /
-      var path = window.location.pathname;
-      var search = window.location.search;
-      var hash = window.location.hash;
+<head>
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-PB4G7KLK');</script>
+  <!-- End Google Tag Manager -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0B0F19" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
+    rel="stylesheet" />
+  <!-- Favicons - Multiple sizes for better display -->
+  <!-- Paths will be updated dynamically by main.jsx after React loads -->
+  <link rel="icon" type="image/png" href="/xktradingfloor/assets/favicon.png" sizes="256x256" id="favicon-32" />
+  <link rel="icon" type="image/png" href="/xktradingfloor/assets/favicon.png" sizes="512x512" id="favicon-96" />
+  <link rel="icon" type="image/png" href="/xktradingfloor/assets/favicon.png" sizes="1024x1024" id="favicon-192" />
+  <link rel="apple-touch-icon" href="/xktradingfloor/assets/favicon.png" sizes="720x720" id="apple-touch-icon" />
+  <title>XK Trading Floor</title>
+  <meta name="google-site-verification" content="be15dc6047cf404fbb18108c7ca59347" />
+  <meta name="google-adsense-account" content="ca-pub-8956282576298580" />
+  <!-- GA4 is managed via Google Tag Manager (GTM-PB4G7KLK) -->
+  <!-- ads.txt entry: google.com, pub-8956282576298580, DIRECT, f08c47fec0942fa0 -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8956282576298580"
+    crossorigin="anonymous"></script>
+  <script type="module" crossorigin src="/xktradingfloor/assets/main-KgVYLqYU.js"></script>
+  <link rel="stylesheet" crossorigin href="/xktradingfloor/assets/main-CLDvk643.css">
+</head>
 
-      // Detect base path: if path starts with /xktradingfloor/, use that, otherwise use /
-      // This works for both GitHub Pages project sites and root domains
-      var basePath = "/";
-      if (path.startsWith("/xktradingfloor/")) {
-        basePath = "/xktradingfloor/";
-      } else {
-        // Try to detect from the path structure
-        // If we're in a subdirectory, extract it
-        var pathParts = path.split("/").filter(function (p) {
-          return p.length > 0;
-        });
-        if (pathParts.length > 0 && pathParts[0] !== "index.html") {
-          // Check if first part might be a base path (e.g., repository name)
-          // For now, default to /, but this can be customized per deployment
-          basePath = "/";
-        }
-      }
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PB4G7KLK"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+  <div id="root"></div>
+</body>
 
-      // Store the original path in sessionStorage so React Router can use it
-      sessionStorage.setItem("github-404-redirect", path);
-
-      // Redirect to index.html
-      // After index.html loads, React Router will check sessionStorage and restore the path
-      window.location.replace(basePath + "index.html" + search + hash);
-    </script>
-  </head>
-  <body>
-    <div
-      style="
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        font-family: system-ui, -apple-system, sans-serif;
-      "
-    >
-      <p>Loading...</p>
-    </div>
-  </body>
 </html>
