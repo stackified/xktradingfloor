@@ -41,18 +41,20 @@ export default defineConfig(({ mode }) => {
           manualChunks(id) {
             if (!id.includes("node_modules")) return;
 
-            if (id.includes("recharts")) return "vendor-charts";
-            if (id.includes("framer-motion")) return "vendor-motion";
+            // Keep every React-adjacent package in one chunk. Splitting them
+            // across chunks causes "Cannot set properties of undefined (Children)"
+            // at init time because dependents can load before React's namespace
+            // object is fully populated.
             if (
-              id.includes("react-dom") ||
-              id.includes("react-router") ||
-              id.includes("/react/")
+              /[\\/]node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom|react-redux|react-helmet-async|react-quill|@tiptap)[\\/]/.test(
+                id
+              )
             ) {
               return "vendor-react";
             }
-            if (id.includes("redux") || id.includes("@reduxjs")) {
-              return "vendor-redux";
-            }
+            if (id.includes("recharts")) return "vendor-charts";
+            if (id.includes("framer-motion")) return "vendor-motion";
+            if (id.includes("@reduxjs")) return "vendor-redux";
             return "vendor";
           },
         },
