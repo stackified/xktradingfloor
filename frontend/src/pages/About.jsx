@@ -5,7 +5,7 @@ import InfoCard from "../components/shared/InfoCard.jsx";
 import AnimatedDivider from "../components/shared/AnimatedDivider.jsx";
 import { Rocket, ShieldCheck, Users } from "lucide-react";
 import { motion } from "framer-motion";
-import { Helmet } from "react-helmet-async";
+import Seo from "../components/shared/Seo.jsx";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
 import DiscordAuthGate from "../components/shared/DiscordAuthGate.jsx";
 import { getAssetPath } from "../utils/assets.js";
@@ -76,19 +76,11 @@ function About() {
 
   return (
     <div className="bg-black min-h-screen">
-      <Helmet>
-        <title>About | XK Trading Floor</title>
-        <meta
-          name="description"
-          content="Learn about XK Trading Floor's mission to empower traders through education, data, and community."
-        />
-        <link rel="canonical" href="/about" />
-        <meta property="og:title" content="About | XK Trading Floor" />
-        <meta
-          property="og:description"
-          content="Empowering traders through technology and data."
-        />
-      </Helmet>
+      <Seo
+        title="About"
+        description="Learn about XK Trading Floor's mission to empower traders through education, data, and community."
+        path="/about"
+      />
 
       <HeroSection
         title={

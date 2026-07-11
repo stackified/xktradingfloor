@@ -1,5 +1,5 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import Seo from '../components/shared/Seo.jsx';
 import { useNavigate } from 'react-router-dom';
 import MerchHero from '../components/merch/MerchHero.jsx';
 import ProductFilter from '../components/merch/ProductFilter.jsx';
@@ -27,10 +27,11 @@ function Merch() {
 
   return (
     <div>
-      <Helmet>
-        <title>Merch | XK Trading Floor</title>
-        <meta name="description" content="Official XK Trading Floor merchandise. Wear your confidence. Trade in style." />
-      </Helmet>
+      <Seo
+        title="Merch"
+        description="Official XK Trading Floor merchandise. Wear your confidence. Trade in style."
+        path="/merch"
+      />
       <MerchHero />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ProductFilter categories={categories} activeCategory={category} onCategory={setCategory} sort={sort} onSort={setSort} />

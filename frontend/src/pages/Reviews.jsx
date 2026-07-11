@@ -1,5 +1,5 @@
 import React from "react";
-import { Helmet } from "react-helmet-async";
+import Seo from "../components/shared/Seo.jsx";
 import { useLocation, Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Reorder } from "framer-motion";
@@ -8,6 +8,7 @@ import { updateCompany } from "../controllers/companiesController.js";
 import { getAllCompanies } from "../controllers/companiesController.js";
 import CompanyCard from "../components/reviews/CompanyCard.jsx";
 import CompanyFilters from "../components/reviews/CompanyFilters.jsx";
+import ReviewsTabs from "../components/reviews/ReviewsTabs.jsx";
 import Pagination from "../components/reviews/Pagination.jsx";
 import CardLoader from "../components/shared/CardLoader.jsx";
 import WriteToUsModal from "../components/reviews/WriteToUsModal.jsx";
@@ -198,10 +199,11 @@ export default function Reviews() {
 
   return (
     <div className="bg-black text-white min-h-screen">
-      <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={heroDescription} />
-      </Helmet>
+      <Seo
+        title={pageTitle.replace(' | XK Trading Floor', '')}
+        description={heroDescription}
+        path="/reviews"
+      />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-black">
@@ -229,6 +231,8 @@ export default function Reviews() {
           </p>
         </div>
       </section>
+
+      <ReviewsTabs />
 
       {/* Mock Data Toggle - HIDDEN FOR NOW (can be enabled later) */}
       {false && isAdmin && (

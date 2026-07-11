@@ -11,7 +11,7 @@ import {
   Youtube,
   Instagram,
 } from "lucide-react";
-import { Helmet } from "react-helmet-async";
+import Seo from "../components/shared/Seo.jsx";
 import CustomSelect from "../components/shared/CustomSelect.jsx";
 
 function Contact() {
@@ -30,16 +30,11 @@ function Contact() {
 
   return (
     <div className="bg-black min-h-screen">
-      <Helmet>
-        <title>Contact | XK Trading Floor</title>
-        <meta
-          name="description"
-          content="Get in touch with XK Trading Floor for support, partnerships, or feedback."
-        />
-        <link rel="canonical" href="/contact" />
-        <meta property="og:title" content="Contact | XK Trading Floor" />
-        <meta property="og:description" content="We'd love to hear from you." />
-      </Helmet>
+      <Seo
+        title="Contact"
+        description="Get in touch with XK Trading Floor for support, partnerships, or feedback."
+        path="/contact"
+      />
 
       <HeroSection
         title={<>Get in <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Touch</span></>}

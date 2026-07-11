@@ -1,5 +1,5 @@
 import React from "react";
-import { Helmet } from "react-helmet-async";
+import Seo from "../components/shared/Seo.jsx";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import BlogHero from "../components/blog/BlogHero.jsx";
@@ -144,13 +144,11 @@ function Blog() {
 
   return (
     <div className="bg-black min-h-screen">
-      <Helmet>
-        <title>Blog | XK Trading Floor</title>
-        <meta
-          name="description"
-          content="Stay ahead of the markets with in-depth research, tutorials, and expert opinions."
-        />
-      </Helmet>
+      <Seo
+        title="Blog"
+        description="Stay ahead of the markets with in-depth research, tutorials, and expert opinions."
+        path="/blog"
+      />
       <BlogHero />
 
       {/* Mock Data Toggle - HIDDEN FOR NOW (can be enabled later) */}

@@ -4,6 +4,11 @@ Allow: /
 Disallow: /login
 Disallow: /signup
 Disallow: /dashboard
+Disallow: /profile
+Disallow: /my-blogs
 Disallow: /admin
+Disallow: /operator
+Disallow: /forgot-password
+Disallow: /reset-password
 
 Sitemap: https://xktradingfloor.com/sitemap-index.xml
