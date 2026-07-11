@@ -206,13 +206,13 @@ function Login() {
         {/* Footer */}
         <p className="text-center text-xs text-gray-500 mt-6">
           By signing in, you agree to our{" "}
-          <a href="#" className="text-blue-400 hover:text-blue-300">
+          <Link to="/terms" className="text-blue-400 hover:text-blue-300">
             Terms of Service
-          </a>{" "}
+          </Link>{" "}
           and{" "}
-          <a href="#" className="text-blue-400 hover:text-blue-300">
+          <Link to="/privacy-policy" className="text-blue-400 hover:text-blue-300">
             Privacy Policy
-          </a>
+          </Link>
         </p>
       </motion.div>
     </div>
