@@ -37,27 +37,12 @@ export default defineConfig(({ mode }) => {
         input: {
           main: "./index.html",
         },
-        output: {
-          manualChunks(id) {
-            if (!id.includes("node_modules")) return;
-
-            // Keep every React-adjacent package in one chunk. Splitting them
-            // across chunks causes "Cannot set properties of undefined (Children)"
-            // at init time because dependents can load before React's namespace
-            // object is fully populated.
-            if (
-              /[\\/]node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom|react-redux|react-helmet-async|react-quill|@tiptap)[\\/]/.test(
-                id
-              )
-            ) {
-              return "vendor-react";
-            }
-            if (id.includes("recharts")) return "vendor-charts";
-            if (id.includes("framer-motion")) return "vendor-motion";
-            if (id.includes("@reduxjs")) return "vendor-redux";
-            return "vendor";
-          },
-        },
+        // NOTE: intentionally no manualChunks. Prior configs split React into
+        // its own chunk while leaving transitive deps (@remix-run/router,
+        // use-sync-external-store) in the generic vendor chunk, causing a
+        // load-order race that threw "Cannot set properties of undefined
+        // (setting 'Children')" and produced a blank page. Rollup's default
+        // chunking is safe.
       },
     },
     publicDir: "public", // Ensure public folder is copied
