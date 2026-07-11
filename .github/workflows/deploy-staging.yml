@@ -39,6 +39,10 @@ jobs:
           VITE_SITE_URL: https://stackified.github.io/xktradingfloor
         run: npm run build:gith
 
+      - name: Strip production CNAME from staging build
+        # Otherwise gh-pages serves the CNAME and redirects to xktradingfloor.com
+        run: rm -f ./frontend/docs/CNAME
+
       - name: Deploy to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:
