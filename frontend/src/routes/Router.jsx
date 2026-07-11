@@ -20,6 +20,8 @@ import Merch from "../pages/Merch.jsx";
 import ProductDetails from "../pages/ProductDetails.jsx";
 import Signup from "../pages/Signup.jsx";
 import Login from "../pages/Login.jsx";
+import ForgotPassword from "../pages/ForgotPassword.jsx";
+import ResetPassword from "../pages/ResetPassword.jsx";
 import About from "../pages/About.jsx";
 import Contact from "../pages/Contact.jsx";
 import PrivacyPolicy from "../pages/PrivacyPolicy.jsx";
@@ -132,6 +134,8 @@ export default function AppRouter() {
         <Route path="/merch/:productId" element={<ProductDetails />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />

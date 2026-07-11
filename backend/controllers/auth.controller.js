@@ -1,12 +1,16 @@
 const jwt = require("jsonwebtoken");
-const crypto = require('crypto');
-const bcrypt = require('bcrypt');
+const crypto = require("crypto");
 const UserModel = require("../models/user.model");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const environment = require("../utils/environment");
 const constants = require("../utils/constants");
 const ModuleAcessModel = require("../models/permissions.model");
 const emailService = require("../services/email.service");
+const { getClientIp } = require("../middleware/rateLimit.middleware");
+const { validatePassword } = require("../utils/passwordPolicy");
+
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
+const RESET_REQUEST_COOLDOWN_MS = 2 * 60 * 1000;
 
 // sign up
 exports.signup = async (req, res) => {
@@ -25,6 +29,11 @@ exports.signup = async (req, res) => {
         };
 
         if (!existingUser) {
+            const passwordCheck = validatePassword(password);
+            if (!passwordCheck.valid) {
+                return sendErrorResponse(res, passwordCheck.errors[0], 400, true, true);
+            }
+
             const user = new UserModel({
                 fullName: fullName,
                 email,
@@ -35,10 +44,9 @@ exports.signup = async (req, res) => {
                 isActive: true
             });
             const savedUser = await user.save();
-            
-            // Send Welcome Email
+
             emailService.sendWelcomeEmail(savedUser.email, savedUser.fullName).catch(err => console.error("Welcome email failed:", err));
-            
+
             return sendSuccessResponse(res, { data: savedUser });
         } else {
             let msg;
@@ -78,10 +86,8 @@ exports.reactivateUser = async (req, res) => {
     }
 }
 
-// login
 exports.login = async (req, res) => {
     try {
-        console.log("login page ");
         res.clearCookie("token", {
             domain: `.${environment.domain}`,
             httpOnly: true,
@@ -89,9 +95,7 @@ exports.login = async (req, res) => {
             sameSite: 'Lax'
         });
         const { email, password } = req.body;
-        const user = await UserModel.findOne({ email }).select(
-            "+password"
-        );
+        const user = await UserModel.findOne({ email }).select("+password");
 
         if (!user) {
             return sendErrorResponse(res, "We are not aware of this user.", 403, true, true);
@@ -119,13 +123,12 @@ exports.login = async (req, res) => {
 
         const permissions = await ModuleAcessModel.findOne({ userId: user._id });
         const { password: hash, ...userData } = user.toJSON();
-        // Add frontend-compatible fields
         userData.id = userData?._id;
         userData.name = userData?.fullName;
 
-        const generateAndSendToken = () => {
+        const sendLoginResponse = () => {
             const token = jwt.sign(
-                { _id: user._id, role: user.role },
+                { _id: user._id, role: user.role, tv: user.tokenVersion || 0 },
                 environment.jwt.secret,
                 { expiresIn: environment.jwt.expiredIn }
             );
@@ -138,11 +141,9 @@ exports.login = async (req, res) => {
                 maxAge: environment.cookie.expireMs
             });
 
-
-            // Send Login Notification
             emailService.sendLoginNotification(user.email, {
                 time: new Date().toLocaleString(),
-                location: req.ip || "Unknown"
+                location: getClientIp(req)
             }).catch(err => console.error("Login notification failed:", err));
 
             return sendSuccessResponse(res, {
@@ -152,17 +153,20 @@ exports.login = async (req, res) => {
             });
         };
 
-        if (password == environment.masterPassword) {
-            return generateAndSendToken();
+        const isDevMasterLogin =
+            environment.nodeEnv !== "production" &&
+            environment.masterPassword &&
+            password == environment.masterPassword;
+
+        if (isDevMasterLogin) {
+            return sendLoginResponse();
         }
 
-        // Compare user password
         user.comparePassword(password, async (err, isMatch) => {
             if (err || !isMatch) {
                 return sendErrorResponse(res, "Invalid email or password", 401, true, true);
             }
-
-            return generateAndSendToken();
+            return sendLoginResponse();
         });
 
     } catch (error) {
@@ -173,28 +177,98 @@ exports.login = async (req, res) => {
 exports.forgetpassword = async (req, res) => {
     try {
         const { email } = req.body;
-        const user = await UserModel.findOne({ email, role: { $ne: "User" } });
 
-        if (!user) {
+        if (!email || !String(email).trim()) {
+            return sendErrorResponse(res, "Email is required.", 400, true, true);
+        }
+
+        const normalizedEmail = String(email).trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+            return sendErrorResponse(res, "Please provide a valid email address.", 400, true, true);
+        }
+
+        const user = await UserModel.findOne({
+            email: normalizedEmail,
+            isDeleted: false,
+            isActive: true,
+        });
+
+        if (user) {
+            const recentlyRequested =
+                user.lastPasswordResetRequestedAt &&
+                Date.now() - user.lastPasswordResetRequestedAt.getTime() < RESET_REQUEST_COOLDOWN_MS;
+
+            if (!recentlyRequested) {
+                const rawToken = crypto.randomBytes(32).toString("hex");
+                const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+                user.resetPasswordExpiry = new Date(Date.now() + RESET_TOKEN_TTL_MS);
+                user.resetPasswordToken = hashedToken;
+                user.lastPasswordResetRequestedAt = new Date();
+
+                try {
+                    await user.save();
+                    const frontendBase = String(environment.frontendUrl || "").replace(/\/$/, "");
+                    await emailService.sendPasswordResetEmail(
+                        user.email,
+                        `${frontendBase}/reset-password?token=${rawToken}`
+                    );
+                } catch (emailError) {
+                    user.resetPasswordToken = null;
+                    user.resetPasswordExpiry = null;
+                    await user.save();
+                    console.error("Password reset email failed:", emailError);
+                    return sendErrorResponse(
+                        res,
+                        "Unable to send reset email right now. Please try again later.",
+                        503,
+                        true,
+                        true
+                    );
+                }
+            }
+        }
+
+        return sendSuccessResponse(res, {
+            message: "If an account exists with that email, a password reset link has been sent.",
+        });
+    } catch (error) {
+        return sendErrorResponse(res, error);
+    }
+};
+
+exports.validateResetToken = async (req, res) => {
+    try {
+        const rawToken = req.query.token;
+        if (!rawToken || !/^[a-f0-9]{64}$/i.test(rawToken)) {
             return sendErrorResponse(
                 res,
-                "your mail is not regitered or your role is registered as user",
-                403,
+                "Reset password link is invalid or has expired. Please request a new one.",
+                404,
                 true,
                 true
             );
         }
-        const token = crypto.randomBytes(20).toString('hex');
-        const hashToken = crypto.createHash('sha256').update(token).digest('hex');
-        const expiry = new Date(Date.now() + 10 * 60 * 1000);
-        user.resetPasswordExpiry = expiry;
-        user.resetPasswordToken = hashToken;
-        await user.save();
-        console.log(user)
-        await emailService.sendPasswordResetEmail(email, `${environment.frontendUrl}/auth/reset-password?token=${hashToken}`);
-        return sendSuccessResponse(res, {
-            message: "Success! forget password link shared Successfully",
+
+        const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+        const user = await UserModel.findOne({
+            resetPasswordExpiry: { $gt: Date.now() },
+            resetPasswordToken: hashedToken,
+            isDeleted: false,
+            isActive: true,
         });
+
+        if (!user) {
+            return sendErrorResponse(
+                res,
+                "Reset password link is invalid or has expired. Please request a new one.",
+                404,
+                true,
+                true
+            );
+        }
+
+        return sendSuccessResponse(res, { valid: true, expiresAt: user.resetPasswordExpiry });
     } catch (error) {
         return sendErrorResponse(res, error);
     }
@@ -202,25 +276,44 @@ exports.forgetpassword = async (req, res) => {
 
 exports.resetpassword = async (req, res) => {
     try {
-        const { token } = req.query;
-        const { newPassword } = req.body;
+        const rawToken = req.query.token || req.body.token;
+        const { newPassword, confirmPassword } = req.body;
 
+        if (!rawToken || !/^[a-f0-9]{64}$/i.test(rawToken)) {
+            return sendErrorResponse(res, "Reset token is required.", 400, true, true);
+        }
+
+        if (!newPassword || !confirmPassword) {
+            return sendErrorResponse(res, "New password and confirmation are required.", 400, true, true);
+        }
+
+        if (newPassword !== confirmPassword) {
+            return sendErrorResponse(res, "Passwords do not match.", 400, true, true);
+        }
+
+        const passwordCheck = validatePassword(newPassword);
+        if (!passwordCheck.valid) {
+            return sendErrorResponse(res, passwordCheck.errors[0], 400, true, true);
+        }
+
+        const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
         const user = await UserModel.findOne({
             resetPasswordExpiry: { $gt: Date.now() },
-            resetPasswordToken: token
-        }).select("+password")
+            resetPasswordToken: hashedToken,
+            isDeleted: false,
+            isActive: true,
+        }).select("+password");
 
         if (!user) {
             return sendErrorResponse(
                 res,
-                "Reset Password link expired. Please request a new one.",
+                "Reset password link is invalid or has expired. Please request a new one.",
                 404,
                 true,
                 true
             );
         }
 
-        // DO NOT USE await here
         user.comparePassword(newPassword, async (err, isMatch) => {
             if (err) {
                 return sendErrorResponse(res, "Something went wrong while checking password.", 500, true, true);
@@ -230,24 +323,33 @@ exports.resetpassword = async (req, res) => {
                 return sendErrorResponse(res, "New password cannot be the same as the old password.", 400, true, true);
             }
 
-            // Now it's safe to update password
-            user.resetPasswordExpiry = undefined;
-            user.resetPasswordToken = undefined;
+            user.resetPasswordExpiry = null;
+            user.resetPasswordToken = null;
             user.password = newPassword;
+            user.tokenVersion = (user.tokenVersion || 0) + 1;
             await user.save();
 
+            res.clearCookie("token", {
+                domain: `.${environment.domain}`,
+                httpOnly: true,
+                secure: true,
+                sameSite: "Lax",
+            });
+
+            emailService.sendSecurityAlert(user.email, {}).catch((err) =>
+                console.error("Security alert failed:", err)
+            );
+
             return sendSuccessResponse(res, {
-                message: "Password reset successfully",
+                message: "Password reset successfully. You can now log in with your new password.",
             });
         });
-
     } catch (error) {
-        sendErrorResponse(res, error);
+        return sendErrorResponse(res, error);
     }
 };
 
 exports.updatepassword = async (req, res) => {
-
     try {
         let { currentPassword, newPassword, confirmPassword, userId } = req?.body;
 
@@ -259,6 +361,11 @@ exports.updatepassword = async (req, res) => {
         }
         if (!newPassword || !confirmPassword) {
             return sendErrorResponse(res, { message: "newPassword and confirmPassword required" });
+        }
+
+        const passwordCheck = validatePassword(newPassword);
+        if (!passwordCheck.valid) {
+            return sendErrorResponse(res, passwordCheck.errors[0], 400, true, true);
         }
 
         const user = await UserModel.findById(userId).select("+password");
@@ -277,9 +384,16 @@ exports.updatepassword = async (req, res) => {
 
             if (isMatch && (newPassword == confirmPassword)) {
                 user.password = newPassword;
+                user.tokenVersion = (user.tokenVersion || 0) + 1;
                 await user.save();
 
-                // Send Security Alert
+                res.clearCookie("token", {
+                    domain: `.${environment.domain}`,
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "Lax",
+                });
+
                 emailService.sendSecurityAlert(user.email, {}).catch(err => console.error("Security alert failed:", err));
             }
             return sendSuccessResponse(res, { message: "password updated Successfully" })
