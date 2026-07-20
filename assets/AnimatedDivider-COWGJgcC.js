@@ -1,0 +1,1 @@
+import{j as r,m as i}from"./main-2fA-oVqW.js";function t(){return r.jsx(i.hr,{initial:{scaleX:0},whileInView:{scaleX:1},viewport:{once:!0},transition:{duration:.5},className:"my-8 border-t-2 border-border origin-left"})}export{t as A};

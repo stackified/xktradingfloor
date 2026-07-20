@@ -14,9 +14,23 @@
   <meta name="theme-color" content="#0B0F19" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Open the API connection early: homepage data (settings, events) is on the
+       critical path, and the backend is on Render. Saves ~310 ms to LCP. -->
+  <link rel="preconnect" href="https://xktradingfloor-backend.onrender.com" crossorigin />
+  <link rel="dns-prefetch" href="https://xktradingfloor-backend.onrender.com" />
+  <!-- Load Google Fonts non-blocking: fetch as print (no render block), then
+       promote to all once loaded. display=swap paints text immediately in the
+       fallback font. <noscript> keeps it working without JS. -->
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" />
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
-    rel="stylesheet" />
+    rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet" />
+  </noscript>
   <!-- Favicons - Multiple sizes for better display -->
   <!-- Paths will be updated dynamically by main.jsx after React loads -->
   <link rel="icon" type="image/png" href="/xktradingfloor/assets/favicon.png" sizes="256x256" id="favicon-32" />
@@ -28,10 +42,33 @@
   <meta name="google-adsense-account" content="ca-pub-8956282576298580" />
   <!-- GA4 is managed via Google Tag Manager (GTM-PB4G7KLK) -->
   <!-- ads.txt entry: google.com, pub-8956282576298580, DIRECT, f08c47fec0942fa0 -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8956282576298580"
-    crossorigin="anonymous"></script>
-  <script type="module" crossorigin src="/xktradingfloor/assets/main-KgVYLqYU.js"></script>
-  <link rel="stylesheet" crossorigin href="/xktradingfloor/assets/main-CLDvk643.css">
+  <!-- Defer AdSense off the critical path: it is ~249 KiB and only powers Auto
+       Ads (no manual ad units in the app), so first paint must not wait on it.
+       Load on first user interaction, or 3s after window load, whichever is first. -->
+  <script>
+    (function () {
+      var loaded = false;
+      var events = ['scroll', 'pointerdown', 'keydown', 'touchstart'];
+      function loadAds() {
+        if (loaded) return;
+        loaded = true;
+        events.forEach(function (e) { window.removeEventListener(e, loadAds); });
+        var s = document.createElement('script');
+        s.async = true;
+        s.crossOrigin = 'anonymous';
+        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8956282576298580';
+        document.head.appendChild(s);
+      }
+      events.forEach(function (e) { window.addEventListener(e, loadAds, { passive: true, once: false }); });
+      if (document.readyState === 'complete') {
+        setTimeout(loadAds, 3000);
+      } else {
+        window.addEventListener('load', function () { setTimeout(loadAds, 3000); });
+      }
+    })();
+  </script>
+  <script type="module" crossorigin src="/xktradingfloor/assets/main-2fA-oVqW.js"></script>
+  <link rel="stylesheet" crossorigin href="/xktradingfloor/assets/main-DjVuBZ_u.css">
 </head>
 
 <body>
@@ -39,7 +76,7 @@
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PB4G7KLK"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
-  <div id="root"></div>
+  <div id="root"></div>
 </body>
 
 </html>
