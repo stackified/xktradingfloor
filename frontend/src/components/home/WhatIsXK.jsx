@@ -18,7 +18,7 @@ function WhatIsXK() {
           transition={{ duration: 0.8 }}
           className="text-center"
         >
-          <motion.h3
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -26,7 +26,7 @@ function WhatIsXK() {
             className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider mb-4"
           >
             What is XK Trading Floor?
-          </motion.h3>
+          </motion.p>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

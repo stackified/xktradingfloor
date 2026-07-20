@@ -8,25 +8,25 @@ function PodcastSection() {
     {
       id: 1,
       title: "Beginner Traders Listen Up! Raja Banks' Advice & Best Broker Tips",
-      thumbnail: "https://img.youtube.com/vi/am0lGroRgqk/maxresdefault.jpg",
+      thumbnail: "https://img.youtube.com/vi/am0lGroRgqk/sddefault.jpg",
       url: "https://youtu.be/am0lGroRgqk?si=hMVCF6AF-o273QoT"
     },
     {
       id: 2,
       title: "SoloETV Journey: From Losing $100K to Making Millions & Passing Prop Firms",
-      thumbnail: "https://img.youtube.com/vi/nC6dNjSCip8/maxresdefault.jpg",
+      thumbnail: "https://img.youtube.com/vi/nC6dNjSCip8/sddefault.jpg",
       url: "https://youtu.be/nC6dNjSCip8?si=N7oq_hIilyG7wUWP"
     },
     {
       id: 3,
       title: "Alchemist AI: Reviewing the Forex Algorithm that Delivers 8-10% Returns!",
-      thumbnail: "https://img.youtube.com/vi/VQAvDRi-5P8/maxresdefault.jpg",
+      thumbnail: "https://img.youtube.com/vi/VQAvDRi-5P8/sddefault.jpg",
       url: "https://youtu.be/VQAvDRi-5P8?si=x7deI7VERmk3QK4F"
     },
     {
       id: 4,
       title: "From Losses to My FIRST Payout — $894 Earned Trading Forex",
-      thumbnail: "https://img.youtube.com/vi/_B67GB5jPSY/maxresdefault.jpg",
+      thumbnail: "https://img.youtube.com/vi/_B67GB5jPSY/sddefault.jpg",
       url: "https://youtu.be/_B67GB5jPSY?si=qf4dwQ9vj1xfEXHO"
     }
   ];
