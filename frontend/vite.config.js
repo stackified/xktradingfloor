@@ -33,29 +33,21 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: "docs", // Output to docs folder for GitHub Pages
       assetsDir: "assets",
+      // Modern baseline: skip transpiling ES2020 features (classes, spread,
+      // optional chaining, Array.prototype.find, String.startsWith/endsWith).
+      // Removes the legacy polyfills/transforms PSI flagged. All evergreen
+      // browsers from 2020+ support this natively.
+      target: "es2020",
       rollupOptions: {
         input: {
           main: "./index.html",
         },
-        output: {
-          manualChunks(id) {
-            if (!id.includes("node_modules")) return;
-
-            if (id.includes("recharts")) return "vendor-charts";
-            if (id.includes("framer-motion")) return "vendor-motion";
-            if (
-              id.includes("react-dom") ||
-              id.includes("react-router") ||
-              id.includes("/react/")
-            ) {
-              return "vendor-react";
-            }
-            if (id.includes("redux") || id.includes("@reduxjs")) {
-              return "vendor-redux";
-            }
-            return "vendor";
-          },
-        },
+        // NOTE: intentionally no manualChunks. Prior configs split React into
+        // its own chunk while leaving transitive deps (@remix-run/router,
+        // use-sync-external-store) in the generic vendor chunk, causing a
+        // load-order race that threw "Cannot set properties of undefined
+        // (setting 'Children')" and produced a blank page. Rollup's default
+        // chunking is safe.
       },
     },
     publicDir: "public", // Ensure public folder is copied

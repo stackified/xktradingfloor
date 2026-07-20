@@ -45,7 +45,7 @@ function Footer() {
           </form>
         </div>
       </div>
-      <div className="border-t border-border/60 py-4 text-center text-xs text-gray-500">© {new Date().getFullYear()} XK Trading Floor</div>
+      <div className="border-t border-border/60 py-4 text-center text-xs text-gray-400">© {new Date().getFullYear()} XK Trading Floor</div>
     </footer>
   );
 }
