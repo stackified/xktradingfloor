@@ -10,7 +10,7 @@
     "build:local": "cross-env VITE_BASE_PATH=/ npm run sitemap && cross-env VITE_BASE_PATH=/ vite build",
     "build:gith": "cross-env VITE_BASE_PATH=/xktradingfloor/ npm run sitemap && cross-env VITE_BASE_PATH=/xktradingfloor/ vite build && (cross-env VITE_BASE_PATH=/xktradingfloor/ node scripts/prerender.mjs || echo prerender-skipped)",
     "prerender": "node scripts/prerender.mjs",
-    "build:prod": "cross-env VITE_BASE_PATH=/ npm run sitemap && cross-env VITE_BASE_PATH=/ vite build",
+    "build:prod": "cross-env VITE_BASE_PATH=/ npm run sitemap && cross-env VITE_BASE_PATH=/ vite build && (cross-env VITE_BASE_PATH=/ node scripts/prerender.mjs || echo prerender-skipped)",
     "preview": "vite preview --port 5173",
     "predeploy": "npm install && npm run build:gith",
     "deploy": "gh-pages -d docs",
