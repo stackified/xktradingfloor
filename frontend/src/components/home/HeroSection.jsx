@@ -51,15 +51,11 @@ function HeroSection() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
         <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
+          initial={false}
           className="text-center lg:text-left"
         >
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            initial={false}
             className="font-display font-bold text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-tight mb-6 leading-tight"
           >
             <span className="text-white">A Transparent</span>
@@ -75,18 +71,14 @@ function HeroSection() {
             <span className="text-white">Built by Traders</span>
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
+            initial={false}
             className="text-base sm:text-lg text-gray-300 mb-8 leading-relaxed max-w-2xl"
           >
             Share your journey, read honest reviews, discover trading events,
             and learn from real traders — all in one place.
           </motion.p>
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
+            initial={false}
             className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4"
           >
             <Link
@@ -104,17 +96,13 @@ function HeroSection() {
           </motion.div>
         </motion.div>
         <motion.div
-          initial={{ opacity: 0, x: 30, scale: 0.9 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
+          initial={false}
           className="flex items-center justify-center relative"
         >
           <div className="relative h-96 w-96 flex items-center justify-center">
             {/* Logo - Center with Ripple Effect */}
             <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
+              initial={false}
               className="absolute z-30 flex items-center justify-center"
             >
               <motion.img
