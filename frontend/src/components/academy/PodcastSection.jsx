@@ -73,7 +73,7 @@ async function fetchYouTubeVideoData(videoId) {
 
     return {
       title: data.title,
-      thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+      thumbnail: `https://img.youtube.com/vi/${videoId}/sddefault.jpg`,
       url: videoUrl,
       id: videoId,
       duration: duration,
@@ -82,7 +82,7 @@ async function fetchYouTubeVideoData(videoId) {
     console.error(`Error fetching video data for ${videoId}:`, error);
     return {
       title: `Video ${videoId}`,
-      thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+      thumbnail: `https://img.youtube.com/vi/${videoId}/sddefault.jpg`,
       url: `https://www.youtube.com/watch?v=${videoId}`,
       id: videoId,
       duration: "",
@@ -161,7 +161,7 @@ function PodcastSection() {
           youtubeVideoIds.map((id) => ({
             id,
             title: `Video ${id}`,
-            thumbnail: `https://img.youtube.com/vi/${id}/maxresdefault.jpg`,
+            thumbnail: `https://img.youtube.com/vi/${id}/sddefault.jpg`,
             url: `https://www.youtube.com/watch?v=${id}`,
           }))
         );

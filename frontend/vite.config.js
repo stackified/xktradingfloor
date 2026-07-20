@@ -33,6 +33,11 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: "docs", // Output to docs folder for GitHub Pages
       assetsDir: "assets",
+      // Modern baseline: skip transpiling ES2020 features (classes, spread,
+      // optional chaining, Array.prototype.find, String.startsWith/endsWith).
+      // Removes the legacy polyfills/transforms PSI flagged. All evergreen
+      // browsers from 2020+ support this natively.
+      target: "es2020",
       rollupOptions: {
         input: {
           main: "./index.html",
