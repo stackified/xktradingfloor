@@ -11,6 +11,8 @@ function Footer() {
             <img
               src={getAssetPath("/assets/navbar logo.png")}
               alt="XK Trading Floor Logo"
+              width="640"
+              height="141"
               className="h-16 w-auto rounded object-contain"
             />
           </Link>

@@ -120,6 +120,8 @@ function HeroSection() {
               <motion.img
                 src={getAssetPath("/assets/logo.png")}
                 alt="XK Trading Floor Logo"
+                width="561"
+                height="445"
                 className="h-64 w-48 md:h-80 md:w-60 lg:h-96 lg:w-72 object-contain drop-shadow-2xl"
                 style={{ filter: "brightness(0) invert(1)" }}
                 animate={{
