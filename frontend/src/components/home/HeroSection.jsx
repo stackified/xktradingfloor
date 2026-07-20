@@ -118,7 +118,7 @@ function HeroSection() {
               className="absolute z-30 flex items-center justify-center"
             >
               <motion.img
-                src={getAssetPath("/assets/logo.png")}
+                src={getAssetPath("/assets/logo.webp")}
                 alt="XK Trading Floor Logo"
                 width="561"
                 height="445"

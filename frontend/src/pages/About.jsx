@@ -321,8 +321,8 @@ function About() {
                   <div className="relative rounded-2xl overflow-hidden border border-gray-800/50 bg-gradient-to-br from-gray-900/50 to-gray-800/30 p-2">
                     <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
                       <SimpleImage
-                        src={getAssetPath("/assets/logo.png")}
-                        fallback={getAssetPath("/assets/placeholder.jpg")}
+                        src={getAssetPath("/assets/logo.webp")}
+                        fallback={getAssetPath("/assets/logo.png")}
                         alt="XK Trading Floor"
                         className="w-full h-full object-contain p-8 bg-black/60"
                       />
