@@ -72,7 +72,12 @@ const server = http.createServer(async (req, res) => {
 
 await new Promise((r) => server.listen(PORT, r));
 
-const BLOCK = /onrender\.com|\/api\/|googlesyndication|googletagmanager|google-analytics|analytics\.google|doubleclick|adtrafficquality|pagead/i;
+// Block backend API, ads/analytics, AND web fonts during the snapshot.
+// Fonts matter: the font <link> uses media="print" onload="this.media='all'"
+// to load non-blocking. If we let it load during prerender, onload fires and
+// the captured markup has media="all" (render-blocking). Blocking the request
+// keeps media="print" in the snapshot, so it stays non-blocking for real users.
+const BLOCK = /onrender\.com|\/api\/|googlesyndication|googletagmanager|google-analytics|analytics\.google|doubleclick|adtrafficquality|pagead|fonts\.googleapis\.com|fonts\.gstatic\.com/i;
 
 const browser = await puppeteer.launch({
   executablePath,
