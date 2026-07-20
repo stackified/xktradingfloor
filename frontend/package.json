@@ -47,6 +47,7 @@
     "@playwright/test": "^1.57.0",
     "@vitejs/plugin-react": "^5.1.0",
     "autoprefixer": "^10.4.20",
+    "beasties": "^0.4.3",
     "cross-env": "^7.0.3",
     "postcss": "^8.4.47",
     "puppeteer-core": "^25.3.0",
