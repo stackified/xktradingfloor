@@ -15,6 +15,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer-core";
+import Beasties from "beasties";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DOCS = path.resolve(__dirname, "../docs");
@@ -105,9 +106,29 @@ try {
   if (!/id="root">\s*<[^>]/.test(html) && !html.includes("A Transparent")) {
     throw new Error("prerender: hero content not found in snapshot");
   }
+
+  // Inline critical CSS and load the full stylesheet async, so the prerendered
+  // hero paints without waiting for the render-blocking CSS round-trip (the
+  // remaining LCP/FCP ceiling once the hero is in the HTML).
+  let finalHtml = html;
+  try {
+    const beasties = new Beasties({
+      path: DOCS,
+      publicPath: BASE,
+      preload: "swap", // full CSS loads async, then applies
+      pruneSource: false, // keep the external stylesheet intact for other routes
+      reduceInlineStyles: false,
+      logLevel: "silent",
+    });
+    finalHtml = await beasties.process(html);
+    console.log("prerender: inlined critical CSS");
+  } catch (e) {
+    console.log("prerender: critical-CSS inlining skipped —", e.message);
+  }
+
   const outFile = path.join(DOCS, "index.html");
-  await writeFile(outFile, html, "utf8");
-  console.log(`prerender: wrote ${outFile} (${(html.length / 1024).toFixed(1)} KB)`);
+  await writeFile(outFile, finalHtml, "utf8");
+  console.log(`prerender: wrote ${outFile} (${(finalHtml.length / 1024).toFixed(1)} KB)`);
 } finally {
   await browser.close();
   await new Promise((r) => server.close(r));
