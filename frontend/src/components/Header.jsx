@@ -158,6 +158,8 @@ function Header() {
           <img
             src={getAssetPath("/assets/navbar logo.png")}
             alt="XK Trading Floor Logo"
+            width="640"
+            height="141"
             className="h-10 md:h-14 w-auto rounded object-contain"
           />
         </Link>
