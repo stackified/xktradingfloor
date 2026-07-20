@@ -89,6 +89,7 @@ function ToastContainer({ toasts, removeToast }) {
   return (
     <div
       className="fixed top-20 right-4 z-[9999] flex flex-col gap-2 pointer-events-none max-w-md w-full"
+      role="region"
       aria-live="polite"
       aria-label="Notifications"
     >

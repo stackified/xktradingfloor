@@ -22,6 +22,8 @@ function Footer() {
             <li><Link to="/academy" className="hover:text-white">Academy</Link></li>
             <li><Link to="/blog" className="hover:text-white">Blog</Link></li>
             <li><Link to="/reviews" className="hover:text-white">Reviews</Link></li>
+            <li><Link to="/live-spreads" className="hover:text-white">Live Spreads</Link></li>
+            <li><Link to="/payouts" className="hover:text-white">Payout Tracker</Link></li>
             {/* <li><Link to="/merch" className="hover:text-white">Merch</Link></li> */} {/* Hidden - uncomment to re-enable */}
           </ul>
         </div>
@@ -30,6 +32,7 @@ function Footer() {
           <ul className="space-y-2 text-sm text-gray-300">
             <li><Link to="/about" className="hover:text-white">About</Link></li>
             <li><Link to="/contact" className="hover:text-white">Contact</Link></li>
+            <li><Link to="/services" className="hover:text-white">For Brands</Link></li>
             <li><Link to="/privacy-policy" className="hover:text-white">Privacy</Link></li>
             <li><Link to="/terms" className="hover:text-white">Terms</Link></li>
           </ul>
@@ -42,7 +45,7 @@ function Footer() {
           </form>
         </div>
       </div>
-      <div className="border-t border-border/60 py-4 text-center text-xs text-gray-500">© {new Date().getFullYear()} XK Trading Floor</div>
+      <div className="border-t border-border/60 py-4 text-center text-xs text-gray-400">© {new Date().getFullYear()} XK Trading Floor</div>
     </footer>
   );
 }

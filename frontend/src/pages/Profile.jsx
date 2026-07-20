@@ -1,5 +1,5 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import Seo from '../components/shared/Seo.jsx';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateProfile } from '../redux/slices/authSlice.js';
 import { getUserCookie } from '../utils/cookies.js';
@@ -36,10 +36,12 @@ export default function Profile() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <Helmet>
-        <title>Profile | XK Trading Floor</title>
-        <meta name="description" content="Manage your XK Trading Floor profile settings and personal information." />
-      </Helmet>
+      <Seo
+        title="Profile"
+        description="Manage your XK Trading Floor profile settings and personal information."
+        path="/profile"
+        noindex
+      />
       <h1 className="text-2xl font-semibold mb-6">Your Profile</h1>
       <form onSubmit={onSubmit} className="space-y-6">
         <div className="card bg-gray-900/60 border border-border">

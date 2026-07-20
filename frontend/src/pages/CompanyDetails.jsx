@@ -1,5 +1,6 @@
 import React from "react";
-import { Helmet } from "react-helmet-async";
+import Seo from "../components/shared/Seo.jsx";
+import { brokerJsonLd, breadcrumbJsonLd } from "../utils/structuredData.js";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
@@ -11,6 +12,9 @@ import { getReviewsByCompanyId, deleteReview } from "../controllers/reviewsContr
 import StarRating from "../components/reviews/StarRating.jsx";
 import CompanyReviewCard from "../components/reviews/CompanyReviewCard.jsx";
 import CompanyReviewForm from "../components/reviews/CompanyReviewForm.jsx";
+import CompanyProfileHeader from "../components/reviews/CompanyProfileHeader.jsx";
+import PayoutSummary from "../components/reviews/PayoutSummary.jsx";
+import LiveSpreadTable from "../components/spreads/LiveSpreadTable.jsx";
 import ConfirmModal from "../components/shared/ConfirmModal.jsx";
 import { getUserCookie } from "../utils/cookies.js";
 import { useToast } from "../contexts/ToastContext.jsx";
@@ -187,14 +191,20 @@ function CompanyDetails() {
 
   return (
     <div className="bg-black text-white min-h-screen">
-      <Helmet>
-        <title>{company.name} | XK Trading Floor</title>
-        <meta
-          name="description"
-          content={`${company.details || "Read reviews and details about"} ${company.name
-            } on XK Trading Floor.`}
-        />
-      </Helmet>
+      <Seo
+        title={company.name}
+        description={`${company.details || company.description || "Read reviews and details about"} ${company.name} on XK Trading Floor.`}
+        path={`/reviews/${company._id}`}
+        image={company.logo}
+        jsonLd={[
+          brokerJsonLd(company),
+          breadcrumbJsonLd([
+            { name: "Home", url: "/" },
+            { name: "Reviews", url: "/reviews" },
+            { name: company.name, url: `/reviews/${company._id}` },
+          ]),
+        ].filter(Boolean)}
+      />
 
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         {/* Back Button */}
@@ -205,69 +215,16 @@ function CompanyDetails() {
           ← Back to Companies
         </Link>
 
-        {/* Company Header */}
-        <div className="card">
-          <div className="card-body">
-            <div className="flex items-start gap-4">
-              <div className="h-20 w-20 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                <ImageWithFallback
-                  src={company.logo}
-                  fallback="/assets/placeholder.jpg"
-                  alt={company.name}
-                  className="h-full w-full object-cover"
-                  useDynamicFallback={true}
-                />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-start justify-between gap-4 mb-2">
-                  <div>
-                    <h1 className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl mb-2">
-                      <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
-                        {company.name}
-                      </span>
-                    </h1>
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="text-sm px-3 py-1 rounded bg-blue-500/20 text-blue-400">
-                        {company.category}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <StarRating
-                          value={company.ratingsAggregate}
-                          size={20}
-                        />
-                        <span className="text-lg font-semibold">
-                          {company.ratingsAggregate.toFixed(1)}
-                        </span>
-                        <span className="text-sm text-gray-400">
-                          ({company.totalReviews || 0}{" "}
-                          {company.totalReviews === 1 ? "review" : "reviews"})
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {company.description ? (
-                  <div
-                    className="rich-text-content text-sm sm:text-base mb-4"
-                    dangerouslySetInnerHTML={{ __html: company.description }}
-                  />
-                ) : (
-                  <p className="text-sm sm:text-base text-gray-300 mb-4 leading-relaxed">
-                    {company.details}
-                  </p>
-                )}
-                <a
-                  href={company.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-primary inline-flex items-center gap-2"
-                >
-                  Visit Website →
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Company Header (with country, regulation, assets, platforms, etc.) */}
+        <CompanyProfileHeader company={company} />
+
+        {/* Category-specific data section */}
+        {company.category === "Broker" && (
+          <LiveSpreadTable brokerId={company._id} brokerName={company.name} />
+        )}
+        {company.category === "PropFirm" && (
+          <PayoutSummary firmId={company._id} firmName={company.name} />
+        )}
 
         {/* Promo Codes */}
         {validPromoCodes.length > 0 && (

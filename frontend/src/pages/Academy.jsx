@@ -1,5 +1,5 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import Seo from '../components/shared/Seo.jsx';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import HeroAcademy from '../components/academy/HeroAcademy.jsx';
@@ -26,10 +26,11 @@ function Academy() {
 
   return (
     <div className="bg-black min-h-screen">
-      <Helmet>
-        <title>Academy | XK Trading Floor</title>
-        <meta name="description" content="Master the markets with expert-led programs, live workshops, strategy sessions, and trading bootcamps." />
-      </Helmet>
+      <Seo
+        title="Academy"
+        description="Master the markets with expert-led programs, live workshops, strategy sessions, and trading bootcamps."
+        path="/academy"
+      />
       <HeroAcademy />
       <div className="bg-black">
         {isAdmin && (

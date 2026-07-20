@@ -1,5 +1,5 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import Seo from '../components/shared/Seo.jsx';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProductById, getAllProducts } from '../controllers/productsController.js';
 import ProductDetailsView from '../components/merch/ProductDetailsView.jsx';
@@ -25,10 +25,13 @@ function ProductDetails() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <Helmet>
-        <title>{product ? `${product.title} | XK Trading Floor` : 'Product | XK Trading Floor'}</title>
-        <meta name="description" content={product?.description || 'View product details and purchase XK Trading Floor merchandise.'} />
-      </Helmet>
+      <Seo
+        title={product?.title || 'Product'}
+        description={product?.description || 'View product details and purchase XK Trading Floor merchandise.'}
+        path={product ? `/merch/${product.id}` : '/merch'}
+        image={product?.image}
+        type="product"
+      />
       <Link to="/merch" className="text-accent hover:underline">← Back to Shop</Link>
       <div className="mt-4">
         <ProductDetailsView product={product} />

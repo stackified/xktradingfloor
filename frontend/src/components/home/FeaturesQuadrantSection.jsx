@@ -1,10 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { 
-  BarChart3, 
-  MessageSquare, 
-  BookOpen, 
+import {
+  BarChart3,
+  MessageSquare,
+  NotebookPen,
   Globe,
   Youtube,
   Instagram,
@@ -35,12 +35,13 @@ function FeaturesQuadrantSection() {
     },
     {
       id: 3,
-      icon: BookOpen,
-      title: "Courses that actually teach",
-      description: "Courses are structured to take you from beginner to pro with step-by-step lessons designed for real-world trading analysis and execution.",
-      buttonText: "Explore courses",
-      buttonLink: "/academy",
+      icon: NotebookPen,
+      title: "A journal to sharpen every trade",
+      description: "Track every entry, exit, and lesson in one place with LockItTrade. Auto-computed PnL, screenshot uploads, and stats that expose the habits behind your wins.",
+      buttonText: "Try the journal",
+      buttonLink: "#trading-journal",
       isExternal: false,
+      isAnchor: true,
     },
     {
       id: 4,
@@ -165,6 +166,19 @@ function FeaturesQuadrantSection() {
                           href={feature.buttonLink}
                           target="_blank"
                           rel="noopener noreferrer"
+                          className="btn inline-flex items-center justify-center gap-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 px-5 py-2.5 text-sm font-medium w-fit"
+                        >
+                          <span>{feature.buttonText}</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </a>
+                      ) : feature.isAnchor ? (
+                        <a
+                          href={feature.buttonLink}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const target = document.querySelector(feature.buttonLink);
+                            if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+                          }}
                           className="btn inline-flex items-center justify-center gap-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 px-5 py-2.5 text-sm font-medium w-fit"
                         >
                           <span>{feature.buttonText}</span>

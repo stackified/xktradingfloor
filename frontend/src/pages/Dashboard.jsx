@@ -1,5 +1,5 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import Seo from '../components/shared/Seo.jsx';
 import { useDispatch, useSelector } from 'react-redux';
 import { Navigate } from 'react-router-dom';
 import { fetchAnalytics } from '../redux/slices/analyticsSlice.js';
@@ -32,10 +32,12 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-white">
-      <Helmet>
-        <title>Dashboard | XK Trading Floor</title>
-        <meta name="description" content="Your trading dashboard with analytics, activities, and quick actions." />
-      </Helmet>
+      <Seo
+        title="Dashboard"
+        description="Your trading dashboard with analytics, activities, and quick actions."
+        path="/dashboard"
+        noindex
+      />
       <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-2xl font-semibold mb-6">Welcome back{user?.name ? `, ${user.name}` : ''}</motion.h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

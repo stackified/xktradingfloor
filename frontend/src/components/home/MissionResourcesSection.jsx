@@ -9,22 +9,22 @@ function MissionResourcesSection() {
     {
       id: "3Autqvt8yFE",
       url: "https://youtu.be/3Autqvt8yFE?si=eCP5KZVzQ5MbW1-W",
-      thumbnail: "https://img.youtube.com/vi/3Autqvt8yFE/maxresdefault.jpg",
+      thumbnail: "https://img.youtube.com/vi/3Autqvt8yFE/hqdefault.jpg",
     },
     {
       id: "_B67GB5jPSY",
       url: "https://youtu.be/_B67GB5jPSY?si=-Gvz9umpNegv7Xdh",
-      thumbnail: "https://img.youtube.com/vi/_B67GB5jPSY/maxresdefault.jpg",
+      thumbnail: "https://img.youtube.com/vi/_B67GB5jPSY/hqdefault.jpg",
     },
     {
       id: "CZOc7hvLDJc",
       url: "https://youtu.be/CZOc7hvLDJc?si=45crT1kknfafXq3s",
-      thumbnail: "https://img.youtube.com/vi/CZOc7hvLDJc/maxresdefault.jpg",
+      thumbnail: "https://img.youtube.com/vi/CZOc7hvLDJc/hqdefault.jpg",
     },
     {
       id: "TCK6PqGEflQ",
       url: "https://youtu.be/TCK6PqGEflQ?si=mxY7E0Rg4qa-5a5p",
-      thumbnail: "https://img.youtube.com/vi/TCK6PqGEflQ/maxresdefault.jpg",
+      thumbnail: "https://img.youtube.com/vi/TCK6PqGEflQ/hqdefault.jpg",
     },
   ];
 
@@ -32,22 +32,22 @@ function MissionResourcesSection() {
     {
       id: "v8kzN1NiFZ4",
       url: "https://youtu.be/v8kzN1NiFZ4?si=XePHikhJDf7Mo01q",
-      thumbnail: "https://img.youtube.com/vi/v8kzN1NiFZ4/maxresdefault.jpg",
+      thumbnail: "https://img.youtube.com/vi/v8kzN1NiFZ4/hqdefault.jpg",
     },
     {
       id: "VQAvDRi-5P8",
       url: "https://youtu.be/VQAvDRi-5P8?si=NKMUGpMTGOMus7C8",
-      thumbnail: "https://img.youtube.com/vi/VQAvDRi-5P8/maxresdefault.jpg",
+      thumbnail: "https://img.youtube.com/vi/VQAvDRi-5P8/hqdefault.jpg",
     },
     {
       id: "am0lGroRgqk",
       url: "https://youtu.be/am0lGroRgqk?si=ooFowOVaqnQbKF3A",
-      thumbnail: "https://img.youtube.com/vi/am0lGroRgqk/maxresdefault.jpg",
+      thumbnail: "https://img.youtube.com/vi/am0lGroRgqk/hqdefault.jpg",
     },
     {
       id: "WqF2QmmhbHY",
       url: "https://youtu.be/WqF2QmmhbHY?si=V1mfsMD0vx7BrXRn",
-      thumbnail: "https://img.youtube.com/vi/WqF2QmmhbHY/maxresdefault.jpg",
+      thumbnail: "https://img.youtube.com/vi/WqF2QmmhbHY/hqdefault.jpg",
     },
   ];
 
@@ -304,8 +304,8 @@ function MissionResourcesSection() {
               {/* Podcast Image/Visual */}
               <div className="relative rounded-lg overflow-hidden border-2 border-gray-700 w-full">
                 <ImageWithFallback
-                  src="/assets/podcast.png"
-                  fallback="/assets/placeholder.jpg"
+                  src="/assets/podcast.webp"
+                  fallback="/assets/podcast.jpg"
                   alt="Podcast Recording"
                   className="w-full aspect-video object-cover"
                 />
