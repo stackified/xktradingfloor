@@ -6,6 +6,42 @@ const UserModel = require("../models/user.model");
 const environment = require("../utils/environment");
 const r2 = require("../helpers/r2.helper");
 
+const buildEventListQuery = ({ type, region, category, month, search }) => {
+    const query = {};
+    const searchTerm = escapeRegex(search);
+
+    if (type) query.type = type;
+    if (region) query.region = region;
+    if (category) query.category = category;
+
+    if (month) {
+        const [year, monthValue] = month.split("-").map(Number);
+        if (year && monthValue >= 1 && monthValue <= 12) {
+            const start = new Date(year, monthValue - 1, 1);
+            const end = new Date(year, monthValue, 0, 23, 59, 59, 999);
+            query.dateTime = { $gte: start, $lte: end };
+        }
+    }
+
+    if (searchTerm) {
+        query.$or = [
+            { title: { $regex: searchTerm, $options: "i" } },
+            { description: { $regex: searchTerm, $options: "i" } },
+            { location: { $regex: searchTerm, $options: "i" } },
+            { organizerName: { $regex: searchTerm, $options: "i" } },
+        ];
+    }
+
+    return query;
+};
+
+const transformEvents = (events) =>
+    events.map((event) => {
+        const e = event.toObject();
+        e.id = e._id.toString();
+        return e;
+    });
+
 // Create event
 exports.createEvent = async (req, res) => {
     try {
@@ -55,20 +91,10 @@ exports.createEvent = async (req, res) => {
 // Get all events
 exports.getAllEvents = async (req, res) => {
     try {
-        const { search, page, size } = req.query;
-        const { type } = req.body;
+        const { search, page, size, type, region, category, month } = req.query;
 
         const { limit, offset } = getPagination(page, size);
-        const searchTerm = escapeRegex(search);
-
-        const query = {};
-        if (type) query.type = type;
-        if (searchTerm) {
-            query.$or = [
-                { title: { $regex: searchTerm, $options: "i" } },
-                { description: { $regex: searchTerm, $options: "i" } },
-            ];
-        }
+        const query = buildEventListQuery({ type, region, category, month, search });
 
         const events = await EventModel.find(query)
             .sort({ dateTime: 1, createdAt: -1 })
@@ -76,15 +102,9 @@ exports.getAllEvents = async (req, res) => {
             .limit(limit);
         const totalItems = await EventModel.countDocuments(query);
 
-        const transformed = events.map((event) => {
-            const e = event.toObject();
-            e.id = e._id.toString();
-            return e;
-        });
-
         return sendSuccessResponse(
             res,
-            getPaginationData({ count: totalItems, docs: transformed }, page, limit)
+            getPaginationData({ count: totalItems, docs: transformEvents(events) }, page, limit)
         );
     } catch (error) {
         return sendErrorResponse(res, error);

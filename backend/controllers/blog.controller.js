@@ -8,6 +8,134 @@ const { getPagination, getPaginationData, escapeRegex } = require("../utils/fn")
 const emailService = require("../services/email.service");
 const environment = require("../utils/environment");
 
+const slugify = (text) =>
+    String(text || "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/[\s_-]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+
+const normalizeCategoryFields = (data) => {
+    if (data.categories && !Array.isArray(data.categories)) {
+        data.categories = [data.categories].filter(Boolean);
+    }
+    if (data.category && !data.categories?.length) {
+        data.categories = [data.category];
+    } else if (data.categories?.length && !data.category) {
+        data.category = data.categories[0];
+    }
+    return data;
+};
+
+const syncCoverImage = (data) => {
+    if (data.featuredImage && !data.coverImage) {
+        data.coverImage = data.featuredImage;
+    } else if (data.coverImage && !data.featuredImage) {
+        data.featuredImage = data.coverImage;
+    }
+    return data;
+};
+
+const ensureUniqueSlug = async (title, slug, blogId) => {
+    let base = slugify(slug || title);
+    if (!base) base = `blog-${Date.now()}`;
+
+    let uniqueSlug = base;
+    let counter = 1;
+    const slugQuery = { slug: uniqueSlug };
+    if (blogId) slugQuery._id = { $ne: blogId };
+
+    while (await BlogModel.exists(slugQuery)) {
+        uniqueSlug = `${base}-${counter++}`;
+        slugQuery.slug = uniqueSlug;
+    }
+
+    return uniqueSlug;
+};
+
+const transformBlogForResponse = (blog) => {
+    const b = blog?.toObject ? blog.toObject() : { ...blog };
+    if (!b.coverImage && b.featuredImage) {
+        b.coverImage = b.featuredImage;
+    }
+    b.updatedAt = b.updatedAt || b.createdAt;
+    return b;
+};
+
+const buildPublishedBlogQuery = ({ category, tag, search, featured }) => {
+    const query = {
+        status: "published",
+        isDeleted: false,
+    };
+    const and = [];
+
+    if (category) {
+        and.push({
+            $or: [{ category }, { categories: { $in: [category] } }],
+        });
+    }
+    if (tag) {
+        query.tags = { $in: [tag] };
+    }
+    if (featured === "true") {
+        query.isFeatured = true;
+    }
+    if (search) {
+        const searchTerm = escapeRegex(search);
+        and.push({
+            $or: [
+                { title: { $regex: searchTerm, $options: "i" } },
+                { excerpt: { $regex: searchTerm, $options: "i" } },
+                { metaTitle: { $regex: searchTerm, $options: "i" } },
+                { metaDescription: { $regex: searchTerm, $options: "i" } },
+            ],
+        });
+    }
+    if (and.length) {
+        query.$and = and;
+    }
+
+    return query;
+};
+
+const buildAdminBlogQuery = ({ status, category, tag, search, role, userId }) => {
+    const query = { isDeleted: false };
+    const and = [];
+
+    if (role === "User" || role !== "Admin") {
+        query.author = userId;
+    }
+
+    if (status) {
+        query.status = status;
+    }
+    if (category) {
+        and.push({
+            $or: [{ category }, { categories: { $in: [category] } }],
+        });
+    }
+    if (tag) {
+        query.tags = { $in: [tag] };
+    }
+    if (search) {
+        const searchTerm = escapeRegex(search);
+        and.push({
+            $or: [
+                { title: { $regex: searchTerm, $options: "i" } },
+                { excerpt: { $regex: searchTerm, $options: "i" } },
+                { content: { $regex: searchTerm, $options: "i" } },
+                { metaTitle: { $regex: searchTerm, $options: "i" } },
+            ],
+        });
+    }
+    if (and.length) {
+        query.$and = and;
+    }
+
+    return query;
+};
+
 // Helper function to get unique viewer identifier
 const getViewerIdentifier = (req) => {
     // If user is logged in, use their user ID
@@ -67,7 +195,8 @@ exports.createBlog = async (req, res) => {
             }
         }
 
-        const blogData = { ...req.body };
+        const blogData = normalizeCategoryFields({ ...req.body });
+        syncCoverImage(blogData);
 
         // For regular users, filter out restricted fields and enforce draft status
         if (role === "User") {
@@ -78,10 +207,12 @@ exports.createBlog = async (req, res) => {
         }
 
         blogData.author = userId || null;
-        blogData.featuredImage = featuredImage || null;
+        blogData.featuredImage = featuredImage || blogData.featuredImage || null;
         if (images.length > 0) {
             blogData.images = images;
         }
+        syncCoverImage(blogData);
+        blogData.slug = await ensureUniqueSlug(blogData.title, blogData.slug);
 
         if (blogData.status === 'published' && role !== "User") {
             blogData.publishedAt = new Date();
@@ -110,41 +241,44 @@ exports.createBlog = async (req, res) => {
             message: role === "User"
                 ? "Blog post created successfully as draft"
                 : "Blog post created successfully",
-            data: savedBlog
+            data: transformBlogForResponse(savedBlog)
         }, 201);
     } catch (error) {
         return sendErrorResponse(res, error);
     }
 };
 
-// Admin: Get all blogs (with filters)
+// Public: Get published blogs (list with pagination + filters)
 exports.getAllPublishedBlogs = async (req, res) => {
     try {
-        let { page, size, search } = req.query;
+        const {
+            page,
+            size,
+            limit,
+            search,
+            category,
+            tag,
+            featured,
+        } = req.query;
 
-        const { limit, offset } = getPagination(page, size);
-        search = escapeRegex(search);
+        const pageSize = size || limit;
+        const { limit: perPage, offset } = getPagination(page, pageSize);
+        const query = buildPublishedBlogQuery({ category, tag, search, featured });
 
-        if (search) {
-            query.$or = [
-                { title: { $regex: search, $options: 'i' } },
-                { excerpt: { $regex: search, $options: 'i' } },
-                { content: { $regex: search, $options: 'i' } }
-            ];
-        }
-
-        const blogs = await BlogModel.find({ status: 'published', isDeleted: false })
+        const blogs = await BlogModel.find(query)
             .populate('author', 'fullName email profileImage')
-            .sort({ createdAt: -1 })
+            .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1 })
             .skip(offset)
-            .limit(limit);
+            .limit(perPage)
+            .select('-content -viewedBy');
 
-        const totalItems = await BlogModel.countDocuments({ status: 'published', isDeleted: false });
+        const totalItems = await BlogModel.countDocuments(query);
+        const transformed = blogs.map(transformBlogForResponse);
 
-        return sendSuccessResponse(res,
-            getPaginationData({ count: totalItems, docs: blogs }, page, limit)
+        return sendSuccessResponse(
+            res,
+            getPaginationData({ count: totalItems, docs: transformed }, page, perPage)
         );
-
     } catch (error) {
         return sendErrorResponse(res, error);
     }
@@ -154,47 +288,42 @@ exports.getAllPublishedBlogs = async (req, res) => {
 exports.getAllBlogs = async (req, res) => {
     try {
         const { _id: userId, role } = req.user;
-        let { page, size, search } = req.query;
+        const {
+            page,
+            size,
+            limit,
+            search,
+            category: categoryQuery,
+            tag: tagQuery,
+        } = req.query;
+        const { status, category: categoryBody, tag: tagBody } = req.body || {};
 
-        const { status } = req.body;
-
-        const { limit, offset } = getPagination(page, size);
-        search = escapeRegex(search);
-
-        const query = {};
-
-        // Users can only see their own blogs, admins can see all
-        if (role === "User") {
-            query.author = userId;
-        } else if (role !== "Admin") {
-            query.author = userId;
-        }
-
-        if (status) {
-            query.status = status;
-        }
-
-        // Only show non-deleted blogs
-        query.isDeleted = false;
-
-        if (search) {
-            query.$or = [
-                { title: { $regex: search, $options: 'i' } },
-                { excerpt: { $regex: search, $options: 'i' } },
-                { content: { $regex: search, $options: 'i' } }
-            ];
-        }
+        const category = categoryQuery || categoryBody;
+        const tag = tagQuery || tagBody;
+        const pageSize = size || limit;
+        const { limit: perPage, offset } = getPagination(page, pageSize);
+        const query = buildAdminBlogQuery({
+            status,
+            category,
+            tag,
+            search,
+            role,
+            userId,
+        });
 
         const blogs = await BlogModel.find(query)
             .populate('author', 'fullName email profileImage')
-            .sort({ createdAt: -1 })
+            .sort({ updatedAt: -1, createdAt: -1 })
             .skip(offset)
-            .limit(limit);
+            .limit(perPage)
+            .select('-content -viewedBy');
 
         const totalItems = await BlogModel.countDocuments(query);
+        const transformed = blogs.map(transformBlogForResponse);
 
-        return sendSuccessResponse(res,
-            getPaginationData({ count: totalItems, docs: blogs }, page, limit)
+        return sendSuccessResponse(
+            res,
+            getPaginationData({ count: totalItems, docs: transformed }, page, perPage)
         );
 
     } catch (error) {
@@ -239,7 +368,7 @@ exports.getBlogById = async (req, res) => {
             await blog.save();
         }
 
-        return sendSuccessResponse(res, { data: blog });
+        return sendSuccessResponse(res, { data: transformBlogForResponse(blog) });
     } catch (error) {
         return sendErrorResponse(res, error);
     }
@@ -286,60 +415,7 @@ exports.getBlogBySlug = async (req, res) => {
             await blog.save();
         }
 
-        return sendSuccessResponse(res, { data: blog });
-    } catch (error) {
-        return sendErrorResponse(res, error);
-    }
-};
-
-// Public: Get published blogs
-exports.getPublishedBlogs = async (req, res) => {
-    try {
-        const {
-            category,
-            tag,
-            search,
-            page = 1,
-            limit = 10,
-            featured
-        } = req.query;
-
-        const query = {
-            status: 'published',
-            isDeleted: false
-        };
-
-        if (category) query.categories = { $in: [category] };
-        if (tag) query.tags = { $in: [tag] };
-        if (featured === 'true') query.isFeatured = true;
-        if (search) {
-            query.$or = [
-                { title: { $regex: search, $options: 'i' } },
-                { excerpt: { $regex: search, $options: 'i' } },
-                { content: { $regex: search, $options: 'i' } }
-            ];
-        }
-
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-
-        const blogs = await BlogModel.find(query)
-            .populate('author', 'fullName email profileImage')
-            .sort({ publishedAt: -1, createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit))
-            .select('-content'); // Don't send full content in list
-
-        const total = await BlogModel.countDocuments(query);
-
-        return sendSuccessResponse(res, {
-            data: blogs,
-            pagination: {
-                page: parseInt(page),
-                limit: parseInt(limit),
-                total,
-                pages: Math.ceil(total / parseInt(limit))
-            }
-        });
+        return sendSuccessResponse(res, { data: transformBlogForResponse(blog) });
     } catch (error) {
         return sendErrorResponse(res, error);
     }
@@ -440,6 +516,16 @@ exports.updateBlog = async (req, res) => {
             }
         }
 
+        normalizeCategoryFields(updateData);
+        syncCoverImage(updateData);
+        if (updateData.title || updateData.slug) {
+            updateData.slug = await ensureUniqueSlug(
+                updateData.title || blog.title,
+                updateData.slug || blog.slug,
+                blog._id
+            );
+        }
+
         Object.assign(blog, updateData);
         const updatedBlog = await blog.save();
 
@@ -461,7 +547,7 @@ exports.updateBlog = async (req, res) => {
 
         return sendSuccessResponse(res, {
             message: "Blog post updated successfully",
-            data: updatedBlog
+            data: transformBlogForResponse(updatedBlog)
         });
     } catch (error) {
         return sendErrorResponse(res, error);

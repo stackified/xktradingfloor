@@ -43,7 +43,6 @@ api.interceptors.response.use(
     const expected404Endpoints = [
       "/settings/mock-mode",
       "/admin/settings/mock-mode",
-      "/events/getallevents", // Public events endpoint may not exist, will fallback to admin endpoint
     ];
 
     // List of admin endpoints that return 403 for non-admin users (expected - suppress errors)

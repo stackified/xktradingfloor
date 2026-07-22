@@ -13,7 +13,6 @@ router.post('/addevent',
         },]
     ),
     eventController.createEvent);
-router.post('/getallevents', eventController.getAllEvents);
 router.get('/:eventId/geteventbyid', eventController.getEventById);
 router.put('/:eventId/updateEvent',
     pdfUpload.fileUpload(
