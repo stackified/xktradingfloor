@@ -1,1 +1,0 @@
-import{_ as o}from"./main-RSm1R_Tu.js";async function _(){return o(()=>import("./productsData-B7wjCHmU.js"),[]).then(t=>t.products)}async function e(t){return(await o(()=>import("./productsData-B7wjCHmU.js"),[]).then(r=>r.products)).find(r=>r.id===parseInt(t))}export{_ as a,e as g};
