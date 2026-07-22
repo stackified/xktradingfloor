@@ -94,7 +94,7 @@ async function loadDynamic() {
     }
   });
 
-  const events = await safeFetch(`${API_URL}/api/public/events?size=500`);
+  const events = await safeFetch(`${API_URL}/api/events/getallevents?size=500`);
   const eventList = events?.data || events || [];
   eventList.forEach((e) => {
     if (e && (e._id || e.id)) {

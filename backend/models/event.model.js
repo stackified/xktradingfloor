@@ -9,6 +9,10 @@ const EventSchema = new Schema(
         type: { type: String, enum: ['campus', 'online'], default: 'online' },
         dateTime: Date, // Combined date and time
         location: String,
+        region: String,
+        organizerName: String,
+        externalUrl: String,
+        category: String,
         price: { type: Number, default: 0 },
         seats: { type: Number, default: 0 },
         featuredImage: String,

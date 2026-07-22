@@ -4,13 +4,17 @@ const Schema = mongoose.Schema;
 const BlogPostSchema = new Schema(
     {
         title: { type: String, required: true, trim: true },
-        // slug: { type: String, unique: true, sparse: true },
+        slug: { type: String, unique: true, sparse: true, trim: true },
         content: { type: String, required: true },
         excerpt: { type: String, maxlength: 500 },
+        metaTitle: { type: String, trim: true },
+        metaDescription: { type: String, trim: true },
+        canonicalUrl: { type: String, trim: true },
+        coverImage: { type: String },
         author: { type: Schema.Types.ObjectId, ref: 'user', required: true },
-        // authorName: { type: String },
         featuredImage: { type: String },
         images: [String],
+        category: { type: String, trim: true },
         categories: [{ type: String, trim: true }],
         tags: [{ type: String, trim: true }],
         status: {
