@@ -30,9 +30,8 @@ async function isMockModeEnabled() {
 }
 
 // Get all events
-// Backend endpoint: POST /api/admin/event/getallevents
-// Query params: page, size, search
-// Body: { type } (optional)
+// Backend endpoint: GET /api/events/getallevents
+// Query params: page, size, search, type, region, category, month
 export async function getAllEvents(filters = {}) {
   const mockMode = await isMockModeEnabled();
   let backendEvents = [];
@@ -40,42 +39,17 @@ export async function getAllEvents(filters = {}) {
   // Always try to fetch from backend first
   if (!mockMode) {
     try {
-      const { page, size, search, type } = filters;
-      const requestBody = {};
-      if (type) {
-        requestBody.type = type;
-      }
+      const { page, size, search, type, region, category, month } = filters;
+      const params = { page, size, search, type, region, category, month };
+      Object.keys(params).forEach((key) => {
+        if (params[key] === undefined || params[key] === "") {
+          delete params[key];
+        }
+      });
 
-      const params = { page, size, search };
       let paginationData = { currentPage: 1, totalPages: 1, totalItems: 0 };
 
-      // Try public endpoint first (if it exists), then fallback to admin endpoint
-      let response;
-      try {
-        // Try public endpoint first
-        response = await api.post(
-          "/events/getallevents",
-          requestBody,
-          {
-            params,
-          }
-        );
-      } catch (publicError) {
-        // If public endpoint doesn't exist (404) or fails, try admin endpoint
-        // This allows unauthorized users to still see events if backend allows it
-        // Suppress 404 error for public endpoint - it's expected to not exist
-        if (publicError.response?.status !== 404) {
-          // Only log non-404 errors
-          console.warn("Public events endpoint error:", publicError.message);
-        }
-        response = await api.post(
-          "/admin/event/getallevents",
-          requestBody,
-          {
-            params,
-          }
-        );
-      }
+      const response = await api.get("/events/getallevents", { params });
 
       // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
       if (response.data?.success && response.data?.data?.docs) {
@@ -141,7 +115,7 @@ export async function getAllEvents(filters = {}) {
 }
 
 // Get event by ID
-// Backend endpoint: GET /api/admin/event/:eventId/geteventbyid or /api/public/events/:eventId/geteventbyid
+// Backend endpoint: GET /api/events/:eventId/geteventbyid or /api/admin/event/:eventId/geteventbyid
 export async function getEventById(id) {
   const mockMode = await isMockModeEnabled();
 

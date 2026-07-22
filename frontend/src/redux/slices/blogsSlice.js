@@ -692,8 +692,8 @@ export const fetchPublishedBlogs = createAsyncThunk(
       );
 
       if (
-        publicResponse.data?.data &&
-        Array.isArray(publicResponse.data.data)
+        publicResponse.data?.success &&
+        Array.isArray(publicResponse.data?.data)
       ) {
         return {
           data: publicResponse.data.data,
