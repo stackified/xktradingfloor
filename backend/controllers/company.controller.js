@@ -1,7 +1,7 @@
 const CompanyModel = require("../models/company.model");
 const ReviewModel = require("../models/review.model");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
-const { getPagination, getPaginationData, escapeRegex } = require("../utils/fn");
+const { getPagination, getPaginationData, escapeRegex, isValidObjectId } = require("../utils/fn");
 const constants = require("../utils/constants");
 const r2 = require("../helpers/r2.helper");
 
@@ -174,6 +174,39 @@ exports.getCompanyById = async (req, res) => {
         reviews.totalReviews = totalReviews;
 
         company.reviewsDetails = reviews;
+        company.ratingsAggregate = ratingsAggregate;
+        company.totalReviews = totalReviews;
+        company.reviewers = reviewers;
+
+        return sendSuccessResponse(res, { data: company });
+    } catch (error) {
+        return sendErrorResponse(res, error);
+    }
+};
+
+// Public: get approved company by ID (no auth required)
+exports.getApprovedCompanyById = async (req, res) => {
+    try {
+        const { companyId } = req.params;
+        if (!isValidObjectId(companyId)) {
+            return sendErrorResponse(res, "Company not found", 404, true, true);
+        }
+
+        const company = await CompanyModel.findOne({ _id: companyId, status: 'approved' }).lean();
+
+        if (!company) {
+            return sendErrorResponse(res, "Company not found", 404, true, true);
+        }
+
+        const reviews = await ReviewModel.find({ companyId: company._id }).populate("userId").lean();
+        const totalReviews = reviews.length;
+        const ratingsAggregate = totalReviews > 0
+            ? parseFloat((reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1))
+            : 0;
+
+        company.reviewsDetails = reviews;
+        company.ratingsAggregate = ratingsAggregate;
+        company.totalReviews = totalReviews;
 
         return sendSuccessResponse(res, { data: company });
     } catch (error) {

@@ -325,21 +325,18 @@ export async function getCompanyById(companyId) {
   // Try backend API first
   if (!mockMode) {
     try {
-      // Check authentication
-      if (!isAuthenticated()) {
-        const error = new Error("Authentication required");
-        error.response = { status: 401 };
-        throw error;
-      }
-
       const userIsAdmin = isAdmin();
+      const authenticated = isAuthenticated();
 
-      // Determine endpoint based on role
-      // Admin: /admin/company/:id/getcompanybyid
-      // User: /companies/:id/getcompanybyid (Protected route)
-      const endpoint = userIsAdmin
-        ? `/admin/company/${companyId}/getcompanybyid`
-        : `/company/${companyId}/getcompanybyid`;
+      let endpoint;
+      if (authenticated && userIsAdmin) {
+        endpoint = `/admin/company/${companyId}/getcompanybyid`;
+      } else if (authenticated) {
+        endpoint = `/company/${companyId}/getcompanybyid`;
+      } else {
+        // Public profile page — no login required
+        endpoint = `/companies/${companyId}/getcompanybyid`;
+      }
 
       const response = await api.get(endpoint);
 
@@ -356,10 +353,8 @@ export async function getCompanyById(companyId) {
       return response;
     } catch (error) {
       if (error.response?.status === 401) {
-        // Unauthorized - user needs to login
         throw error;
       }
-      // If backend fails and mock mode is OFF, throw error
       if (!mockMode) {
         throw error;
       }

@@ -1,3 +1,7 @@
+const mongoose = require("mongoose");
+
+const RESERVED_USER_SLUGS = new Set(["me", "verified-traders"]);
+
 exports.getPagination = (page, size) => {
     const limit = size ? +size : 10;
     const offset = page ? (page - 1) * limit : 0;
@@ -26,4 +30,14 @@ exports.escapeRegex = (str) => {
     } else {
         return "";
     }
-}
+};
+
+exports.isValidObjectId = (id) => {
+    if (!id) return false;
+    if (!mongoose.Types.ObjectId.isValid(id)) return false;
+    return String(new mongoose.Types.ObjectId(id)) === String(id);
+};
+
+exports.isReservedUserSlug = (value) => {
+    return RESERVED_USER_SLUGS.has(String(value || "").toLowerCase());
+};
