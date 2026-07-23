@@ -421,6 +421,16 @@ function Header() {
                     )}
                     {(user?.role === "admin" || user?.role === "Admin") && (
                       <Link
+                        to="/admin/verified-traders"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-200 hover:bg-gray-800/50 transition-colors border-b border-gray-800"
+                        role="menuitem"
+                      >
+                        Verified Traders
+                      </Link>
+                    )}
+                    {(user?.role === "admin" || user?.role === "Admin") && (
+                      <Link
                         to="/admin/settings"
                         onClick={() => setMenuOpen(false)}
                         className="block px-4 py-3 text-sm text-gray-200 hover:bg-gray-800/50 transition-colors border-b border-gray-800"
@@ -631,6 +641,15 @@ function Header() {
                         className="px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
                       >
                         Manage Companies
+                      </Link>
+                    )}
+                    {(user?.role === "admin" || user?.role === "Admin") && (
+                      <Link
+                        to="/admin/verified-traders"
+                        onClick={() => setOpen(false)}
+                        className="px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
+                      >
+                        Verified Traders
                       </Link>
                     )}
                     {(user?.role === "admin" || user?.role === "Admin") && (

@@ -67,7 +67,17 @@ export async function applyForVerifiedTrader({ applicationNote, brokerStatements
 
 export async function listVerifiedTraderApplications(params = {}) {
   const response = await api.get("/admin/users/verified-trader/applications", { params });
-  return response.data;
+  if (response.data?.success) {
+    const docs = Array.isArray(response.data.data)
+      ? response.data.data
+      : response.data.data?.docs || [];
+    const pagination = response.data.pagination || response.data.data?.pagination || null;
+    return {
+      data: docs.map((app) => ({ ...app, id: app.id || app._id })),
+      pagination,
+    };
+  }
+  return { data: [], pagination: null };
 }
 
 export async function inviteVerifiedTrader(payload) {

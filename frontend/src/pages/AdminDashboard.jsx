@@ -28,6 +28,7 @@ import {
   TrendingUp,
   FileText,
   Mail,
+  BadgeCheck,
 } from "lucide-react";
 import { getAllCompanies } from "../controllers/companiesController.js";
 import {
@@ -759,6 +760,18 @@ function AdminDashboard() {
               Companies
             </div>
             <div className="text-sm text-gray-400">Manage & approve</div>
+          </div>
+        </Link>
+        <Link
+          to="/admin/verified-traders"
+          className="card hover:border-cyan-500/50 transition-all hover:scale-105"
+        >
+          <div className="card-body">
+            <div className="font-semibold mb-1 flex items-center gap-2">
+              <BadgeCheck className="w-4 h-4" />
+              Verified Traders
+            </div>
+            <div className="text-sm text-gray-400">Review applications</div>
           </div>
         </Link>
         <Link
