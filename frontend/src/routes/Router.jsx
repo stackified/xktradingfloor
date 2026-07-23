@@ -30,6 +30,7 @@ const About = React.lazy(() => import("../pages/About.jsx"));
 const Contact = React.lazy(() => import("../pages/Contact.jsx"));
 const Services = React.lazy(() => import("../pages/Services.jsx"));
 const VerifiedTraders = React.lazy(() => import("../pages/VerifiedTraders.jsx"));
+const UserProfile = React.lazy(() => import("../pages/UserProfile.jsx"));
 const LiveSpreads = React.lazy(() => import("../pages/LiveSpreads.jsx"));
 const Payouts = React.lazy(() => import("../pages/Payouts.jsx"));
 const PrivacyPolicy = React.lazy(() => import("../pages/PrivacyPolicy.jsx"));
@@ -122,6 +123,7 @@ export default function AppRouter() {
           <Route path="/reviews/propfirm" element={<Reviews />} />
           <Route path="/reviews/crypto" element={<Reviews />} />
           <Route path="/reviews/traders" element={<VerifiedTraders />} />
+          <Route path="/users/:userId" element={<UserProfile />} />
           <Route
             path="/reviews/operator"
             element={
