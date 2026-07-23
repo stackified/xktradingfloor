@@ -47,6 +47,7 @@ const AdminCompanyForm = React.lazy(() => import("../components/admin/companies/
 const AdminEvents = React.lazy(() => import("../pages/admin/AdminEvents.jsx"));
 const AboutEditor = React.lazy(() => import("../pages/admin/AboutEditor.jsx"));
 const AdminSettings = React.lazy(() => import("../pages/admin/AdminSettings.jsx"));
+const AdminVerifiedTraders = React.lazy(() => import("../pages/admin/AdminVerifiedTraders.jsx"));
 const EmailCampaigns = React.lazy(() => import("../pages/admin/EmailCampaigns.jsx"));
 const MyBlogs = React.lazy(() => import("../pages/MyBlogs.jsx"));
 const OperatorBlogs = React.lazy(() => import("../pages/operator/OperatorBlogs.jsx"));
@@ -255,6 +256,14 @@ export default function AppRouter() {
             element={
               <ProtectedRoute role="admin">
                 <AdminSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/verified-traders"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminVerifiedTraders />
               </ProtectedRoute>
             }
           />
