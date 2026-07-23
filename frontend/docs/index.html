@@ -3,20 +3,32 @@
 
 <head>
   <!-- Google Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','GTM-PB4G7KLK');</script>
+  <script>(function (w, d, s, l, i) {
+      w[l] = w[l] || []; w[l].push({
+        'gtm.start':
+          new Date().getTime(), event: 'gtm.js'
+      }); var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+          'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-PB4G7KLK');</script>
   <!-- End Google Tag Manager -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0B0F19" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://xktradingfloor-backend.onrender.com" crossorigin />
+  <link rel="dns-prefetch" href="https://xktradingfloor-backend.onrender.com" />
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" />
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
-    rel="stylesheet" />
+    rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet" />
+  </noscript>
   <!-- Favicons - Multiple sizes for better display -->
   <!-- Paths will be updated dynamically by main.jsx after React loads -->
   <link rel="icon" type="image/png" href="/assets/favicon.png" sizes="256x256" id="favicon-32" />
@@ -28,22 +40,39 @@
   <meta name="google-adsense-account" content="ca-pub-8956282576298580" />
   <!-- GA4 is managed via Google Tag Manager (GTM-PB4G7KLK) -->
   <!-- ads.txt entry: google.com, pub-8956282576298580, DIRECT, f08c47fec0942fa0 -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8956282576298580"
-    crossorigin="anonymous"></script>
-  <script type="module" crossorigin src="/assets/main-dLhbzNza.js"></script>
-  <link rel="modulepreload" crossorigin href="/assets/vendor-BikAq8Xc.js">
-  <link rel="modulepreload" crossorigin href="/assets/vendor-react-BhR5jwqz.js">
-  <link rel="modulepreload" crossorigin href="/assets/vendor-redux-a_utJ6ax.js">
-  <link rel="modulepreload" crossorigin href="/assets/vendor-motion-D3O7n5_n.js">
-  <link rel="stylesheet" crossorigin href="/assets/main-CLDvk643.css">
+  <script>
+    (function () {
+      var loaded = false;
+      var events = ['scroll', 'pointerdown', 'keydown', 'touchstart'];
+      function loadAds() {
+        if (loaded) return;
+        loaded = true;
+        events.forEach(function (e) { window.removeEventListener(e, loadAds); });
+        var s = document.createElement('script');
+        s.async = true;
+        s.crossOrigin = 'anonymous';
+        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8956282576298580';
+        document.head.appendChild(s);
+      }
+      events.forEach(function (e) { window.addEventListener(e, loadAds, { passive: true, once: false }); });
+      if (document.readyState === 'complete') {
+        setTimeout(loadAds, 3000);
+      } else {
+        window.addEventListener('load', function () { setTimeout(loadAds, 3000); });
+      }
+    })();
+  </script>
+  <script type="module" crossorigin src="/assets/main-CEGe798r.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/main-D0AMrs1q.css">
 </head>
 
 <body>
   <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PB4G7KLK"
-  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PB4G7KLK" height="0" width="0"
+      style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
-  <div id="root"></div>
+  <div id="root"></div>
+
 </body>
 
 </html>
