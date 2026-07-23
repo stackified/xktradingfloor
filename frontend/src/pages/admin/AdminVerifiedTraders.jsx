@@ -127,6 +127,12 @@ export default function AdminVerifiedTraders() {
     fetchApplications();
   }, [fetchApplications]);
 
+  React.useEffect(() => {
+    if (selectedApp && !applications.some((app) => app.id === selectedApp)) {
+      setSelectedApp(null);
+    }
+  }, [applications, selectedApp]);
+
   async function handleInvite(e) {
     e.preventDefault();
     if (!inviteEmail.trim()) return;
