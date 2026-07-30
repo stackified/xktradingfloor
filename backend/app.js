@@ -23,6 +23,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 // database connection
 database.connect();
 
+const { startSpreadCron } = require("./jobs/spreadCron");
+startSpreadCron();
+
 app.use('/', indexRouter);
 
 // catch 404 and forward to error handler

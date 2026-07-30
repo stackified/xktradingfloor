@@ -17,8 +17,13 @@
   <meta name="theme-color" content="#0B0F19" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Open the API connection early: homepage data (settings, events) is on the
+       critical path, and the backend is on Render. Saves ~310 ms to LCP. -->
   <link rel="preconnect" href="https://xktradingfloor-backend.onrender.com" crossorigin />
   <link rel="dns-prefetch" href="https://xktradingfloor-backend.onrender.com" />
+  <!-- Load Google Fonts non-blocking: fetch as print (no render block), then
+       promote to all once loaded. display=swap paints text immediately in the
+       fallback font. <noscript> keeps it working without JS. -->
   <link rel="preload" as="style"
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" />
   <link
@@ -40,6 +45,9 @@
   <meta name="google-adsense-account" content="ca-pub-8956282576298580" />
   <!-- GA4 is managed via Google Tag Manager (GTM-PB4G7KLK) -->
   <!-- ads.txt entry: google.com, pub-8956282576298580, DIRECT, f08c47fec0942fa0 -->
+  <!-- Defer AdSense off the critical path: it is ~249 KiB and only powers Auto
+       Ads (no manual ad units in the app), so first paint must not wait on it.
+       Load on first user interaction, or 3s after window load, whichever is first. -->
   <script>
     (function () {
       var loaded = false;
@@ -62,8 +70,8 @@
       }
     })();
   </script>
-  <script type="module" crossorigin src="/assets/main-CEGe798r.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/main-D0AMrs1q.css">
+  <script type="module" crossorigin src="/assets/main-CbvTMPTB.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/main-CsQous8W.css">
 </head>
 
 <body>
