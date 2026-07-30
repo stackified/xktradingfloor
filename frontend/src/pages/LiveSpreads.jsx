@@ -5,9 +5,10 @@ import { Search, ArrowDown, ArrowUp, Minus, ExternalLink } from "lucide-react";
 import Seo from "../components/shared/Seo.jsx";
 import CardLoader from "../components/shared/CardLoader.jsx";
 import { getAllCompanies } from "../controllers/companiesController.js";
+import { getSpreadComparison, spreadsToRow } from "../controllers/spreadsController.js";
 import { V1_PAIRS, mockSpreadRow, formatSpread } from "../utils/spreads.js";
 
-const REFRESH_MS = 4000;
+const REFRESH_MS = 30000;
 
 function LiveSpreads() {
   const [brokers, setBrokers] = React.useState([]);
@@ -17,6 +18,44 @@ function LiveSpreads() {
   const prevRef = React.useRef({});
   const [sortPair, setSortPair] = React.useState(null);
   const [sortDir, setSortDir] = React.useState("asc");
+  const [usingMock, setUsingMock] = React.useState(true);
+
+  const loadSpreadRows = React.useCallback(async (brokerList) => {
+    try {
+      const { data } = await getSpreadComparison();
+      const comparisonBrokers = data?.brokers || [];
+      if (comparisonBrokers.length) {
+        const next = {};
+        comparisonBrokers.forEach((entry) => {
+          const row = spreadsToRow(entry.pairs);
+          if (Object.keys(row).length) {
+            next[entry.brokerId] = row;
+          }
+        });
+        if (Object.keys(next).length) {
+          setRows((prev) => {
+            prevRef.current = prev;
+            return next;
+          });
+          setUsingMock(false);
+          return;
+        }
+      }
+    } catch (error) {
+      console.warn("Failed to load spread comparison, using fallback", error);
+    }
+
+    const fallback = {};
+    brokerList.forEach((b) => {
+      const id = b._id || b.id;
+      fallback[id] = mockSpreadRow(id);
+    });
+    setRows((prev) => {
+      prevRef.current = prev;
+      return fallback;
+    });
+    setUsingMock(true);
+  }, []);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -29,12 +68,7 @@ function LiveSpreads() {
         );
         if (cancelled) return;
         setBrokers(list);
-        const initial = {};
-        list.forEach((b) => {
-          initial[b._id || b.id] = mockSpreadRow(b._id || b.id);
-        });
-        setRows(initial);
-        prevRef.current = initial;
+        await loadSpreadRows(list);
       } catch (e) {
         console.error("Failed to load brokers", e);
       } finally {
@@ -45,23 +79,15 @@ function LiveSpreads() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadSpreadRows]);
 
   React.useEffect(() => {
     if (!brokers.length) return;
     const timer = setInterval(() => {
-      setRows((prev) => {
-        prevRef.current = prev;
-        const next = {};
-        brokers.forEach((b) => {
-          const id = b._id || b.id;
-          next[id] = mockSpreadRow(id);
-        });
-        return next;
-      });
+      loadSpreadRows(brokers);
     }, REFRESH_MS);
     return () => clearInterval(timer);
-  }, [brokers]);
+  }, [brokers, loadSpreadRows]);
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -145,7 +171,9 @@ function LiveSpreads() {
           </div>
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
-            <span className="text-xs text-gray-300">Live · updates every {REFRESH_MS / 1000}s</span>
+            <span className="text-xs text-gray-300">
+              {usingMock ? "Cached" : "Live"} · updates every {REFRESH_MS / 1000}s
+            </span>
           </div>
         </div>
 

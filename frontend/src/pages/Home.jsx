@@ -1,6 +1,7 @@
 import React from 'react';
 import Seo from '../components/shared/Seo.jsx';
 import HeroSection from '../components/home/HeroSection.jsx';
+import StatsSection from '../components/home/StatsSection.jsx';
 import WhatIsXK from '../components/home/WhatIsXK.jsx';
 import MissionResourcesSection from '../components/home/MissionResourcesSection.jsx';
 import CommunitySection from '../components/home/CommunitySection.jsx';
@@ -10,8 +11,6 @@ import FreebiesSection from '../components/home/FreebiesSection.jsx';
 import PodcastSection from '../components/home/PodcastSection.jsx';
 import TradingJournalSection from '../components/home/TradingJournalSection.jsx';
 import FeaturedEvents from '../components/home/FeaturedEvents.jsx';
-// import LatestBlogs from '../components/home/LatestBlogs.jsx';
-import PodcastSponsorSection from '../components/home/PodcastSponsorSection.jsx';
 import CTASection from '../components/home/CTASection.jsx';
 
 function Home() {
@@ -19,10 +18,11 @@ function Home() {
     <div className="overflow-hidden">
       <Seo
         title=""
-        description="Learn trading, compare brokers, discover prop firms, and read unbiased reviews from real traders."
+        description="Compare brokers and prop firms, explore verified trader profiles, track live spreads and payouts, and make confident trading decisions."
         path="/"
       />
       <HeroSection />
+      <StatsSection />
       <WhatIsXK />
       <MissionResourcesSection />
       <CommunitySection />
@@ -34,8 +34,6 @@ function Home() {
       <PodcastSection />
       <TradingJournalSection />
       <FeaturedEvents />
-      {/* <LatestBlogs /> */}
-      {/* <PodcastSponsorSection /> */}
       <CTASection />
     </div>
   );
