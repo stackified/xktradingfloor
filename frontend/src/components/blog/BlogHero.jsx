@@ -25,8 +25,8 @@ function BlogHero({ searchValue = "", onSearchChange }) {
 
   return (
     <section
-      className="relative overflow-hidden flex items-center"
-      style={{ backgroundColor: BLOG_COLORS.bg, height: "480px" }}
+      className="relative overflow-hidden flex items-center min-h-[480px] py-10 sm:py-0 sm:h-[480px]"
+      style={{ backgroundColor: BLOG_COLORS.bg }}
     >
       <div
         aria-hidden="true"

@@ -166,6 +166,7 @@ function Blog() {
                 >
                   #{tag}
                   <button
+                    type="button"
                     onClick={() => handleTagToggle(tag)}
                     className="ml-1 hover:text-red-400"
                   >
@@ -174,6 +175,7 @@ function Blog() {
                 </span>
               ))}
               <button
+                type="button"
                 onClick={() => setSelectedTags([])}
                 className="text-xs text-blue-400 hover:text-blue-300 underline"
               >
