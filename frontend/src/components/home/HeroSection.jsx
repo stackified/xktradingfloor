@@ -30,7 +30,7 @@ function HeroSection() {
           <p className="text-base sm:text-lg text-gray-300 mb-8 leading-relaxed max-w-2xl">
             Compare brokers and prop firms, explore verified trader profiles,
             track live spreads and payouts, and make confident trading
-            decisions—all in one place.
+            decisions-all in one place.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Mail, TrendingUp, Tag } from "lucide-react";
+import { TrendingUp, Tag } from "lucide-react";
 
 function BlogSidebar({
   latest = [],
@@ -8,7 +8,6 @@ function BlogSidebar({
   selectedTags = [],
   onTagToggle,
 }) {
-  const [email, setEmail] = React.useState("");
   return (
     <aside className="space-y-6">
       <div className="card">
@@ -65,32 +64,6 @@ function BlogSidebar({
               Clear all tags
             </button>
           )}
-        </div>
-      </div>
-      <div className="card">
-        <div className="card-body">
-          <div className="flex items-center gap-2 mb-3">
-            <Mail className="h-4 w-4 text-blue-300" />
-            <h3 className="font-semibold">Newsletter</h3>
-          </div>
-          <div className="text-sm text-gray-400 mb-3">
-            Get weekly insights in your inbox.
-          </div>
-          <div className="flex gap-2">
-            <input
-              className="input"
-              placeholder="Email address"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <button
-              className="btn btn-primary"
-              onClick={() => console.log("subscribe", email)}
-            >
-              Subscribe
-            </button>
-          </div>
         </div>
       </div>
     </aside>

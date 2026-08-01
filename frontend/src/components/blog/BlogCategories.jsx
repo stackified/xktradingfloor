@@ -6,6 +6,7 @@ function BlogCategories({ categories, active, onChange }) {
       {['All', ...categories].map((c) => (
         <button
           key={c}
+          type="button"
           className={`btn rounded-full ${active === c ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => onChange(c)}
         >

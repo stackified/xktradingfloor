@@ -34,7 +34,7 @@ function WhatIsXK() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight mb-6 leading-tight"
           >
-            It's More Than a Trading Community —{" "}
+            It's More Than a Trading Community -{" "}
             <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
               It's a Traders' Ecosystem.
             </span>
@@ -47,7 +47,7 @@ function WhatIsXK() {
             className="text-sm sm:text-base text-gray-300 max-w-4xl mx-auto space-y-3 leading-relaxed"
           >
             <p>
-              XK Trading Floor is a growing ecosystem built for traders who want to learn, grow, and earn — all in one place.
+              XK Trading Floor is a growing ecosystem built for traders who want to learn, grow, and earn - all in one place.
             </p>
             <p>
               Explore and test strategies, discover top brokers, prop firms, and academies, and stay ahead with the latest tools, podcasts, and events designed for traders who take their craft seriously.
