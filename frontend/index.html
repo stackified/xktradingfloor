@@ -47,24 +47,39 @@
        Load on first user interaction, or 3s after window load, whichever is first. -->
   <script>
     (function () {
+      var host = location.hostname;
+      if (host === 'localhost' || host === '127.0.0.1') return;
+
       var loaded = false;
       var events = ['scroll', 'pointerdown', 'keydown', 'touchstart'];
+      var loadTimer;
+
+      function cleanup() {
+        events.forEach(function (e) { window.removeEventListener(e, loadAds); });
+        if (loadTimer) clearTimeout(loadTimer);
+      }
+
       function loadAds() {
         if (loaded) return;
         loaded = true;
-        events.forEach(function (e) { window.removeEventListener(e, loadAds); });
-        var s = document.createElement('script');
-        s.async = true;
-        s.crossOrigin = 'anonymous';
-        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8956282576298580';
-        document.head.appendChild(s);
+        cleanup();
+
+        try {
+          var s = document.createElement('script');
+          s.async = true;
+          s.crossOrigin = 'anonymous';
+          s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8956282576298580';
+          s.onerror = function () {
+            window.__adsenseBlocked = true;
+          };
+          document.head.appendChild(s);
+        } catch (e) {
+          window.__adsenseBlocked = true;
+        }
       }
-      events.forEach(function (e) { window.addEventListener(e, loadAds, { passive: true, once: false }); });
-      if (document.readyState === 'complete') {
-        setTimeout(loadAds, 3000);
-      } else {
-        window.addEventListener('load', function () { setTimeout(loadAds, 3000); });
-      }
+
+      events.forEach(function (e) { window.addEventListener(e, loadAds, { passive: true }); });
+      loadTimer = setTimeout(loadAds, 3000);
     })();
   </script>
 </head>
