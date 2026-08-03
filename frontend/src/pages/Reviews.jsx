@@ -1,22 +1,24 @@
 import React from "react";
 import Seo from "../components/shared/Seo.jsx";
 import { useLocation, Link } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { Reorder } from "framer-motion";
 import { GripVertical } from "lucide-react";
 import { updateCompany } from "../controllers/companiesController.js";
 import { getAllCompanies } from "../controllers/companiesController.js";
+import { getReviewsByCompanyId } from "../controllers/reviewsController.js";
 import CompanyCard from "../components/reviews/CompanyCard.jsx";
-import CompanyFilters from "../components/reviews/CompanyFilters.jsx";
+import CompanyFiltersBar from "../components/reviews/CompanyFiltersBar.jsx";
+import ReviewsPageHero from "../components/reviews/ReviewsPageHero.jsx";
+import ReviewsSidebar from "../components/reviews/ReviewsSidebar.jsx";
 import ReviewsTabs from "../components/reviews/ReviewsTabs.jsx";
 import Pagination from "../components/reviews/Pagination.jsx";
 import CardLoader from "../components/shared/CardLoader.jsx";
 import WriteToUsModal from "../components/reviews/WriteToUsModal.jsx";
 import RequireAuthModal from "../components/shared/RequireAuthModal.jsx";
 import { getUserCookie } from "../utils/cookies.js";
-import { updateMockMode } from "../redux/slices/mockSlice.js";
+import { computeTrustScore } from "../utils/trustScore.js";
 
-// Map URL category to actual category value
 const categoryMap = {
   broker: "Broker",
   propfirm: "PropFirm",
@@ -38,10 +40,29 @@ const categoryDescriptions = {
     "Review crypto exchanges and trading platforms. Find secure platforms with competitive fees.",
 };
 
+function sortCompanies(companies, sortBy) {
+  const sorted = [...companies];
+
+  switch (sortBy) {
+    case "rating":
+      return sorted.sort((a, b) => (b.ratingsAggregate || 0) - (a.ratingsAggregate || 0));
+    case "reviews":
+      return sorted.sort((a, b) => (b.totalReviews || 0) - (a.totalReviews || 0));
+    case "name":
+      return sorted.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    case "trustScore":
+    default:
+      return sorted.sort((a, b) => {
+        const scoreA = computeTrustScore(a.ratingsAggregate, a.totalReviews).score;
+        const scoreB = computeTrustScore(b.ratingsAggregate, b.totalReviews).score;
+        return scoreB - scoreA;
+      });
+  }
+}
+
 export default function Reviews() {
   const location = useLocation();
   const pathname = location.pathname;
-  const dispatch = useDispatch();
   const reduxUser = useSelector((state) => state.auth.user);
   const user = reduxUser || getUserCookie();
   const userRole =
@@ -49,10 +70,12 @@ export default function Reviews() {
   const canSeePendingCompanies =
     userRole === "admin" || userRole === "operator";
   const isAdmin = userRole === "admin";
-  const mockMode = useSelector((state) => state.mock.enabled);
   const [companies, setCompanies] = React.useState([]);
+  const [sidebarBrokers, setSidebarBrokers] = React.useState([]);
+  const [sidebarPropFirms, setSidebarPropFirms] = React.useState([]);
+  const [latestReviews, setLatestReviews] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const [filters, setFilters] = React.useState({});
+  const [filters, setFilters] = React.useState({ sortBy: "trustScore" });
   const [currentPage, setCurrentPage] = React.useState(1);
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
   const [totalPages, setTotalPages] = React.useState(0);
@@ -60,47 +83,80 @@ export default function Reviews() {
   const [writeToUsModalOpen, setWriteToUsModalOpen] = React.useState(false);
   const [authModalOpen, setAuthModalOpen] = React.useState(false);
 
-  // Extract category from URL pathname
   React.useEffect(() => {
     const pathParts = pathname.split("/");
-    const categoryFromPath = pathParts[pathParts.length - 1]; // Get last part of path
+    const categoryFromPath = pathParts[pathParts.length - 1];
 
-    // Check if it's a category route (broker, propfirm, crypto)
     if (
       categoryFromPath &&
       categoryFromPath !== "reviews" &&
       categoryFromPath !== "operator" &&
+      categoryFromPath !== "traders" &&
       !categoryFromPath.startsWith("company")
     ) {
       const mappedCategory = categoryMap[categoryFromPath.toLowerCase()];
       if (mappedCategory) {
-        // Set category filter when URL has a category
         setFilters((prev) => {
-          // Only update if it's different to avoid infinite loops
           if (prev.category !== mappedCategory) {
             return { ...prev, category: mappedCategory };
           }
           return prev;
         });
       }
-    } else if (pathname === "/reviews") {
-      // On main reviews page, don't force a category
-      // But keep existing filters if user set them manually
     }
   }, [pathname]);
 
-  // Get category from filters
   const activeCategory = filters.category || null;
 
-  // Reset page when filters change
   React.useEffect(() => {
     setCurrentPage(1);
   }, [filters]);
 
-  // Load companies when dependencies change
   React.useEffect(() => {
     loadCompanies();
-  }, [filters, currentPage, itemsPerPage, mockMode]);
+  }, [filters, currentPage, itemsPerPage]);
+
+  React.useEffect(() => {
+    loadSidebarData();
+  }, []);
+
+  async function loadSidebarData() {
+    try {
+      const [brokersRes, propFirmsRes] = await Promise.all([
+        getAllCompanies({ category: "Broker", size: 10 }),
+        getAllCompanies({ category: "PropFirm", size: 10 }),
+      ]);
+
+      const brokers = (brokersRes.data || []).filter((c) => c.status === "approved");
+      const propFirms = (propFirmsRes.data || []).filter((c) => c.status === "approved");
+
+      setSidebarBrokers(sortCompanies(brokers, "trustScore"));
+      setSidebarPropFirms(sortCompanies(propFirms, "trustScore"));
+
+      const topCompanies = [...brokers.slice(0, 2), ...propFirms.slice(0, 2)];
+      const reviewResults = await Promise.allSettled(
+        topCompanies.map(async (company) => {
+          const id = company.id || company._id;
+          const reviews = await getReviewsByCompanyId(id);
+          const list = reviews?.data || reviews || [];
+          return list.slice(0, 2).map((r) => ({
+            ...r,
+            companyName: company.name,
+            companyId: id,
+          }));
+        })
+      );
+
+      const allReviews = reviewResults
+        .filter((r) => r.status === "fulfilled")
+        .flatMap((r) => r.value)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      setLatestReviews(allReviews);
+    } catch (error) {
+      console.error("Error loading sidebar data:", error);
+    }
+  }
 
   async function loadCompanies() {
     setLoading(true);
@@ -108,11 +164,9 @@ export default function Reviews() {
       const response = await getAllCompanies({
         ...filters,
         page: currentPage,
-        size: itemsPerPage
+        size: itemsPerPage,
       });
 
-      // Handle response structure
-      // Controller now sorts out data format and returns { data: [], pagination: {} }
       const companiesData = response.data || [];
       const pagination = response.pagination || {};
 
@@ -120,23 +174,23 @@ export default function Reviews() {
         ? companiesData
         : companiesData.filter((c) => c.status === "approved");
 
-      // While backend should handle sorting, we might need to apply displayOrder sorting client-side
-      // if the backend sort isn't perfect, but ideally backend does it.
-      // For now, let's trust the backend order or re-apply sort if needed.
-      // Assuming backend handles basic sorting, but we might want to prioritize displayOrder here if mixed.
-      // Since it's paginated, sorting MUST be done on backend. 
-      // We will assume backend returns sorted data.
+      if (filters.minRating) {
+        filtered = filtered.filter(
+          (c) => (c.ratingsAggregate || 0) >= filters.minRating
+        );
+      }
+
+      filtered = sortCompanies(filtered, filters.sortBy || "trustScore");
 
       setCompanies(filtered);
 
-      // Update pagination state
       if (pagination.totalPages) setTotalPages(pagination.totalPages);
-      else if (pagination.totalItems) setTotalPages(Math.ceil(pagination.totalItems / itemsPerPage));
-      else setTotalPages(1); // Fallback
+      else if (pagination.totalItems)
+        setTotalPages(Math.ceil(pagination.totalItems / itemsPerPage));
+      else setTotalPages(1);
 
       if (pagination.totalItems) setTotalItems(pagination.totalItems);
-      else setTotalItems(filtered.length); // Fallback (likely only works for small sets)
-
+      else setTotalItems(filtered.length);
     } catch (error) {
       console.error("Error loading companies:", error);
       setCompanies([]);
@@ -157,6 +211,10 @@ export default function Reviews() {
     setCurrentPage(1);
   }
 
+  function handleSearchChange(value) {
+    setFilters((prev) => ({ ...prev, search: value }));
+  }
+
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
 
@@ -164,35 +222,23 @@ export default function Reviews() {
     ? `${categoryLabels[activeCategory]} Reviews | XK Trading Floor`
     : "Company Reviews | XK Trading Floor";
 
-  const heroTitle = activeCategory
-    ? `Compare ${categoryLabels[activeCategory]}`
-    : "Compare Trading Companies";
-
   const heroDescription = activeCategory
     ? categoryDescriptions[activeCategory]
     : "Browse brokers, prop firms, and crypto exchanges. Read authentic reviews from traders and find the best deals with promo codes.";
 
-  // Handle drag-and-drop reordering within the current page (admin only)
   const handleReorderCompanies = async (newPageCompanies) => {
     setCompanies(newPageCompanies);
 
-    // setAllCompanies logic removed as we use server-side pagination now
-
-    // Persist ordering to backend (and mock store) using displayOrder
     try {
-      const reorderedPage = newPageCompanies;
       const baseIndex = (currentPage - 1) * itemsPerPage;
-
       await Promise.all(
-        reorderedPage.map((company, idx) => {
+        newPageCompanies.map((company, idx) => {
           const id = company.id || company._id;
           if (!id) return Promise.resolve();
-          const displayOrder = baseIndex + idx;
-          return updateCompany(id, { displayOrder });
+          return updateCompany(id, { displayOrder: baseIndex + idx });
         })
       );
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error("Failed to persist company display order:", error);
     }
   };
@@ -200,73 +246,18 @@ export default function Reviews() {
   return (
     <div className="bg-black text-white min-h-screen">
       <Seo
-        title={pageTitle.replace(' | XK Trading Floor', '')}
+        title={pageTitle.replace(" | XK Trading Floor", "")}
         description={heroDescription}
         path="/reviews"
       />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-black">
-        {/* <section className="relative overflow-hidden bg-gradient-to-b from-green-500/10 via-transparent to-transparent"> */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8 text-center">
-          <h1 className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl mb-3">
-            {activeCategory ? (
-              <>
-                Compare{" "}
-                <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
-                  {categoryLabels[activeCategory]}
-                </span>
-              </>
-            ) : (
-              <>
-                Compare{" "}
-                <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
-                  Trading Companies
-                </span>
-              </>
-            )}
-          </h1>
-          <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">
-            {heroDescription}
-          </p>
-        </div>
-      </section>
+      <ReviewsPageHero
+        searchValue={filters.search}
+        onSearchChange={handleSearchChange}
+        onSearchSubmit={() => setCurrentPage(1)}
+      />
 
       <ReviewsTabs />
-
-      {/* Mock Data Toggle - HIDDEN FOR NOW (can be enabled later) */}
-      {false && isAdmin && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-end gap-4">
-            {/* Modern Mock Data Toggle */}
-            <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-gray-800/50 border border-white/10">
-              <span className="text-sm font-medium text-gray-300 whitespace-nowrap">
-                Mock Data
-              </span>
-              <button
-                type="button"
-                onClick={() => dispatch(updateMockMode(!mockMode))}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${mockMode ? "bg-blue-600" : "bg-gray-600"
-                  }`}
-                role="switch"
-                aria-checked={mockMode}
-                aria-label="Toggle mock data mode"
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${mockMode ? "translate-x-6" : "translate-x-1"
-                    }`}
-                />
-              </button>
-              <span className="text-xs text-gray-500 whitespace-nowrap">
-                {mockMode ? "ON" : "OFF"}
-              </span>
-            </div>
-            <Link to="/admin/companies/create" className="btn btn-primary">
-              + Add Company
-            </Link>
-          </div>
-        </section>
-      )}
 
       {isAdmin && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -275,7 +266,6 @@ export default function Reviews() {
               to="/admin/companies"
               className="group relative inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 backdrop-blur-md text-white/90 text-sm font-medium shadow-sm hover:bg-white/10 hover:border-white/20 hover:text-white hover:scale-105 hover:shadow-blue-500/10 transition-all duration-300"
             >
-              <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <span className="relative z-10">Manage Companies</span>
             </Link>
             <Link to="/admin/companies/create" className="btn btn-primary">
@@ -285,16 +275,15 @@ export default function Reviews() {
         </section>
       )}
 
-      {/* Main Content */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Filters Sidebar */}
-          <div className="lg:col-span-1">
-            <CompanyFilters filters={filters} onChange={setFilters} />
-          </div>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Top Filters */}
+        <div className="mb-6">
+          <CompanyFiltersBar filters={filters} onChange={setFilters} />
+        </div>
 
-          {/* Companies List */}
-          <div className="lg:col-span-3">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          {/* Main Content — Company Cards */}
+          <div className="xl:col-span-3">
             {loading ? (
               <CardLoader count={3} horizontal={true} />
             ) : companies.length === 0 ? (
@@ -304,7 +293,7 @@ export default function Reviews() {
                     No companies found matching your filters.
                   </div>
                   <button
-                    onClick={() => setFilters({})}
+                    onClick={() => setFilters({ sortBy: "trustScore" })}
                     className="btn btn-secondary"
                   >
                     Clear Filters
@@ -319,6 +308,7 @@ export default function Reviews() {
                     {totalItems === 1 ? "company" : "companies"}
                   </div>
                 </div>
+
                 {isAdmin ? (
                   <Reorder.Group
                     axis="y"
@@ -356,6 +346,7 @@ export default function Reviews() {
                     ))}
                   </div>
                 )}
+
                 {totalPages > 1 && (
                   <Pagination
                     currentPage={currentPage}
@@ -365,7 +356,7 @@ export default function Reviews() {
                     onItemsPerPageChange={handleItemsPerPageChange}
                   />
                 )}
-                {/* Write to Us Option */}
+
                 <div className="card mt-6 border-2 border-dashed border-gray-700 hover:border-blue-500/50 transition-colors">
                   <div className="card-body text-center py-8">
                     <div className="text-gray-400 mb-4">
@@ -383,26 +374,7 @@ export default function Reviews() {
                         }
                       }}
                       className="btn btn-primary inline-flex items-center gap-2"
-                      aria-disabled={!user}
-                      title={
-                        !user
-                          ? "Login required to request company addition"
-                          : ""
-                      }
                     >
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 4v16m8-8H4"
-                        />
-                      </svg>
                       Request Company Addition
                     </button>
                   </div>
@@ -410,8 +382,20 @@ export default function Reviews() {
               </div>
             )}
           </div>
+
+          {/* Right Sidebar */}
+          <div className="xl:col-span-1">
+            <div className="sticky top-24">
+              <ReviewsSidebar
+                brokers={sidebarBrokers}
+                propFirms={sidebarPropFirms}
+                latestReviews={latestReviews}
+              />
+            </div>
+          </div>
         </div>
       </section>
+
       <WriteToUsModal
         isOpen={writeToUsModalOpen}
         onClose={() => setWriteToUsModalOpen(false)}
@@ -423,8 +407,7 @@ export default function Reviews() {
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         onConfirm={() => {
-          const nextPath = "/reviews";
-          window.location.href = `/login?next=${encodeURIComponent(nextPath)}`;
+          window.location.href = `/login?next=${encodeURIComponent("/reviews")}`;
         }}
       />
     </div>

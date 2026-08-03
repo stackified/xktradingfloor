@@ -4,8 +4,9 @@ const blogRoutes = require('./blog.routes.js');
 const companyRoutes = require('./company.routes.js');
 const reviewRoutes = require('./review.routes.js');
 const settingRoutes = require('./setting.routes.js');
-const userRoutes = require('./user.routes.js');
+const userRoutes = require('./user.routes');
 const eventRoutes = require('./event.routes.js');
+const spreadRoutes = require('./spread.routes.js');
 
 // Controllers
 // const productController = require('../../../controllers/product.controller');
@@ -44,6 +45,9 @@ router.use('/users', userRoutes);
 
 // Event Routes
 router.use('/event', eventRoutes);
+
+// Spread Routes
+router.use('/spreads', spreadRoutes);
 
 // Podcast Routes
 // router.post('/podcasts', podcastController.createPodcast);

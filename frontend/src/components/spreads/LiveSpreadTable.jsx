@@ -1,25 +1,47 @@
 import React from "react";
 import { ArrowDown, ArrowUp, Minus } from "lucide-react";
 import { V1_PAIRS, mockSpreadRow, formatSpread } from "../../utils/spreads.js";
+import {
+  getBrokerSpreads,
+  spreadsToRow,
+} from "../../controllers/spreadsController.js";
 
-const REFRESH_MS = 4000;
+const REFRESH_MS = 30000;
 
 function LiveSpreadTable({ brokerId, brokerName }) {
   const [spreads, setSpreads] = React.useState(() => mockSpreadRow(brokerId));
   const prevRef = React.useRef(spreads);
+  const [usingMock, setUsingMock] = React.useState(true);
+
+  const loadSpreads = React.useCallback(async () => {
+    if (!brokerId) return;
+    try {
+      const { data } = await getBrokerSpreads(brokerId);
+      if (data?.pairs && Object.keys(data.pairs).length) {
+        const row = spreadsToRow(data.pairs);
+        setSpreads((prev) => {
+          prevRef.current = prev;
+          return row;
+        });
+        setUsingMock(false);
+        return;
+      }
+    } catch (error) {
+      console.warn("Failed to load live spreads, using fallback", error);
+    }
+
+    setSpreads((prev) => {
+      prevRef.current = prev;
+      return mockSpreadRow(brokerId);
+    });
+    setUsingMock(true);
+  }, [brokerId]);
 
   React.useEffect(() => {
-    const initial = mockSpreadRow(brokerId);
-    setSpreads(initial);
-    prevRef.current = initial;
-    const timer = setInterval(() => {
-      setSpreads((prev) => {
-        prevRef.current = prev;
-        return mockSpreadRow(brokerId);
-      });
-    }, REFRESH_MS);
+    loadSpreads();
+    const timer = setInterval(loadSpreads, REFRESH_MS);
     return () => clearInterval(timer);
-  }, [brokerId]);
+  }, [loadSpreads]);
 
   const DirectionIcon = ({ pairKey }) => {
     const now = spreads[pairKey];
@@ -46,11 +68,12 @@ function LiveSpreadTable({ brokerId, brokerName }) {
             </h3>
             <p className="text-xs text-gray-400 mt-1">
               Typical spread in pips • Updates every {REFRESH_MS / 1000}s
+              {usingMock ? " • Awaiting live data" : ""}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
-            <span className="text-xs text-gray-300">Live</span>
+            <span className={`h-2 w-2 rounded-full ${usingMock ? "bg-yellow-400" : "bg-green-400 animate-pulse"}`}></span>
+            <span className="text-xs text-gray-300">{usingMock ? "Cached" : "Live"}</span>
           </div>
         </div>
 

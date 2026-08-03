@@ -30,6 +30,7 @@ const About = React.lazy(() => import("../pages/About.jsx"));
 const Contact = React.lazy(() => import("../pages/Contact.jsx"));
 const Services = React.lazy(() => import("../pages/Services.jsx"));
 const VerifiedTraders = React.lazy(() => import("../pages/VerifiedTraders.jsx"));
+const UserProfile = React.lazy(() => import("../pages/UserProfile.jsx"));
 const LiveSpreads = React.lazy(() => import("../pages/LiveSpreads.jsx"));
 const Payouts = React.lazy(() => import("../pages/Payouts.jsx"));
 const PrivacyPolicy = React.lazy(() => import("../pages/PrivacyPolicy.jsx"));
@@ -46,6 +47,7 @@ const AdminCompanyForm = React.lazy(() => import("../components/admin/companies/
 const AdminEvents = React.lazy(() => import("../pages/admin/AdminEvents.jsx"));
 const AboutEditor = React.lazy(() => import("../pages/admin/AboutEditor.jsx"));
 const AdminSettings = React.lazy(() => import("../pages/admin/AdminSettings.jsx"));
+const AdminVerifiedTraders = React.lazy(() => import("../pages/admin/AdminVerifiedTraders.jsx"));
 const EmailCampaigns = React.lazy(() => import("../pages/admin/EmailCampaigns.jsx"));
 const MyBlogs = React.lazy(() => import("../pages/MyBlogs.jsx"));
 const OperatorBlogs = React.lazy(() => import("../pages/operator/OperatorBlogs.jsx"));
@@ -122,6 +124,7 @@ export default function AppRouter() {
           <Route path="/reviews/propfirm" element={<Reviews />} />
           <Route path="/reviews/crypto" element={<Reviews />} />
           <Route path="/reviews/traders" element={<VerifiedTraders />} />
+          <Route path="/users/:userId" element={<UserProfile />} />
           <Route
             path="/reviews/operator"
             element={
@@ -253,6 +256,14 @@ export default function AppRouter() {
             element={
               <ProtectedRoute role="admin">
                 <AdminSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/verified-traders"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminVerifiedTraders />
               </ProtectedRoute>
             }
           />

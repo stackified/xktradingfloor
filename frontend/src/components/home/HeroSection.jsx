@@ -1,110 +1,70 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getAssetPath } from "../../utils/assets.js";
-import DiscordAuthGate from "../shared/DiscordAuthGate.jsx";
+
+const trustPoints = [
+  "Trusted reviews",
+  "Verified traders",
+  "Live spreads",
+  "Real payouts",
+];
 
 function HeroSection() {
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-black">
-      {/* Animated background gradients */}
-      {/* <div className="absolute inset-0 bg-gradient-to-b from-black via-black to-black" /> */}
-      {/* <motion.div
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-        className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl"
-      /> */}
-      {/* <motion.div
-        animate={{
-          scale: [1, 1.3, 1],
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 2
-        }}
-        className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-purple-500/10 blur-3xl"
-      /> */}
-      {/* <motion.div
-        animate={{
-          scale: [1, 1.1, 1],
-          opacity: [0.2, 0.4, 0.2],
-        }}
-        transition={{
-          duration: 12,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 4
-        }}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-green-500/5 blur-3xl"
-      /> */}
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
-        <motion.div
-          initial={false}
-          className="text-center lg:text-left"
-        >
-          <motion.h1
-            initial={false}
-            className="font-display font-bold text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-tight mb-6 leading-tight"
-          >
-            <span className="text-white">A Transparent</span>
+        <div className="text-center lg:text-left">
+          <h1 className="font-display font-bold text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-tight mb-6 leading-tight">
+            <span className="text-white">Discover Trusted</span>
             <br />
             <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
-              Trading
+              Brokers, Prop Firms &amp;
             </span>
             <br />
             <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
-              Community
+              Verified Traders.
             </span>
-            <br />
-            <span className="text-white">Built by Traders</span>
-          </motion.h1>
-          <motion.p
-            initial={false}
-            className="text-base sm:text-lg text-gray-300 mb-8 leading-relaxed max-w-2xl"
-          >
-            Share your journey, read honest reviews, discover trading events,
-            and learn from real traders — all in one place.
-          </motion.p>
-          <motion.div
-            initial={false}
-            className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4"
-          >
+          </h1>
+
+          <p className="text-base sm:text-lg text-gray-300 mb-8 leading-relaxed max-w-2xl">
+            Compare brokers and prop firms, explore verified trader profiles,
+            track live spreads and payouts, and make confident trading
+            decisions-all in one place.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
             <Link
               to="/reviews"
-              className="btn rounded-full btn-primary bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3"
+              className="btn rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 px-6 py-3"
             >
-              Find the Right Broker
+              Explore Companies
             </Link>
-            <DiscordAuthGate
-              discordUrl="https://discord.gg/c2rtKXU56s"
-              className="btn rounded-full btn-secondary border-2 border-gray-600 hover:border-gray-500 bg-gray-800/50 hover:bg-gray-800 text-white hover:scale-105 transition-all px-6 py-3"
+            <Link
+              to="/reviews/traders"
+              className="btn rounded-full bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3"
             >
-              Join XK Trading Floor
-            </DiscordAuthGate>
-          </motion.div>
-        </motion.div>
-        <motion.div
-          initial={false}
-          className="flex items-center justify-center relative"
-        >
+              Find Verified Traders
+            </Link>
+          </div>
+
+          <p className="mt-6 text-sm text-gray-400 flex flex-wrap items-center justify-center lg:justify-start gap-x-2 gap-y-1">
+            {trustPoints.map((point, index) => (
+              <React.Fragment key={point}>
+                {index > 0 && (
+                  <span className="text-gray-600 hidden sm:inline" aria-hidden="true">
+                    •
+                  </span>
+                )}
+                <span>{point}</span>
+              </React.Fragment>
+            ))}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-center relative">
           <div className="relative h-96 w-96 flex items-center justify-center">
-            {/* Logo - Center with Ripple Effect */}
-            <motion.div
-              initial={false}
-              className="absolute z-30 flex items-center justify-center"
-            >
+            <motion.div className="absolute z-30 flex items-center justify-center">
               <motion.img
                 src={getAssetPath("/assets/logo.webp")}
                 alt="XK Trading Floor Logo"
@@ -112,63 +72,28 @@ function HeroSection() {
                 height="445"
                 className="h-64 w-48 md:h-80 md:w-60 lg:h-96 lg:w-72 object-contain drop-shadow-2xl"
                 style={{ filter: "brightness(0) invert(1)" }}
-                animate={{
-                  scale: [1, 1.05, 1],
-                  rotate: [0, 2, -2, 0],
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
+                animate={{ scale: [1, 1.05, 1], rotate: [0, 2, -2, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               />
             </motion.div>
 
-            {/* Inner Circle - Ripple 1 */}
             <motion.div
-              animate={{
-                scale: [1, 1.5, 1],
-                opacity: [0.7, 0, 0.7],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
+              animate={{ scale: [1, 1.5, 1], opacity: [0.7, 0, 0.7] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               className="absolute h-64 w-64 border-2 border-blue-400/50 rounded-full"
             />
-
-            {/* Outer Circle - Ripple 2 */}
             <motion.div
-              animate={{
-                scale: [1, 1.8, 1],
-                opacity: [0.5, 0, 0.5],
-              }}
-              transition={{
-                duration: 3.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.5,
-              }}
+              animate={{ scale: [1, 1.8, 1], opacity: [0.5, 0, 0.5] }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
               className="absolute h-96 w-96 border-2 border-blue-400/40 rounded-full"
             />
-
-            {/* Additional Ripple Layer */}
             <motion.div
-              animate={{
-                scale: [1, 2.2, 1],
-                opacity: [0.3, 0, 0.3],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 1,
-              }}
+              animate={{ scale: [1, 2.2, 1], opacity: [0.3, 0, 0.3] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
               className="absolute h-[500px] w-[500px] border border-blue-400/30 rounded-full"
             />
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

@@ -1,90 +1,132 @@
 import React from "react";
-import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { Search, SquarePen, FolderOpen } from "lucide-react";
 import { getUserCookie } from "../../utils/cookies.js";
-import { Plus, FileText } from "lucide-react";
+import { getAssetPath } from "../../utils/assets.js";
+import { BLOG_CONTAINER, BLOG_COLORS } from "./blogLayout.js";
 
-function BlogHero() {
+function blogPath(user, type) {
+  if (!user) return "/login";
+  const role = user.role?.toLowerCase();
+  if (type === "write") {
+    if (role === "admin") return "/admin/blogs/create";
+    if (role === "operator" || role === "subadmin") return "/operator/blogs/create";
+    return "/blogs/create";
+  }
+  if (role === "admin") return "/admin/blogs";
+  if (role === "operator" || role === "subadmin") return "/operator/blogs";
+  return "/blogs/my-blogs";
+}
+
+function BlogHero({ searchValue = "", onSearchChange }) {
   const navigate = useNavigate();
-  const reduxUser = useSelector((state) => state.auth.user);
-  const user = reduxUser || getUserCookie();
-
-  const handleWriteBlog = () => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-    // Determine route based on role (case-insensitive check)
-    const userRole = user.role?.toLowerCase();
-    if (userRole === "admin") {
-      navigate("/admin/blogs/create");
-    } else if (userRole === "operator" || userRole === "subadmin") {
-      navigate("/operator/blogs/create");
-    } else {
-      navigate("/blogs/create");
-    }
-  };
-
-  const handleManageBlog = () => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-    // Determine route based on role (case-insensitive check)
-    const userRole = user.role?.toLowerCase();
-    if (userRole === "admin") {
-      navigate("/admin/blogs");
-    } else if (userRole === "operator" || userRole === "subadmin") {
-      navigate("/operator/blogs");
-    } else {
-      navigate("/blogs/my-blogs");
-    }
-  };
+  const user = useSelector((state) => state.auth.user) || getUserCookie();
 
   return (
-    <section className="relative overflow-hidden bg-black">
-      {/* <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 via-transparent to-transparent pointer-events-none" /> */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-12 text-center relative z-10">
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl"
-        >
-          Insights & <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Market Analysis</span>
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="mt-3 text-sm sm:text-base text-gray-300 max-w-3xl mx-auto"
-        >
-          Stay ahead of the markets with in-depth research, tutorials, and
-          expert opinions.
-        </motion.p>
-        <div className="mt-5 flex items-center justify-center gap-3 relative z-20">
-          <button
-            type="button"
-            onClick={handleWriteBlog}
-            className="btn btn-primary rounded-full flex items-center gap-2 cursor-pointer"
+    <section
+      className="relative overflow-hidden flex items-center min-h-[480px] py-10 sm:py-0 sm:h-[480px]"
+      style={{ backgroundColor: BLOG_COLORS.bg }}
+    >
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse 70% 100% at 50% 50%, transparent 0%, #05070D 72%)",
+        }}
+      />
+
+      <div
+        aria-hidden="true"
+        className="absolute inset-y-0 left-0 w-[42%] max-w-[500px] pointer-events-none hidden md:block"
+      >
+        <img
+          src={getAssetPath("/assets/blog-hero-bull.png")}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-left opacity-55"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to right, transparent 0%, rgba(5,7,13,0.5) 50%, #05070D 100%)",
+          }}
+        />
+      </div>
+
+      <div
+        aria-hidden="true"
+        className="absolute inset-y-0 right-0 w-[42%] max-w-[500px] pointer-events-none hidden md:block"
+      >
+        <img
+          src={getAssetPath("/assets/blog-hero-globe.jpg")}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-right opacity-55"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to left, transparent 0%, rgba(5,7,13,0.5) 50%, #05070D 100%)",
+          }}
+        />
+      </div>
+
+      <div className={`relative z-10 w-full ${BLOG_CONTAINER}`}>
+        <div className="text-center max-w-[860px] mx-auto">
+          <h1 className="font-display uppercase text-[28px] sm:text-[34px] md:text-[42px] lg:text-[48px] font-extrabold leading-[1.05] tracking-[-0.02em] text-white md:whitespace-nowrap">
+            Insights for{" "}
+            <span className="bg-gradient-to-r from-[#60A5FA] via-[#3B82F6] to-[#2563EB] bg-clip-text text-transparent">
+              Every Trader
+            </span>
+          </h1>
+
+          <p className="mt-4 mx-auto max-w-[700px] text-[15px] sm:text-[16px] leading-[1.6] text-white/[0.82]">
+            Find the insights that matter to your trading journey.
+            <br className="hidden sm:block" />
+            Stories, analysis, reviews, trader interviews and industry updates - all in one place.
+          </p>
+
+          <div className="relative max-w-[580px] mx-auto mt-6">
+            <Search className="absolute left-[18px] top-1/2 -translate-y-1/2 h-4 w-4 text-white/35 pointer-events-none" />
+            <input
+              type="search"
+              placeholder="Search articles, brokers, traders, topics..."
+              value={searchValue}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              className="w-full h-14 pl-11 pr-5 rounded-full text-[14px] text-white placeholder:text-white/30 bg-[#111827] border border-white/[0.08] focus:outline-none focus:border-[#3B82F6]/45 transition-all duration-300 shadow-[0_2px_16px_rgba(0,0,0,0.22)]"
+            />
+          </div>
+
+          <div
+            className="mt-5 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-6"
+            role="toolbar"
+            aria-label="Blog actions"
           >
-            <Plus className="h-4 w-4" />
-            Write Blog
-          </button>
-          {user && (
             <button
               type="button"
-              onClick={handleManageBlog}
-              className="group relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-white/90 text-sm font-medium shadow-sm hover:bg-white/10 hover:border-white/20 hover:text-white hover:scale-105 hover:shadow-blue-500/10 transition-all duration-300"
+              onClick={() => navigate(blogPath(user, "write"))}
+              className="group inline-flex h-10 items-center justify-center gap-2 rounded-xl px-5 text-[15px] font-semibold tracking-[-0.01em] text-white bg-gradient-to-br from-[#3B82F6] to-[#2563EB] shadow-[0_4px_20px_rgba(59,130,246,0.28)] transition-all duration-[250ms] ease-out hover:-translate-y-0.5 hover:shadow-[0_8px_28px_rgba(59,130,246,0.38)] active:translate-y-0 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070D] cursor-pointer sm:min-w-[160px]"
             >
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <FileText className="h-4 w-4 text-gray-400 group-hover:text-blue-300 transition-colors" />
-              <span className="relative z-10">Manage Blog</span>
+              <SquarePen className="h-[18px] w-[18px] shrink-0 transition-colors duration-[250ms] ease-out group-hover:text-white" />
+              Write Blog
             </button>
-          )}
+
+            <span
+              aria-hidden="true"
+              className="hidden sm:block h-5 w-px bg-white/[0.12]"
+            />
+
+            <button
+              type="button"
+              onClick={() => navigate(blogPath(user, "manage"))}
+              className="group inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-5 text-[15px] font-semibold tracking-[-0.01em] text-white backdrop-blur-sm transition-all duration-[250ms] ease-out hover:-translate-y-0.5 hover:border-[#3B82F6] hover:bg-white/[0.07] hover:text-white hover:shadow-[0_6px_24px_rgba(59,130,246,0.14)] active:translate-y-0 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070D] cursor-pointer sm:min-w-[180px]"
+            >
+              <FolderOpen className="h-[18px] w-[18px] shrink-0 text-white/75 transition-colors duration-[250ms] ease-out group-hover:text-[#3B82F6]" />
+              Manage Blogs
+            </button>
+          </div>
         </div>
       </div>
     </section>
