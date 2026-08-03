@@ -14,3 +14,13 @@ export const BLOG_NAV_BTN =
 
 export const BLOG_LINK =
   "text-[15px] font-semibold text-[#3B82F6] hover:text-[#2563EB] transition-colors duration-300 whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6] rounded-sm";
+
+/**
+ * Shared blog image sizing. Every blog image (card, cover, slider, skeleton)
+ * must use the SAME 16:9 box so one upload is never cropped differently across
+ * views. The box reserves layout space (fixes CLS); BLOG_IMAGE fills it.
+ */
+export const BLOG_IMAGE_BOX =
+  "relative w-full aspect-[16/9] overflow-hidden bg-[#05070D]";
+
+export const BLOG_IMAGE = "h-full w-full object-cover";

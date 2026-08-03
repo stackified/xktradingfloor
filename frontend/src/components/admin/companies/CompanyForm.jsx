@@ -33,6 +33,15 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
     description: "",
     status: "pending",
     promoCodes: [],
+    // Profile fields (previously only settable via the DB)
+    country: "",
+    yearsActive: "",
+    minDeposit: "",
+    maxAllocation: "",
+    myfxbookSlug: "",
+    regulation: [],
+    assets: [],
+    platforms: [],
   });
   const [logoFile, setLogoFile] = React.useState(null);
   const [logoPreview, setLogoPreview] = React.useState("");
@@ -74,6 +83,14 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
         description: data.description || "",
         status: data.status || "pending",
         promoCodes: data.promoCodes || [],
+        country: data.country || "",
+        yearsActive: data.yearsActive || "",
+        minDeposit: data.minDeposit || "",
+        maxAllocation: data.maxAllocation || "",
+        myfxbookSlug: data.myfxbookSlug || "",
+        regulation: Array.isArray(data.regulation) ? data.regulation : [],
+        assets: Array.isArray(data.assets) ? data.assets : [],
+        platforms: Array.isArray(data.platforms) ? data.platforms : [],
       });
       setLogoPreview(data.logo || "");
       setImages(data.images || []);
@@ -464,6 +481,124 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                 className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white"
                 required
               />
+            </div>
+
+            {/* Profile details — power the public company profile header */}
+            <div className="rounded-2xl border border-white/10 bg-gray-950/30 p-4 space-y-4">
+              <h3 className="text-sm font-semibold text-gray-200">
+                Profile Details
+              </h3>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">Country</label>
+                  <input
+                    value={form.country}
+                    onChange={(e) => setForm({ ...form, country: e.target.value })}
+                    placeholder="e.g., Australia"
+                    className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">Years Active</label>
+                  <input
+                    value={form.yearsActive}
+                    onChange={(e) => setForm({ ...form, yearsActive: e.target.value })}
+                    placeholder="e.g., 15+ Years"
+                    className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">
+                    Assets <span className="text-gray-500">(comma-separated)</span>
+                  </label>
+                  <input
+                    value={form.assets.join(", ")}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        assets: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
+                      })
+                    }
+                    placeholder="Crypto, Energy, FX, Indices, Metals"
+                    className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">
+                    Platforms <span className="text-gray-500">(comma-separated)</span>
+                  </label>
+                  <input
+                    value={form.platforms.join(", ")}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        platforms: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
+                      })
+                    }
+                    placeholder="MT4, MT5, cTrader"
+                    className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white"
+                  />
+                </div>
+              </div>
+
+              {form.category === "PropFirm" ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">Max Allocation</label>
+                  <input
+                    value={form.maxAllocation}
+                    onChange={(e) => setForm({ ...form, maxAllocation: e.target.value })}
+                    placeholder="e.g., $400K"
+                    className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white"
+                  />
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-300">
+                      Regulation <span className="text-gray-500">(comma-separated)</span>
+                    </label>
+                    <input
+                      value={form.regulation.join(", ")}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          regulation: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
+                        })
+                      }
+                      placeholder="ASIC, FCA, CySEC"
+                      className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-300">Min Deposit</label>
+                    <input
+                      value={form.minDeposit}
+                      onChange={(e) => setForm({ ...form, minDeposit: e.target.value })}
+                      placeholder="e.g., $200"
+                      className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">
+                  MyFXBook Slug <span className="text-gray-500">(for live spreads)</span>
+                </label>
+                <input
+                  value={form.myfxbookSlug}
+                  onChange={(e) => setForm({ ...form, myfxbookSlug: e.target.value })}
+                  placeholder="e.g., vantage-fx"
+                  className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white"
+                />
+                <p className="text-xs text-gray-500">
+                  The identifier from the broker's myfxbook.com/forex-broker-spreads URL. Required for live spread data.
+                </p>
+              </div>
             </div>
 
             <div className="space-y-2">
