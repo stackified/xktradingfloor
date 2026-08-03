@@ -71,6 +71,43 @@ const UserSchema = new Schema(
         lastPasswordResetRequestedAt: {
             type: Date,
         },
+        bio: { type: String, default: "" },
+        tradingStyles: { type: [String], default: [] },
+        tradesWith: { type: [String], default: [] },
+        socialLinks: {
+            youtube: { type: String, default: "" },
+            twitter: { type: String, default: "" },
+            instagram: { type: String, default: "" },
+            website: { type: String, default: "" },
+        },
+        verifiedTrader: {
+            status: {
+                type: String,
+                enum: ["none", "invited", "pending", "scheduled", "approved", "rejected"],
+                default: "none",
+            },
+            applicationNote: { type: String, default: "" },
+            appliedAt: Date,
+            scheduledCallAt: Date,
+            decidedAt: Date,
+            decidedBy: { type: Schema.Types.ObjectId, ref: "user" },
+            invitedBy: { type: Schema.Types.ObjectId, ref: "user" },
+            invitedAt: Date,
+            rejectionReason: { type: String, default: "" },
+            pnl: Number,
+            totalWithdrawals: Number,
+            youtubeEmbedUrl: { type: String, default: "" },
+            proofDocuments: [{
+                type: {
+                    type: String,
+                    enum: ["broker_statement", "payout_proof", "other"],
+                    required: true,
+                },
+                storageKey: { type: String, required: true },
+                fileName: String,
+                uploadedAt: { type: Date, default: Date.now },
+            }],
+        },
     },
     {
         timestamps: true,
