@@ -1,10 +1,11 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { Landmark, TrendingUp, Users } from "lucide-react";
+import { Landmark, TrendingUp, Users, Bitcoin } from "lucide-react";
 
 const TABS = [
   { to: "/reviews/broker", label: "Brokers", icon: Landmark },
   { to: "/reviews/propfirm", label: "Prop Firms", icon: TrendingUp },
+  { to: "/reviews/crypto", label: "Crypto", icon: Bitcoin },
   { to: "/reviews/traders", label: "Verified Traders", icon: Users },
 ];
 

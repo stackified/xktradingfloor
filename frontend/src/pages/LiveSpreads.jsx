@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, ArrowDown, ArrowUp, Minus, ExternalLink } from "lucide-react";
+import { Search, ArrowDown, ArrowUp, Minus, ExternalLink, Info } from "lucide-react";
 import Seo from "../components/shared/Seo.jsx";
 import CardLoader from "../components/shared/CardLoader.jsx";
 import { getAllCompanies } from "../controllers/companiesController.js";
@@ -9,6 +9,17 @@ import { getSpreadComparison, spreadsToRow } from "../controllers/spreadsControl
 import { V1_PAIRS, mockSpreadRow, formatSpread } from "../utils/spreads.js";
 
 const REFRESH_MS = 30000;
+
+function formatUpdated(ts) {
+  if (!ts) return null;
+  const then = new Date(ts).getTime();
+  if (Number.isNaN(then)) return null;
+  const diffSec = Math.round((Date.now() - then) / 1000);
+  if (diffSec < 60) return "just now";
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+  return new Date(ts).toLocaleDateString();
+}
 
 function LiveSpreads() {
   const [brokers, setBrokers] = React.useState([]);
@@ -19,6 +30,7 @@ function LiveSpreads() {
   const [sortPair, setSortPair] = React.useState(null);
   const [sortDir, setSortDir] = React.useState("asc");
   const [usingMock, setUsingMock] = React.useState(true);
+  const [lastFetchedAt, setLastFetchedAt] = React.useState(null);
 
   const loadSpreadRows = React.useCallback(async (brokerList) => {
     try {
@@ -37,6 +49,7 @@ function LiveSpreads() {
             prevRef.current = prev;
             return next;
           });
+          setLastFetchedAt(data?.lastFetchedAt || null);
           setUsingMock(false);
           return;
         }
@@ -114,6 +127,9 @@ function LiveSpreads() {
   };
 
   const DirectionIcon = ({ brokerId, pairKey }) => {
+    // Movement arrows are only meaningful against a real prior fetch. In sample
+    // mode the numbers are illustrative, so never imply up/down movement.
+    if (usingMock) return <Minus className="h-2.5 w-2.5 text-gray-700" />;
     const now = rows[brokerId]?.[pairKey];
     const prev = prevRef.current[brokerId]?.[pairKey];
     if (now == null || prev == null || now === prev)
@@ -129,7 +145,7 @@ function LiveSpreads() {
     <div className="bg-black text-white min-h-screen">
       <Seo
         title="Live Broker Spreads"
-        description="Compare live forex, gold, silver, crypto, and index spreads across top brokers in real time. Data by myfxbook."
+        description="Compare forex, gold, silver, crypto, and index spreads across top brokers in one place."
         path="/live-spreads"
       />
 
@@ -142,17 +158,9 @@ function LiveSpreads() {
             </span>
           </h1>
           <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">
-            Compare typical spreads across the top 10 pairs, updated live. Data
-            by{" "}
-            <a
-              href="https://www.myfxbook.com/forex-broker-spreads"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-400 hover:underline"
-            >
-              myfxbook
-            </a>
-            .
+            {usingMock
+              ? "Compare typical spreads across the top 10 pairs. Sample figures shown below while live data is being connected."
+              : "Compare typical spreads across the top 10 pairs, updated from broker data."}
           </p>
         </div>
       </section>
@@ -170,12 +178,32 @@ function LiveSpreads() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
+            <span
+              className={`h-2 w-2 rounded-full ${
+                usingMock ? "bg-amber-400" : "bg-green-400 animate-pulse"
+              }`}
+            ></span>
             <span className="text-xs text-gray-300">
-              {usingMock ? "Cached" : "Live"} · updates every {REFRESH_MS / 1000}s
+              {usingMock
+                ? "Sample data"
+                : `Live${
+                    formatUpdated(lastFetchedAt)
+                      ? ` · updated ${formatUpdated(lastFetchedAt)}`
+                      : ""
+                  } · refreshes every ${REFRESH_MS / 1000}s`}
             </span>
           </div>
         </div>
+
+        {usingMock && !loading && (
+          <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+            <Info className="h-4 w-4 text-amber-400 mt-0.5 flex-shrink-0" />
+            <p className="text-xs sm:text-sm text-amber-200/90">
+              The spreads below are <span className="font-semibold">illustrative sample figures</span>, not a live market
+              feed. Live broker spreads are being connected and will replace these automatically.
+            </p>
+          </div>
+        )}
 
         {loading ? (
           <CardLoader count={2} horizontal={true} />
@@ -263,15 +291,21 @@ function LiveSpreads() {
               </div>
               <div className="p-3 sm:p-4 border-t border-gray-800 text-center">
                 <p className="text-xs text-gray-500">
-                  Typical spread in pips · Click a pair to sort · Data by{" "}
-                  <a
-                    href="https://www.myfxbook.com/forex-broker-spreads"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:underline"
-                  >
-                    myfxbook
-                  </a>
+                  {usingMock ? (
+                    "Illustrative sample figures · Click a pair to sort · Not live market data"
+                  ) : (
+                    <>
+                      Typical spread in pips · Click a pair to sort · Data by{" "}
+                      <a
+                        href="https://www.myfxbook.com/forex-broker-spreads"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:underline"
+                      >
+                        myfxbook
+                      </a>
+                    </>
+                  )}
                 </p>
               </div>
             </div>

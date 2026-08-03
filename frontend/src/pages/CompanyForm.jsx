@@ -26,6 +26,14 @@ function CompanyForm() {
     details: "",
     description: "",
     promoCodes: [],
+    country: "",
+    yearsActive: "",
+    minDeposit: "",
+    maxAllocation: "",
+    myfxbookSlug: "",
+    regulation: [],
+    assets: [],
+    platforms: [],
   });
   const [promoForm, setPromoForm] = React.useState({
     code: "",
@@ -88,6 +96,14 @@ function CompanyForm() {
         details: data.details || "",
         description: data.description || "",
         promoCodes: data.promoCodes || [],
+        country: data.country || "",
+        yearsActive: data.yearsActive || "",
+        minDeposit: data.minDeposit || "",
+        maxAllocation: data.maxAllocation || "",
+        myfxbookSlug: data.myfxbookSlug || "",
+        regulation: Array.isArray(data.regulation) ? data.regulation : [],
+        assets: Array.isArray(data.assets) ? data.assets : [],
+        platforms: Array.isArray(data.platforms) ? data.platforms : [],
       });
     } catch (error) {
       setError("Failed to load company: " + error.message);
@@ -460,6 +476,112 @@ function CompanyForm() {
                     }
                     className="input"
                     required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Country</label>
+                  <input
+                    value={form.country}
+                    onChange={(e) => setForm({ ...form, country: e.target.value })}
+                    className="input"
+                    placeholder="e.g., Australia"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Years Active</label>
+                  <input
+                    value={form.yearsActive}
+                    onChange={(e) => setForm({ ...form, yearsActive: e.target.value })}
+                    className="input"
+                    placeholder="e.g., 15+ Years"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Assets <span className="text-gray-500">(comma-separated)</span>
+                  </label>
+                  <input
+                    value={form.assets.join(", ")}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        assets: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
+                      })
+                    }
+                    className="input"
+                    placeholder="Crypto, Energy, FX, Indices, Metals"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Platforms <span className="text-gray-500">(comma-separated)</span>
+                  </label>
+                  <input
+                    value={form.platforms.join(", ")}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        platforms: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
+                      })
+                    }
+                    className="input"
+                    placeholder="MT4, MT5, cTrader"
+                  />
+                </div>
+
+                {form.category === "PropFirm" ? (
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Max Allocation</label>
+                    <input
+                      value={form.maxAllocation}
+                      onChange={(e) => setForm({ ...form, maxAllocation: e.target.value })}
+                      className="input"
+                      placeholder="e.g., $400K"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">
+                        Regulation <span className="text-gray-500">(comma-separated)</span>
+                      </label>
+                      <input
+                        value={form.regulation.join(", ")}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            regulation: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
+                          })
+                        }
+                        className="input"
+                        placeholder="ASIC, FCA, CySEC"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Min Deposit</label>
+                      <input
+                        value={form.minDeposit}
+                        onChange={(e) => setForm({ ...form, minDeposit: e.target.value })}
+                        className="input"
+                        placeholder="e.g., $200"
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    MyFXBook Slug <span className="text-gray-500">(for live spreads)</span>
+                  </label>
+                  <input
+                    value={form.myfxbookSlug}
+                    onChange={(e) => setForm({ ...form, myfxbookSlug: e.target.value })}
+                    className="input"
+                    placeholder="e.g., vantage-fx"
                   />
                 </div>
 
