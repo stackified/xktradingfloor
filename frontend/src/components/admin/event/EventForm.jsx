@@ -20,6 +20,16 @@ import CustomSelect from "../../shared/CustomSelect.jsx";
 
 const EVENT_TYPES = ["online", "campus"];
 
+const EVENT_CATEGORIES = [
+  "Expo",
+  "Conference",
+  "Webinar",
+  "Meetup",
+  "Workshop",
+  "Competition",
+  "Seminar",
+];
+
 const defaultState = {
   title: "",
   description: "",
@@ -27,6 +37,10 @@ const defaultState = {
   type: "online",
   dateTime: "",
   location: "",
+  region: "",
+  organizerName: "",
+  externalUrl: "",
+  category: "",
   price: 0,
   seats: 0,
   freebiesIncluded: [],
@@ -62,6 +76,10 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
                 ? new Date(event.dateTime).toISOString().slice(0, 16)
                 : "",
               location: event.location || "",
+              region: event.region || "",
+              organizerName: event.organizerName || "",
+              externalUrl: event.externalUrl || "",
+              category: event.category || "",
               price: event.price || 0,
               seats: event.seats || 0,
               freebiesIncluded: Array.isArray(event.freebiesIncluded)
@@ -140,6 +158,10 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
     payload.append("type", formState.type);
     payload.append("dateTime", new Date(formState.dateTime).toISOString());
     payload.append("location", formState.location.trim());
+    payload.append("region", formState.region.trim());
+    payload.append("organizerName", formState.organizerName.trim());
+    payload.append("externalUrl", formState.externalUrl.trim());
+    payload.append("category", formState.category.trim());
     payload.append("price", formState.price.toString());
     payload.append("seats", formState.seats.toString());
 
@@ -346,6 +368,66 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Region, Organizer, Category */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Region</label>
+              <div className="relative">
+                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                <input
+                  type="text"
+                  name="region"
+                  value={formState.region}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-900/70 border border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
+                  placeholder="e.g., UAE, India, Global"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Organizer</label>
+              <div className="relative">
+                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                <input
+                  type="text"
+                  name="organizerName"
+                  value={formState.organizerName}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-900/70 border border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
+                  placeholder="e.g., Forex Expo"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Category</label>
+              <CustomSelect
+                value={formState.category}
+                onChange={(e) => handleChange({ target: { name: 'category', value: e.target.value } })}
+                options={[
+                  { value: "", label: "Select a category..." },
+                  ...EVENT_CATEGORIES.map((c) => ({ value: c, label: c })),
+                ]}
+              />
+            </div>
+          </div>
+
+          {/* External registration link */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              External Registration Link
+            </label>
+            <input
+              type="url"
+              name="externalUrl"
+              value={formState.externalUrl}
+              onChange={handleChange}
+              className="w-full px-4 py-2.5 rounded-lg bg-gray-900/70 border border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
+              placeholder="https://... (where attendees register, if hosted elsewhere)"
+            />
           </div>
 
           {/* Freebies */}

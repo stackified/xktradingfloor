@@ -1,5 +1,36 @@
 import api from "./api.js";
 
+/**
+ * Append a company field to FormData in a shape the backend (multer + `...req.body`,
+ * no JSON.parse) stores correctly:
+ *  - array of primitives  -> repeated keys, so express/multer yields a real array
+ *    that Mongoose casts into the [String] schema fields (regulation/assets/platforms).
+ *  - array of objects      -> JSON string (preserves prior behavior; not used by the
+ *    company create/update path today since promoCodes are managed separately).
+ *  - plain object           -> JSON string (prior behavior).
+ *  - scalar                 -> as-is. undefined/null are skipped so we never store the
+ *    literal string "undefined" (e.g. maxAllocation on a broker).
+ */
+function appendCompanyField(formData, key, value) {
+  if (value === undefined || value === null) return;
+  if (Array.isArray(value)) {
+    const allPrimitive = value.every((v) => v === null || typeof v !== "object");
+    if (allPrimitive) {
+      value
+        .filter((v) => v !== undefined && v !== null && String(v).trim() !== "")
+        .forEach((v) => formData.append(key, v));
+    } else {
+      formData.append(key, JSON.stringify(value));
+    }
+    return;
+  }
+  if (typeof value === "object") {
+    formData.append(key, JSON.stringify(value));
+    return;
+  }
+  formData.append(key, value);
+}
+
 // FORCE REAL DATA MODE - Mock functionality is hidden but code is kept for future use
 // Set to false to always use real data from database
 const FORCE_REAL_DATA_MODE = true;
@@ -412,12 +443,7 @@ export async function createCompany(companyData) {
             // Skip URLs - they're existing images that don't need to be re-uploaded
           });
         } else if (key !== "logo" && key !== "images") {
-          formData.append(
-            key,
-            typeof companyData[key] === "object"
-              ? JSON.stringify(companyData[key])
-              : companyData[key]
-          );
+          appendCompanyField(formData, key, companyData[key]);
         }
       });
 
@@ -491,12 +517,7 @@ export async function updateCompany(companyId, updates) {
             // Skip URLs - they're existing images that don't need to be re-uploaded
           });
         } else if (key !== "logo" && key !== "images") {
-          formData.append(
-            key,
-            typeof updates[key] === "object"
-              ? JSON.stringify(updates[key])
-              : updates[key]
-          );
+          appendCompanyField(formData, key, updates[key]);
         }
       });
 
