@@ -59,6 +59,13 @@ function Blog() {
       .catch(() => setFeaturedPosts([]));
   }, []);
 
+  // Debounce the search query so we don't dispatch a fetch on every keystroke.
+  const [debouncedQuery, setDebouncedQuery] = React.useState(query);
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(timer);
+  }, [query]);
+
   React.useEffect(() => {
     const primaryTag = selectedTags.length > 0 ? selectedTags[0] : "";
 
@@ -68,10 +75,10 @@ function Blog() {
         limit: perPage,
         category: category !== "All" ? category : "",
         tag: primaryTag,
-        search: query,
+        search: debouncedQuery,
       })
     );
-  }, [dispatch, page, category, selectedTags, query]);
+  }, [dispatch, page, category, selectedTags, debouncedQuery]);
 
   React.useEffect(() => {
     if (publishedBlogs) {

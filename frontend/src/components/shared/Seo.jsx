@@ -26,11 +26,13 @@ function Seo({
   author,
   publishedTime,
   modifiedTime,
+  canonical: canonicalOverride,
 }) {
   const fullTitle = title
     ? `${title} | ${SITE_NAME}`
     : `${SITE_NAME} | Trusted Forex, Prop Firm & Crypto Reviews`;
-  const canonical = absolute(path || "/");
+  // An explicit canonicalUrl (e.g. syndicated content) wins over the path.
+  const canonical = absolute(canonicalOverride || path || "/");
   const ogImage = absolute(image);
 
   const jsonLdArray = Array.isArray(jsonLd) ? jsonLd : jsonLd ? [jsonLd] : [];

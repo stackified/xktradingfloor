@@ -44,6 +44,8 @@ function LiveSpreadTable({ brokerId, brokerName }) {
   }, [loadSpreads]);
 
   const DirectionIcon = ({ pairKey }) => {
+    // Sample figures must never imply live up/down movement.
+    if (usingMock) return <Minus className="h-3 w-3 text-gray-600" />;
     const now = spreads[pairKey];
     const prev = prevRef.current[pairKey];
     if (now == null || prev == null || now === prev)
@@ -67,13 +69,14 @@ function LiveSpreadTable({ brokerId, brokerName }) {
               {brokerName ? ` — ${brokerName}` : ""}
             </h3>
             <p className="text-xs text-gray-400 mt-1">
-              Typical spread in pips • Updates every {REFRESH_MS / 1000}s
-              {usingMock ? " • Awaiting live data" : ""}
+              {usingMock
+                ? "Illustrative sample figures • Live data coming soon"
+                : `Typical spread in pips • Updates every ${REFRESH_MS / 1000}s`}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`h-2 w-2 rounded-full ${usingMock ? "bg-yellow-400" : "bg-green-400 animate-pulse"}`}></span>
-            <span className="text-xs text-gray-300">{usingMock ? "Cached" : "Live"}</span>
+            <span className={`h-2 w-2 rounded-full ${usingMock ? "bg-amber-400" : "bg-green-400 animate-pulse"}`}></span>
+            <span className="text-xs text-gray-300">{usingMock ? "Sample data" : "Live"}</span>
           </div>
         </div>
 
@@ -113,16 +116,22 @@ function LiveSpreadTable({ brokerId, brokerName }) {
 
         <div className="p-3 sm:p-4 border-t border-gray-800 text-center">
           <p className="text-xs text-gray-500">
-            Data by{" "}
-            <a
-              href="https://www.myfxbook.com/forex-broker-spreads"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-400 hover:underline"
-            >
-              myfxbook
-            </a>
-            . Spreads shown are indicative and may vary.
+            {usingMock ? (
+              "Illustrative sample figures — not live market data."
+            ) : (
+              <>
+                Data by{" "}
+                <a
+                  href="https://www.myfxbook.com/forex-broker-spreads"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:underline"
+                >
+                  myfxbook
+                </a>
+                . Spreads shown are indicative and may vary.
+              </>
+            )}
           </p>
         </div>
       </div>
