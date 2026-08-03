@@ -8,6 +8,7 @@ import { fetchBlogById, fetchPublishedBlogs } from '../redux/slices/blogsSlice.j
 import { getAllBlogs, getBlogById } from '../controllers/blogsController.js';
 import BlogAuthorInfo from '../components/blog/BlogAuthorInfo.jsx';
 import ImageWithFallback from '../components/shared/ImageWithFallback.jsx';
+import { BLOG_IMAGE_BOX, BLOG_IMAGE } from '../components/blog/blogLayout.js';
 
 function BlogPost() {
   const { id } = useParams();
@@ -54,6 +55,8 @@ function BlogPost() {
 
       setPost({
         id: currentBlog._id || currentBlog.id,
+        _id: currentBlog._id || currentBlog.id,
+        slug: currentBlog.slug,
         title: currentBlog.title,
         excerpt: currentBlog.excerpt,
         content: currentBlog.content,
@@ -62,6 +65,15 @@ function BlogPost() {
         author: currentBlog.author?.fullName || currentBlog.author?.name || currentBlog.author?.email || "Unknown",
         authorInfo: currentBlog.author,
         image: currentBlog.featuredImage,
+        coverImage: currentBlog.coverImage || currentBlog.featuredImage,
+        // SEO fields — needed by <Seo> for canonical/OG and by articleJsonLd.
+        metaTitle: currentBlog.metaTitle,
+        metaDescription: currentBlog.metaDescription,
+        canonicalUrl: currentBlog.canonicalUrl,
+        seoKeywords: currentBlog.seoKeywords || [],
+        publishedAt: currentBlog.publishedAt,
+        updatedAt: currentBlog.updatedAt,
+        createdAt: currentBlog.createdAt,
         date: formattedDate,
         readTime: `${readTime} min read`,
       });
@@ -106,9 +118,11 @@ function BlogPost() {
   return (
     <div>
       <Seo
-        title={post?.title || 'Blog Post'}
-        description={post?.excerpt || post?.metaDescription || 'Read our latest trading insights and market analysis.'}
+        title={post?.metaTitle || post?.title || 'Blog Post'}
+        description={post?.metaDescription || post?.excerpt || 'Read our latest trading insights and market analysis.'}
         path={post ? `/blog/${post.slug || post._id}` : '/blog'}
+        canonical={post?.canonicalUrl || undefined}
+        keywords={post?.seoKeywords?.length ? post.seoKeywords.join(', ') : undefined}
         image={post?.coverImage || post?.image}
         type="article"
         publishedTime={post?.publishedAt || post?.createdAt}
@@ -125,14 +139,15 @@ function BlogPost() {
       />
       <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="bg-gray-900/50 border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="h-64 w-full rounded-xl overflow-hidden bg-muted mb-6">
+          <div className={`${BLOG_IMAGE_BOX} rounded-xl mb-6`}>
             {post.image && (
-              <ImageWithFallback 
-                src={post.image} 
-                fallback="/assets/placeholder.jpg" 
-                alt={post.title} 
-                className="h-full w-full object-cover"
+              <ImageWithFallback
+                src={post.image}
+                fallback="/assets/placeholder.jpg"
+                alt={post.title}
+                className={BLOG_IMAGE}
                 useDynamicFallback={true}
+                priority={true}
               />
             )}
           </div>

@@ -72,6 +72,16 @@ function EventCard({ evt, onRegister }) {
               <Building2 className="h-3 w-3" /> Campus
             </span>
           ) : null}
+          {evt.category && (
+            <span className="inline-flex items-center text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              {evt.category}
+            </span>
+          )}
+          {evt.region && (
+            <span className="inline-flex items-center text-xs px-2 py-0.5 rounded bg-gray-700/40 text-gray-300 border border-gray-600/40">
+              {evt.region}
+            </span>
+          )}
         </div>
         <h3 className="font-semibold text-base mb-2 line-clamp-2">
           {evt.title}
@@ -119,6 +129,17 @@ function EventCard({ evt, onRegister }) {
   );
 }
 
+const EVENT_REGIONS = ["UAE", "India", "UK", "USA", "Europe", "Asia", "Global"];
+const EVENT_CATEGORIES = [
+  "Expo",
+  "Conference",
+  "Webinar",
+  "Meetup",
+  "Workshop",
+  "Competition",
+  "Seminar",
+];
+
 function EventsGrid({ onOpenRegister }) {
   const [events, setEvents] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -127,24 +148,43 @@ function EventsGrid({ onOpenRegister }) {
   const [typeFilter, setTypeFilter] = React.useState("all");
   const [timeFilter, setTimeFilter] = React.useState("upcoming");
   const [query, setQuery] = React.useState("");
+  const [regionFilter, setRegionFilter] = React.useState("");
+  const [categoryFilter, setCategoryFilter] = React.useState("");
+  const [monthFilter, setMonthFilter] = React.useState("");
   const itemsPerPage = 6;
 
-  const loadEvents = React.useCallback(async (pageToLoad) => {
+  // Server-supported filters. These reach the API so search/type/region/
+  // category/month apply across ALL events, not just the loaded page.
+  const serverFilters = React.useMemo(
+    () => ({
+      search: query.trim() || undefined,
+      type: typeFilter !== "all" ? typeFilter : undefined,
+      region: regionFilter || undefined,
+      category: categoryFilter || undefined,
+      month: monthFilter || undefined,
+    }),
+    [query, typeFilter, regionFilter, categoryFilter, monthFilter]
+  );
+
+  const loadEvents = React.useCallback(async (pageToLoad, filters = {}) => {
     setLoading(true);
     try {
-      const response = await getAllEvents({ page: pageToLoad, size: itemsPerPage });
+      const response = await getAllEvents({
+        page: pageToLoad,
+        size: itemsPerPage,
+        ...filters,
+      });
       const newEvents = response.data || [];
       const pagination = response.pagination || {};
 
-      setEvents(prev => pageToLoad === 1 ? newEvents : [...prev, ...newEvents]);
+      setEvents((prev) =>
+        pageToLoad === 1 ? newEvents : [...prev, ...newEvents]
+      );
 
-      // key is strictly keeping track of if we have more pages
-      // If we are on page 1 and total pages is 1, hasMore is false.
-      // If we are on page 1 and total pages is 2, hasMore is true.
       if (pagination.totalPages) {
         setHasMore(pageToLoad < pagination.totalPages);
       } else {
-        setHasMore(newEvents.length >= itemsPerPage); // Fallback assumption
+        setHasMore(newEvents.length >= itemsPerPage);
       }
     } catch (error) {
       console.error("Failed to load events:", error);
@@ -153,33 +193,44 @@ function EventsGrid({ onOpenRegister }) {
     }
   }, []);
 
+  // Refetch page 1 whenever a server filter changes. Debounced so typing in
+  // the search box does not fire a request per keystroke.
   React.useEffect(() => {
-    loadEvents(1);
-  }, [loadEvents]);
+    const timer = setTimeout(() => {
+      setPage(1);
+      loadEvents(1, serverFilters);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [serverFilters, loadEvents]);
 
   const handleLoadMore = () => {
     const nextPage = page + 1;
     setPage(nextPage);
-    loadEvents(nextPage); // loadEvents is optimized to append
+    loadEvents(nextPage, serverFilters);
   };
 
+  const clearAllFilters = () => {
+    setTypeFilter("all");
+    setTimeFilter("all");
+    setQuery("");
+    setRegionFilter("");
+    setCategoryFilter("");
+    setMonthFilter("");
+  };
+
+  // Upcoming/past is not a server param yet, so it stays a client refinement
+  // on the server-filtered results. (Flagged to backend for a date-range param.)
   const now = Date.now();
   const filtered = React.useMemo(() => {
+    if (timeFilter === "all") return events;
     return events.filter((evt) => {
-      if (typeFilter !== "all" && evt.type !== typeFilter) return false;
-      if (query.trim()) {
-        const q = query.trim().toLowerCase();
-        const hay = `${evt.title || ""} ${evt.location || ""} ${evt.description || ""}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      if (evt.dateTime) {
-        const ts = new Date(evt.dateTime).getTime();
-        if (timeFilter === "upcoming" && ts < now) return false;
-        if (timeFilter === "past" && ts >= now) return false;
-      }
+      if (!evt.dateTime) return true;
+      const ts = new Date(evt.dateTime).getTime();
+      if (timeFilter === "upcoming" && ts < now) return false;
+      if (timeFilter === "past" && ts >= now) return false;
       return true;
     });
-  }, [events, typeFilter, timeFilter, query, now]);
+  }, [events, timeFilter, now]);
 
   return (
     <section
@@ -245,6 +296,42 @@ function EventsGrid({ onOpenRegister }) {
               );
             })}
           </div>
+
+          <select
+            value={regionFilter}
+            onChange={(e) => setRegionFilter(e.target.value)}
+            className="rounded-full bg-gray-900 border border-gray-700 focus:border-blue-500 focus:outline-none px-4 py-2 text-sm text-white"
+            aria-label="Filter by region"
+          >
+            <option value="">All Regions</option>
+            {EVENT_REGIONS.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="rounded-full bg-gray-900 border border-gray-700 focus:border-blue-500 focus:outline-none px-4 py-2 text-sm text-white"
+            aria-label="Filter by category"
+          >
+            <option value="">All Categories</option>
+            {EVENT_CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+
+          <input
+            type="month"
+            value={monthFilter}
+            onChange={(e) => setMonthFilter(e.target.value)}
+            className="rounded-full bg-gray-900 border border-gray-700 focus:border-blue-500 focus:outline-none px-4 py-2 text-sm text-white"
+            aria-label="Filter by month"
+          />
         </div>
 
         {filtered.length === 0 && !loading ? (
@@ -254,11 +341,7 @@ function EventsGrid({ onOpenRegister }) {
                 No events match your filters.
               </div>
               <button
-                onClick={() => {
-                  setTypeFilter("all");
-                  setTimeFilter("all");
-                  setQuery("");
-                }}
+                onClick={clearAllFilters}
                 className="text-sm text-blue-400 hover:text-blue-300"
               >
                 Clear filters

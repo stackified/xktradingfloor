@@ -191,6 +191,9 @@ export default function Profile() {
       />
       <h1 className="text-2xl font-semibold mb-6">Your Profile</h1>
 
+      {message && <div className="text-sm text-green-400 mb-4" role="status">{message}</div>}
+      {error && <div className="text-sm text-red-400 mb-4" role="alert">{error}</div>}
+
       <form onSubmit={onSubmit} className="space-y-6">
         <div className="card bg-gray-900/60 border border-border">
           <div className="card-body grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -307,8 +310,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {message && <div className="text-sm text-green-400 mt-4" role="status">{message}</div>}
-      {error && <div className="text-sm text-red-400 mt-4" role="alert">{error}</div>}
     </div>
   );
 }

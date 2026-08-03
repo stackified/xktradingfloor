@@ -422,7 +422,9 @@ export default function ImageWithFallback({
   if (isUsingFallback && alt) {
     return (
       <div className="relative" style={{ width: "100%", height: "100%" }}>
-        <div className="absolute -top-8 left-0 right-0 z-10 text-center mb-2">
+        {/* Title badge sits INSIDE the image box; a negative top offset would be
+            clipped by any `overflow-hidden` parent (blog cards, sliders). */}
+        <div className="absolute top-2 left-2 right-2 z-10 text-center">
           <span className="inline-block px-3 py-1 bg-gray-900/90 backdrop-blur-sm border border-gray-700 rounded-md text-xs sm:text-sm font-medium text-white shadow-lg max-w-full truncate">
             {alt}
           </span>
