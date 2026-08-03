@@ -25,6 +25,7 @@ const navItems = [
       { to: "/reviews/crypto", label: "Crypto" },
     ],
   },
+  { to: "/live-spreads", label: "Live Spreads" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];
@@ -292,7 +293,7 @@ function Header() {
 
         {/* Tablet Navigation (Simplified) */}
         <nav className="hidden md:flex lg:hidden items-center gap-0.5 overflow-x-auto scrollbar-hide relative">
-          {navItems.slice(0, 5).map((n) => {
+          {navItems.slice(0, 6).map((n) => {
             const isActive =
               location.pathname === n.to ||
               (n.to !== "/" && location.pathname.startsWith(n.to));

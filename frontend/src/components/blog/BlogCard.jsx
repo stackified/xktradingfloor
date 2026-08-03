@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
 import ImageWithFallback from "../shared/ImageWithFallback.jsx";
+import { BLOG_IMAGE_BOX, BLOG_IMAGE } from "./blogLayout.js";
 
 function BlogCard({ post, onClick, isLocked = false, onLockClick }) {
   const handleClick = () => {
@@ -20,7 +21,7 @@ function BlogCard({ post, onClick, isLocked = false, onLockClick }) {
       }`}
       onClick={handleClick}
     >
-      <div className="h-40 w-full bg-muted relative">
+      <div className={BLOG_IMAGE_BOX}>
         {isLocked ? (
           <>
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-10 flex items-center justify-center">
@@ -35,7 +36,7 @@ function BlogCard({ post, onClick, isLocked = false, onLockClick }) {
               src={post.image}
               fallback="/assets/placeholder.jpg"
               alt={post.title}
-              className="h-full w-full object-cover blur-sm"
+              className={`${BLOG_IMAGE} blur-sm`}
               useDynamicFallback={true}
             />
           </>
@@ -44,7 +45,7 @@ function BlogCard({ post, onClick, isLocked = false, onLockClick }) {
             src={post.image}
             fallback="/assets/placeholder.jpg"
             alt={post.title}
-            className="h-full w-full object-cover"
+            className={BLOG_IMAGE}
             useDynamicFallback={true}
           />
         )}

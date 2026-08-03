@@ -167,7 +167,7 @@ export default function CardLoader({
             className="card overflow-hidden shadow-lg shadow-blue-500/10"
           >
             {/* Image skeleton */}
-            <div className="h-40 w-full bg-gray-800/50 relative overflow-hidden">
+            <div className="aspect-[16/9] w-full bg-gray-800/50 relative overflow-hidden">
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-700/50 to-transparent"
                 animate={{
@@ -276,7 +276,7 @@ export default function CardLoader({
           className="card overflow-hidden"
         >
           {/* Image skeleton */}
-          <div className="h-40 w-full bg-gray-800/50 relative overflow-hidden">
+          <div className="aspect-[16/9] w-full bg-gray-800/50 relative overflow-hidden">
             <motion.div
               className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-700/50 to-transparent"
               animate={{

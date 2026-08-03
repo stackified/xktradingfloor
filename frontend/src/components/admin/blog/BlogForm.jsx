@@ -43,6 +43,11 @@ const defaultState = {
   tags: [],
   seoKeywords: [],
   isFeatured: false,
+  // SEO fields (all optional; slug auto-generates from title if left blank)
+  slug: "",
+  metaTitle: "",
+  metaDescription: "",
+  canonicalUrl: "",
 };
 
 // Auto-save key generator
@@ -128,6 +133,10 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
           : [],
         // Only allow featured if user is admin, otherwise set to false
         isFeatured: isAdmin ? Boolean(currentBlog.isFeatured) : false,
+        slug: currentBlog.slug || "",
+        metaTitle: currentBlog.metaTitle || "",
+        metaDescription: currentBlog.metaDescription || "",
+        canonicalUrl: currentBlog.canonicalUrl || "",
       });
       setFeaturedImagePreview(currentBlog.featuredImage || "");
       // Clear auto-save when loading existing blog
@@ -278,6 +287,20 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
       isAdmin && formState.isFeatured ? "true" : "false"
     );
     payload.append("categories", formState.category);
+
+    // SEO fields — only send when set (slug auto-generates server-side if blank)
+    if (formState.slug.trim()) {
+      payload.append("slug", formState.slug.trim());
+    }
+    if (formState.metaTitle.trim()) {
+      payload.append("metaTitle", formState.metaTitle.trim());
+    }
+    if (formState.metaDescription.trim()) {
+      payload.append("metaDescription", formState.metaDescription.trim());
+    }
+    if (formState.canonicalUrl.trim()) {
+      payload.append("canonicalUrl", formState.canonicalUrl.trim());
+    }
 
     // Append tags and SEO keywords as arrays
     formState.tags.forEach((tag) => {
@@ -495,6 +518,81 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
               }
               placeholder="Type keyword and press comma (e.g., pro trading journal, prop firm evaluation)"
             />
+
+            <details className="rounded-2xl border border-white/10 bg-gray-950/40 px-4 py-3">
+              <summary className="cursor-pointer text-sm font-medium text-gray-300 select-none">
+                SEO Settings <span className="text-gray-500">(optional)</span>
+              </summary>
+              <div className="mt-4 space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">
+                    URL Slug
+                  </label>
+                  <input
+                    name="slug"
+                    value={formState.slug}
+                    onChange={handleChange}
+                    placeholder="auto-generated-from-title-if-left-blank"
+                    className="input"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Used in the post URL. Leave blank to auto-generate from the title.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">
+                    Meta Title
+                  </label>
+                  <input
+                    name="metaTitle"
+                    value={formState.metaTitle}
+                    onChange={handleChange}
+                    maxLength={70}
+                    placeholder="Title shown in search results (defaults to the post title)"
+                    className="input"
+                  />
+                  <p className="text-xs text-gray-500">
+                    {formState.metaTitle.length}/70 characters
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">
+                    Meta Description
+                  </label>
+                  <textarea
+                    name="metaDescription"
+                    value={formState.metaDescription}
+                    onChange={handleChange}
+                    maxLength={160}
+                    rows={2}
+                    placeholder="Short description shown in search results (defaults to the summary)"
+                    className="input"
+                  />
+                  <p className="text-xs text-gray-500">
+                    {formState.metaDescription.length}/160 characters
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">
+                    Canonical URL
+                  </label>
+                  <input
+                    name="canonicalUrl"
+                    type="url"
+                    value={formState.canonicalUrl}
+                    onChange={handleChange}
+                    placeholder="https://... (only if this content is published elsewhere)"
+                    className="input"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Set only for syndicated content to point search engines to the original.
+                  </p>
+                </div>
+              </div>
+            </details>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300">
