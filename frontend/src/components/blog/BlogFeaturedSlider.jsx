@@ -128,7 +128,7 @@ function BlogFeaturedSlider({ posts = [] }) {
 
                 <button
                   type="button"
-                  onClick={() => navigate(`/blog/${slide.id}`)}
+                  onClick={() => navigate(`/blog/${slide.slug || slide.id}`)}
                   className="inline-flex h-[46px] items-center gap-2 rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#2563EB] px-6 text-[14px] font-semibold text-white shadow-[0_4px_18px_rgba(59,130,246,0.3)] transition-all duration-300 hover:brightness-110"
                 >
                   Read Article -

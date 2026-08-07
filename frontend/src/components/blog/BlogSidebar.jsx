@@ -20,7 +20,7 @@ function BlogSidebar({
             {latest.slice(0, 5).map((p) => (
               <li key={p.id}>
                 <Link
-                  to={`/blog/${p.id}`}
+                  to={`/blog/${p.slug || p.id}`}
                   className="block px-3 py-2 rounded-lg bg-gray-800/30 border border-gray-700/50 hover:bg-gray-800/50 hover:border-blue-500/30 transition-all text-gray-300 hover:text-white"
                 >
                   {p.title}

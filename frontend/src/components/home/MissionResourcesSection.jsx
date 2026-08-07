@@ -241,11 +241,11 @@ function MissionResourcesSection() {
                 and 8 Figures In The Markets — All For FREE!
               </p>
               <Link
-                to="/academy"
+                to="/events"
                 className="btn inline-flex items-center justify-center gap-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 mb-4 px-5 py-2.5 text-sm"
               >
                 <GraduationCap className="h-4 w-4" />
-                <span>Academy</span>
+                <span>Events</span>
               </Link>
 
               <div className="grid grid-cols-3 gap-3 w-full">

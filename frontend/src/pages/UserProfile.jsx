@@ -8,6 +8,9 @@ import {
   Clock,
   Layers,
   ExternalLink,
+  Youtube,
+  Twitter,
+  Instagram,
 } from "lucide-react";
 import Seo from "../components/shared/Seo.jsx";
 import CardLoader from "../components/shared/CardLoader.jsx";
@@ -160,16 +163,63 @@ function UserProfile() {
               </div>
             )}
 
-            {profile.socialLinks?.website && (
-              <a
-                href={profile.socialLinks.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-primary inline-flex items-center gap-2 w-fit"
-              >
-                Visit website
-                <ExternalLink className="h-4 w-4" />
-              </a>
+            {(profile.socialLinks?.website ||
+              profile.socialLinks?.youtube ||
+              profile.socialLinks?.twitter ||
+              profile.socialLinks?.instagram) && (
+              <div className="flex flex-wrap items-center gap-2">
+                {profile.socialLinks?.website && (
+                  <a
+                    href={profile.socialLinks.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-primary inline-flex items-center gap-2"
+                    aria-label="Website"
+                  >
+                    <Globe className="h-4 w-4" />
+                    Website
+                  </a>
+                )}
+                {profile.socialLinks?.youtube && (
+                  <a
+                    href={profile.socialLinks.youtube}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-gray-900/70 px-4 py-2 text-sm text-gray-200 hover:border-red-500/40 hover:text-white transition-colors"
+                    aria-label="YouTube"
+                    title="YouTube"
+                  >
+                    <Youtube className="h-4 w-4 text-red-400" />
+                    YouTube
+                  </a>
+                )}
+                {profile.socialLinks?.twitter && (
+                  <a
+                    href={profile.socialLinks.twitter}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-gray-900/70 px-4 py-2 text-sm text-gray-200 hover:border-sky-500/40 hover:text-white transition-colors"
+                    aria-label="Twitter"
+                    title="Twitter / X"
+                  >
+                    <Twitter className="h-4 w-4 text-sky-400" />
+                    Twitter
+                  </a>
+                )}
+                {profile.socialLinks?.instagram && (
+                  <a
+                    href={profile.socialLinks.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-gray-900/70 px-4 py-2 text-sm text-gray-200 hover:border-pink-500/40 hover:text-white transition-colors"
+                    aria-label="Instagram"
+                    title="Instagram"
+                  >
+                    <Instagram className="h-4 w-4 text-pink-400" />
+                    Instagram
+                  </a>
+                )}
+              </div>
             )}
           </div>
         </div>

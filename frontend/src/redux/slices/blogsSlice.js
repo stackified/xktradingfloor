@@ -184,6 +184,31 @@ export const fetchBlogById = createAsyncThunk(
   }
 );
 
+// Slug-based fetch — canonical, SEO-friendly. Mirrors fetchBlogById; routes
+// through the same currentBlog state so downstream reducers/selectors don't
+// have to care which lookup was used.
+export const fetchBlogBySlug = createAsyncThunk(
+  "blogs/fetchBySlug",
+  async (slug, { rejectWithValue }) => {
+    try {
+      if (!slug || typeof slug !== "string") {
+        return rejectWithValue("Invalid blog slug");
+      }
+      const encoded = encodeURIComponent(slug);
+      const response = await api.get(`/blogs/${encoded}/getblogbyslug`);
+      if (response.data?.data) return response.data.data;
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 404) {
+        return rejectWithValue("Blog post not found");
+      }
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Failed to fetch blog"
+      );
+    }
+  }
+);
+
 export const createBlog = createAsyncThunk(
   "blogs/create",
   async (formData, { rejectWithValue, getState }) => {
@@ -1050,6 +1075,19 @@ const blogsSlice = createSlice({
         state.currentBlog = action.payload.data || action.payload;
       })
       .addCase(fetchBlogById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // fetch by slug — feeds the same currentBlog state
+      .addCase(fetchBlogBySlug.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchBlogBySlug.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentBlog = action.payload.data || action.payload;
+      })
+      .addCase(fetchBlogBySlug.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

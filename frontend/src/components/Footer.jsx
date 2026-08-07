@@ -21,7 +21,7 @@ function Footer() {
         <div>
           <h4 className="font-semibold mb-3">Links</h4>
           <ul className="space-y-2 text-sm text-gray-300">
-            <li><Link to="/academy" className="hover:text-white">Academy</Link></li>
+            <li><Link to="/events" className="hover:text-white">Events</Link></li>
             <li><Link to="/blog" className="hover:text-white">Blog</Link></li>
             <li><Link to="/reviews" className="hover:text-white">Reviews</Link></li>
             <li><Link to="/live-spreads" className="hover:text-white">Live Spreads</Link></li>

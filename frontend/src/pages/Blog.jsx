@@ -19,6 +19,7 @@ function transformBlog(blog) {
 
   return {
     id: blog._id || blog.id,
+    slug: blog.slug,
     title: blog.title,
     excerpt: blog.excerpt,
     category: Array.isArray(blog.categories)
@@ -39,6 +40,10 @@ function transformBlog(blog) {
 function Blog() {
   const [all, setAll] = React.useState([]);
   const [featuredPosts, setFeaturedPosts] = React.useState([]);
+  // "Latest Posts" for the sidebar. Kept separate from `all` so it always
+  // reflects the newest 5 posts globally, not just the current page or the
+  // currently-active category/tag/search filter.
+  const [latestPosts, setLatestPosts] = React.useState([]);
   const [query, setQuery] = React.useState("");
   const [category, setCategory] = React.useState("All");
   const [selectedTags, setSelectedTags] = React.useState([]);
@@ -57,6 +62,14 @@ function Blog() {
     getPublishedBlogs({ featured: "true", size: 5 })
       .then((data) => setFeaturedPosts((data || []).map(transformBlog)))
       .catch(() => setFeaturedPosts([]));
+  }, []);
+
+  // Latest posts sidebar — fetched once, unfiltered, so it stays "the newest
+  // posts on the site" regardless of the current page or filters.
+  React.useEffect(() => {
+    getPublishedBlogs({ size: 5, page: 1 })
+      .then((data) => setLatestPosts((data || []).map(transformBlog)))
+      .catch(() => setLatestPosts([]));
   }, []);
 
   // Debounce the search query so we don't dispatch a fetch on every keystroke.
@@ -92,6 +105,18 @@ function Blog() {
     return Array.from(new Set([...defaults, ...currentCats]));
   }, [all]);
 
+  // The backend list endpoint only accepts a single `tag` param, so we send
+  // the first tag to narrow at the server and then filter the fetched results
+  // for the remaining tags client-side. A post must contain ALL selected tags
+  // (AND semantics), which is the standard "chip-filter" expectation.
+  const visiblePosts = React.useMemo(() => {
+    if (selectedTags.length <= 1) return all;
+    const extraTags = selectedTags.slice(1);
+    return all.filter((p) =>
+      extraTags.every((t) => (p.tags || []).includes(t))
+    );
+  }, [all, selectedTags]);
+
   const tags = React.useMemo(() => {
     const counts = {};
     all.forEach((p) => (p.tags || []).forEach((t) => { counts[t] = (counts[t] || 0) + 1; }));
@@ -105,8 +130,13 @@ function Blog() {
     setPage(1);
   };
 
+  // Real multi-select toggle. The old code replaced the array with [tag],
+  // making it a single-select disguised as multi-select. Now clicking a tag
+  // adds it, clicking it again removes it, and multiple tags can be active.
   const handleTagToggle = (tag) => {
-    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [tag]));
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
     setPage(1);
   };
 
@@ -193,7 +223,7 @@ function Blog() {
 
           {blogsLoading ? (
             <CardLoader count={6} blog={true} />
-          ) : all.length === 0 ? (
+          ) : visiblePosts.length === 0 ? (
             <div className="card">
               <div className="card-body text-center py-12 text-gray-400">
                 No articles found. Try a different search or category.
@@ -201,11 +231,11 @@ function Blog() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {all.map((p) => (
+              {visiblePosts.map((p) => (
                 <BlogCard
                   key={p.id}
                   post={p}
-                  onClick={() => navigate(`/blog/${p.id}`)}
+                  onClick={() => navigate(`/blog/${p.slug || p.id}`)}
                   isLocked={false}
                 />
               ))}
@@ -237,7 +267,7 @@ function Blog() {
 
         <div>
           <BlogSidebar
-            latest={all.slice(0, 5)}
+            latest={latestPosts.length > 0 ? latestPosts : all.slice(0, 5)}
             tags={tags}
             selectedTags={selectedTags}
             onTagToggle={handleTagToggle}

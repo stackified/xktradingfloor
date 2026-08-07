@@ -2,6 +2,7 @@ import React from 'react';
 import Seo from '../components/shared/Seo.jsx';
 import HeroSection from '../components/home/HeroSection.jsx';
 import StatsSection from '../components/home/StatsSection.jsx';
+import TopCompaniesTables from '../components/home/TopCompaniesTables.jsx';
 import WhatIsXK from '../components/home/WhatIsXK.jsx';
 import MissionResourcesSection from '../components/home/MissionResourcesSection.jsx';
 import CommunitySection from '../components/home/CommunitySection.jsx';
@@ -23,6 +24,7 @@ function Home() {
       />
       <HeroSection />
       <StatsSection />
+      <TopCompaniesTables />
       <WhatIsXK />
       <MissionResourcesSection />
       <CommunitySection />
