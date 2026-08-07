@@ -104,6 +104,28 @@ export async function getAllBlogs(filters = {}) {
   return allMockBlogs;
 }
 
+// Get blog by SLUG (canonical, SEO-friendly URLs). Mirrors getBlogById.
+export async function getBlogBySlug(slug) {
+  if (!slug) return null;
+  try {
+    const publicResponse = await api.get(
+      `/blogs/${encodeURIComponent(slug)}/getblogbyslug`
+    );
+    if (publicResponse.data?.success && publicResponse.data?.data) {
+      const blog = publicResponse.data.data;
+      return { ...blog, id: blog._id || blog.id };
+    }
+    if (publicResponse.data?.data) return publicResponse.data.data;
+  } catch (error) {
+    // 404 is expected for unknown slugs; treat any error as "not found" so
+    // BlogPost.jsx can fall through to the ID-based lookup for legacy URLs.
+    if (error.response?.status !== 404) {
+      console.warn("getBlogBySlug failed:", error.message);
+    }
+  }
+  return null;
+}
+
 // Get blog by ID
 // Tries public endpoint first, then admin endpoint if authenticated
 export async function getBlogById(id) {

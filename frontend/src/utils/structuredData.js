@@ -135,20 +135,30 @@ export const eventJsonLd = (event) => {
             address: event.location || "TBA",
           },
     image: event.featuredImage,
-    offers: event.price
+    // Only emit an Offer when there's an actual price OR an external URL to
+    // register at. Free events without a URL don't need an offers block.
+    offers:
+      event.price || event.externalUrl
+        ? {
+            "@type": "Offer",
+            price: event.price ? Number(event.price) : 0,
+            priceCurrency: "USD",
+            availability: "https://schema.org/InStock",
+            url:
+              event.externalUrl?.trim() || `${SITE_URL}/events/${event._id}`,
+          }
+        : undefined,
+    // Use the real organizer name if we have one, else fall back to XK.
+    organizer: event.organizerName
       ? {
-          "@type": "Offer",
-          price: event.price,
-          priceCurrency: "USD",
-          availability: "https://schema.org/InStock",
-          url: `${SITE_URL}/events/${event._id}`,
+          "@type": "Organization",
+          name: event.organizerName,
         }
-      : undefined,
-    organizer: {
-      "@type": "Organization",
-      name: SITE_NAME,
-      url: SITE_URL,
-    },
+      : {
+          "@type": "Organization",
+          name: SITE_NAME,
+          url: SITE_URL,
+        },
   };
 };
 

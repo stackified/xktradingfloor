@@ -161,18 +161,26 @@ export default function Reviews() {
   async function loadCompanies() {
     setLoading(true);
     try {
+      // Fetch the WHOLE category slice, not just the current page. The old
+      // code paginated at the server and then sorted/filtered the resulting
+      // 10-item page in JS — so "Sort by Trust Score" only reordered a
+      // random 10 rows and "Showing X of N" disagreed with what was on
+      // screen once minRating filtered any of them out. The dataset is
+      // O(dozens) per category so pulling everything and sorting/filtering
+      // client-side is both correct and cheap.
+      const { category, search } = filters;
       const response = await getAllCompanies({
-        ...filters,
-        page: currentPage,
-        size: itemsPerPage,
+        ...(category ? { category } : {}),
+        ...(search ? { search } : {}),
+        page: 1,
+        size: 500,
       });
 
-      const companiesData = response.data || [];
-      const pagination = response.pagination || {};
+      const raw = response.data || [];
 
       let filtered = canSeePendingCompanies
-        ? companiesData
-        : companiesData.filter((c) => c.status === "approved");
+        ? raw
+        : raw.filter((c) => c.status === "approved");
 
       if (filters.minRating) {
         filtered = filtered.filter(
@@ -182,15 +190,18 @@ export default function Reviews() {
 
       filtered = sortCompanies(filtered, filters.sortBy || "trustScore");
 
-      setCompanies(filtered);
+      // Counters reflect the fully filtered+sorted set — no more mismatch.
+      const total = filtered.length;
+      const pages = Math.max(1, Math.ceil(total / itemsPerPage));
+      const safePage = Math.min(currentPage, pages);
+      const start = (safePage - 1) * itemsPerPage;
+      const pageSlice = filtered.slice(start, start + itemsPerPage);
 
-      if (pagination.totalPages) setTotalPages(pagination.totalPages);
-      else if (pagination.totalItems)
-        setTotalPages(Math.ceil(pagination.totalItems / itemsPerPage));
-      else setTotalPages(1);
-
-      if (pagination.totalItems) setTotalItems(pagination.totalItems);
-      else setTotalItems(filtered.length);
+      setCompanies(pageSlice);
+      setTotalItems(total);
+      setTotalPages(pages);
+      // If a filter change dropped rows past the current page, snap back.
+      if (safePage !== currentPage) setCurrentPage(safePage);
     } catch (error) {
       console.error("Error loading companies:", error);
       setCompanies([]);

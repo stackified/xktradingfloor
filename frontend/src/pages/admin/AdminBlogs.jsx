@@ -7,6 +7,8 @@ import {
   ChevronDown,
   Filter,
   Search,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { BlogList } from "../../components/admin/blog/index.js";
 import {
@@ -30,13 +32,25 @@ function AdminBlogsContent() {
   const location = useLocation();
   const dispatch = useDispatch();
   const toast = useToast();
-  const { blogs, loading, error } = useSelector((state) => state.blogs);
+  const { blogs, loading, error, pagination } = useSelector(
+    (state) => state.blogs
+  );
   const reduxUser = useSelector((state) => state.auth.user);
   const user = reduxUser || getUserCookie();
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
   const [viewFilter, setViewFilter] = React.useState("all"); // "all", "flagged", "own"
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const pageSize = 20;
+  const totalPages = pagination?.totalPages || 1;
+  const totalItems = pagination?.totalItems || 0;
+
+  // Reset to page 1 whenever a filter changes so we don't request page 5 of
+  // a filtered set that only has 2 pages.
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, viewFilter]);
   const [deleteModal, setDeleteModal] = React.useState({
     isOpen: false,
     blogId: null,
@@ -46,14 +60,29 @@ function AdminBlogsContent() {
     blogId: null,
   });
 
-  // Refresh when filters change
+  // Refresh when filters or the current page change.
   React.useEffect(() => {
-    dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
-  }, [dispatch, searchQuery, statusFilter]);
+    dispatch(
+      fetchAllBlogs({
+        search: searchQuery,
+        status: statusFilter,
+        page: currentPage,
+        size: pageSize,
+      })
+    );
+  }, [dispatch, searchQuery, statusFilter, currentPage]);
 
-  // Refresh when component mounts or when navigating back (detected by location change)
+  // Refresh when navigating back to the list (detected by location change).
   React.useEffect(() => {
-    dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
+    dispatch(
+      fetchAllBlogs({
+        search: searchQuery,
+        status: statusFilter,
+        page: currentPage,
+        size: pageSize,
+      })
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
   // Filter blogs based on view filter
@@ -98,7 +127,7 @@ function AdminBlogsContent() {
       // Use permanent delete to completely remove the blog
       await dispatch(permanentDeleteBlog(deleteModal.blogId)).unwrap();
       // Refresh the list after deletion
-      dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
+      dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter, page: currentPage, size: pageSize }));
       setDeleteModal({ isOpen: false, blogId: null });
     } catch (err) {
       // Extract error message from response
@@ -127,7 +156,7 @@ function AdminBlogsContent() {
         })
       ).unwrap();
       // Refresh the list
-      dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
+      dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter, page: currentPage, size: pageSize }));
       setFlagModal({ isOpen: false, blogId: null });
     } catch (err) {
       // Extract error message from response
@@ -149,7 +178,7 @@ function AdminBlogsContent() {
     try {
       await dispatch(unflagBlog(blogId)).unwrap();
       // Refresh the list
-      dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
+      dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter, page: currentPage, size: pageSize }));
     } catch (err) {
       // Extract error message from response
       const errorMessage =
@@ -173,7 +202,7 @@ function AdminBlogsContent() {
       const formData = new FormData();
       formData.append("status", "published");
       await dispatch(updateBlog({ blogId, formData })).unwrap();
-      dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
+      dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter, page: currentPage, size: pageSize }));
     } catch (err) {
       // Extract error message from response
       const errorMessage =
@@ -207,7 +236,7 @@ function AdminBlogsContent() {
       await dispatch(updateBlog({ blogId, formData })).unwrap();
 
       // Refresh admin list after successful update
-      dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
+      dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter, page: currentPage, size: pageSize }));
 
       // Show success toast
       toast.success("Blog unpublished successfully");
@@ -294,6 +323,45 @@ function AdminBlogsContent() {
           canFlag
           canUnflag
         />
+
+        {/* Pagination — only when there's more than one page. The "own" and
+            "flagged" client-side filters can shrink the visible list to
+            fewer than pageSize; the counter reflects the SERVER-side total,
+            not the client-filtered subset. */}
+        {!loading && totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-between flex-wrap gap-4">
+            <div className="text-xs text-gray-500">
+              Page {currentPage} of {totalPages}
+              {totalItems > 0 && (
+                <span className="text-gray-600"> · {totalItems} total</span>
+              )}
+            </div>
+            <div className="inline-flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+                className="inline-flex items-center gap-1 rounded-md border border-gray-700 hover:border-gray-500 disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1.5 text-xs text-gray-300"
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+                Prev
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage >= totalPages}
+                className="inline-flex items-center gap-1 rounded-md border border-gray-700 hover:border-gray-500 disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1.5 text-xs text-gray-300"
+                aria-label="Next page"
+              >
+                Next
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}

@@ -3,6 +3,7 @@ import Seo from "../components/shared/Seo.jsx";
 import { eventJsonLd, breadcrumbJsonLd } from "../utils/structuredData.js";
 import { useParams, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { ExternalLink } from "lucide-react";
 import { getEventById } from "../controllers/eventsController.js";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
 import RegisterModal from "../components/academy/RegisterModal.jsx";
@@ -50,7 +51,7 @@ function EventDetails() {
             <p className="text-gray-400 mb-4">
               The event you're looking for doesn't exist.
             </p>
-            <Link to="/academy" className="btn btn-primary">
+            <Link to="/events" className="btn btn-primary">
               Back to Events
             </Link>
           </div>
@@ -71,14 +72,14 @@ function EventDetails() {
           eventJsonLd(event),
           breadcrumbJsonLd([
             { name: "Home", url: "/" },
-            { name: "Academy", url: "/academy" },
+            { name: "Events", url: "/events" },
             { name: event.title, url: `/events/${event._id}` },
           ]),
         ].filter(Boolean)}
       />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 card overflow-hidden">
-          <div className="w-full h-64 sm:h-80 md:h-96 bg-muted overflow-hidden">
+          <div className="w-full aspect-[16/9] bg-muted overflow-hidden rounded-xl">
             <ImageWithFallback
               src={((event.featuredImage || event.image || '').trim() || null)}
               fallback="/assets/placeholder.jpg"
@@ -106,12 +107,34 @@ function EventDetails() {
                 </span>
               )}
             </div>
-            <div className="text-xs sm:text-sm text-gray-300 mb-4">
+            <div className="text-xs sm:text-sm text-gray-300 mb-2">
               {event.dateTime
                 ? new Date(event.dateTime).toLocaleString()
                 : event.date}{" "}
               {event.location ? `• ${event.location}` : ""}
             </div>
+            {(event.organizerName || event.region || event.category) && (
+              <div className="text-xs sm:text-sm text-gray-400 mb-4 flex flex-wrap items-center gap-x-2 gap-y-1">
+                {event.organizerName && (
+                  <span>
+                    Organized by{" "}
+                    <span className="text-gray-200 font-medium">
+                      {event.organizerName}
+                    </span>
+                  </span>
+                )}
+                {event.category && (
+                  <span className="inline-flex items-center text-[11px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-200 border border-purple-500/30">
+                    {event.category}
+                  </span>
+                )}
+                {event.region && (
+                  <span className="inline-flex items-center text-[11px] px-2 py-0.5 rounded-full bg-gray-700/40 text-gray-300 border border-gray-600/40">
+                    {event.region}
+                  </span>
+                )}
+              </div>
+            )}
             {(event.excerpt || event.description) && (
               <div className="mb-4">
                 {event.excerpt && (
@@ -142,29 +165,61 @@ function EventDetails() {
         </div>
         <div className="card h-fit">
           <div className="card-body">
-            <div className="text-center mb-4">
-              <div className="text-2xl font-semibold text-blue-400 mb-1">Free Event</div>
-              {event.seats && (
-                <div className="text-sm text-gray-400">
-                  {event.seats} seats available
-                </div>
-              )}
-            </div>
-            {user ? (
-              <button 
-                className="btn btn-primary w-full"
-                onClick={() => setModalOpen(true)}
-              >
-                Register
-              </button>
-            ) : (
-              <Link to="/login" className="btn btn-primary w-full">
-                Login to Register
-              </Link>
-            )}
-            <div className="text-xs text-gray-400 mt-3 text-center">
-              This is a free event. Registration is required.
-            </div>
+            {(() => {
+              // Parse price defensively — backend stores it as a number but
+              // legacy events sometimes have "0" as a string. Any positive
+              // amount renders as "$X"; anything <=0 or missing = free event.
+              const priceNum = Number(event.price);
+              const isPaid = Number.isFinite(priceNum) && priceNum > 0;
+              const externalUrl = event.externalUrl?.trim();
+              return (
+                <>
+                  <div className="text-center mb-4">
+                    <div className="text-2xl font-semibold text-blue-400 mb-1">
+                      {isPaid ? `$${priceNum}` : "Free Event"}
+                    </div>
+                    {event.seats > 0 && (
+                      <div className="text-sm text-gray-400">
+                        {event.seats} seats available
+                      </div>
+                    )}
+                  </div>
+
+                  {/* External registration always wins if set — the event is
+                      hosted elsewhere (e.g. Eventbrite, partner site). */}
+                  {externalUrl ? (
+                    <a
+                      href={externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary w-full inline-flex items-center justify-center gap-2"
+                    >
+                      Register at Organizer
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  ) : user ? (
+                    <button
+                      className="btn btn-primary w-full"
+                      onClick={() => setModalOpen(true)}
+                    >
+                      Register
+                    </button>
+                  ) : (
+                    <Link to="/login" className="btn btn-primary w-full">
+                      Login to Register
+                    </Link>
+                  )}
+
+                  <div className="text-xs text-gray-400 mt-3 text-center">
+                    {externalUrl
+                      ? "Registration is handled on the organizer's site."
+                      : isPaid
+                        ? "Registration is required to attend."
+                        : "This is a free event. Registration is required."}
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       </div>

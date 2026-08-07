@@ -75,7 +75,7 @@ function FeaturedEvents() {
           </motion.h2>
         </motion.div>
         <div className="flex items-center justify-between mb-4">
-          <Link to="/academy" className="text-sm text-blue-400 hover:text-blue-300 hover:underline ml-auto">View All</Link>
+          <Link to="/events" className="text-sm text-blue-400 hover:text-blue-300 hover:underline ml-auto">View All</Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {events.slice(0, 4).map((evt) => (

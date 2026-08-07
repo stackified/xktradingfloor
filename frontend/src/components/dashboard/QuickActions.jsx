@@ -16,7 +16,7 @@ export default function QuickActions() {
 
   const baseActions = [
     { to: "/profile", label: "Edit Profile", icon: User },
-    { to: "/academy", label: "View Tickets", icon: Ticket },
+    { to: "/events", label: "View Tickets", icon: Ticket },
     { to: "/reviews", label: "Manage Reviews", icon: MessageSquare },
     { to: "/merch", label: "Open Shop", icon: ShoppingBag },
   ];

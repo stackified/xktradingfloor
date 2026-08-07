@@ -101,42 +101,49 @@ function ReviewsPageHero({ searchValue, onSearchChange, onSearchSubmit }) {
           {/* Right: XK Center + Logo + Badges */}
           <div className="flex items-center justify-center order-1 lg:order-2">
             <div className="relative h-80 w-80 sm:h-96 sm:w-96">
-              {/* Pulsing rings */}
-              <motion.div
-                animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute inset-8 border-2 border-blue-400/30 rounded-full"
-              />
-              <motion.div
-                animate={{ scale: [1, 1.6, 1], opacity: [0.3, 0, 0.3] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                className="absolute inset-0 border border-blue-400/20 rounded-full"
-              />
+              {/* Logo + rings live in one shared, flex-centered subgroup so
+                  the rings can never drift from the logo, even when the logo
+                  has its own float/scale animation. Rings sit BEHIND (z-0)
+                  and the logo above (z-10). Badges are siblings of this
+                  group and stay pinned to the outer container's corners. */}
+              <div className="absolute inset-0 flex items-center justify-center z-10">
+                <div className="relative flex items-center justify-center">
+                  {/* Pulsing rings — same pattern/timings as Home's hero.
+                      The OUTER div owns the centering translate; the INNER
+                      motion.div owns the scale animation. Framer Motion sets
+                      `transform: scale(...)` inline which would otherwise
+                      overwrite the Tailwind translate and shove each ring
+                      to the bottom-right of the wrapper. Splitting them
+                      keeps translate and scale on separate elements. */}
+                  {[
+                    { size: "h-44 w-44 sm:h-52 sm:w-52", border: "border-2 border-blue-400/50", scale: 1.5, opacity: 0.7, duration: 3, delay: 0 },
+                    { size: "h-60 w-60 sm:h-72 sm:w-72", border: "border-2 border-blue-400/40", scale: 1.8, opacity: 0.5, duration: 3.5, delay: 0.5 },
+                    { size: "h-72 w-72 sm:h-80 sm:w-80", border: "border border-blue-400/30", scale: 2.2, opacity: 0.3, duration: 4, delay: 1 },
+                  ].map((ring, i) => (
+                    <div
+                      key={i}
+                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                    >
+                      <motion.div
+                        animate={{ scale: [1, ring.scale, 1], opacity: [ring.opacity, 0, ring.opacity] }}
+                        transition={{ duration: ring.duration, repeat: Infinity, ease: "easeInOut", delay: ring.delay }}
+                        className={`${ring.size} ${ring.border} rounded-full`}
+                      />
+                    </div>
+                  ))}
 
-              {/* Center XK text */}
-              <div className="absolute inset-0 flex items-center justify-center z-20">
-                <motion.span
-                  animate={{ scale: [1, 1.03, 1] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="font-display font-extrabold text-7xl sm:text-8xl bg-gradient-to-b from-white via-blue-100 to-blue-400 bg-clip-text text-transparent drop-shadow-2xl select-none"
-                >
-                  XK
-                </motion.span>
+                  {/* Logo — the shared centre. Scale-only animation (no y
+                      drift) so it stays pixel-locked to the ring centres. */}
+                  <motion.img
+                    src={getAssetPath("/assets/logo.webp")}
+                    alt="XK Trading Floor"
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    className="relative h-32 w-32 sm:h-40 sm:w-40 object-contain drop-shadow-2xl z-10"
+                    style={{ filter: "brightness(0) invert(1)" }}
+                  />
+                </div>
               </div>
-
-              {/* Logo on right side of center */}
-              <motion.div
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-30"
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <img
-                  src={getAssetPath("/assets/logo.webp")}
-                  alt="XK Trading Floor"
-                  className="h-20 w-16 sm:h-24 sm:w-20 object-contain drop-shadow-2xl opacity-90"
-                  style={{ filter: "brightness(0) invert(1)" }}
-                />
-              </motion.div>
 
               {/* Floating badges */}
               {badges.map((badge) => {

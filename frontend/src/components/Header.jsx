@@ -13,7 +13,7 @@ import { useToast } from "../contexts/ToastContext.jsx";
 // To re-enable: uncomment the merch item below and ensure route is active
 const navItems = [
   { to: "/", label: "Home" },
-  { to: "/academy", label: "Academy" },
+  { to: "/events", label: "Events" },
   { to: "/blog", label: "Blog" },
   // { to: "/merch", label: "Merch" }, // Hidden - uncomment to re-enable
   {

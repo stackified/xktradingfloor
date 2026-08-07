@@ -4,14 +4,20 @@ import { articleJsonLd, breadcrumbJsonLd } from '../utils/structuredData.js';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchBlogById, fetchPublishedBlogs } from '../redux/slices/blogsSlice.js';
-import { getAllBlogs, getBlogById } from '../controllers/blogsController.js';
+import { fetchBlogById, fetchBlogBySlug, fetchPublishedBlogs } from '../redux/slices/blogsSlice.js';
+import { getAllBlogs, getBlogById, getBlogBySlug } from '../controllers/blogsController.js';
+
+// 24-hex-char Mongo ObjectId. Anything else is treated as a slug.
+const OBJECT_ID_RE = /^[a-f0-9]{24}$/i;
 import BlogAuthorInfo from '../components/blog/BlogAuthorInfo.jsx';
 import ImageWithFallback from '../components/shared/ImageWithFallback.jsx';
 import { BLOG_IMAGE_BOX, BLOG_IMAGE } from '../components/blog/blogLayout.js';
 
 function BlogPost() {
-  const { id } = useParams();
+  // Route param is `:slug`, but it can also be a legacy Mongo ObjectId. We
+  // decide which lookup to run based on shape and redirect legacy URLs after.
+  const { slug: routeParam } = useParams();
+  const isLegacyId = OBJECT_ID_RE.test(routeParam || "");
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { currentBlog, blogs: publishedBlogs, loading } = useSelector((state) => state.blogs);
@@ -22,22 +28,33 @@ function BlogPost() {
   React.useEffect(() => {
     const loadBlog = async () => {
       if (mockMode) {
-        // Load from mock data
-        const mockBlog = await getBlogById(id);
-        if (mockBlog) {
-          setPost(mockBlog);
-        }
+        // Mock mode still keys by id — mock data isn't slug-aware.
+        const mockBlog = await getBlogById(routeParam);
+        if (mockBlog) setPost(mockBlog);
         const mockBlogs = await getAllBlogs();
         setAll(mockBlogs);
       } else {
-        // Load from backend
-        dispatch(fetchBlogById(id));
+        // Slug lookup is the primary path; ObjectId falls back to id lookup so
+        // old links / notification emails don't 404.
+        if (isLegacyId) {
+          dispatch(fetchBlogById(routeParam));
+        } else {
+          dispatch(fetchBlogBySlug(routeParam));
+        }
         dispatch(fetchPublishedBlogs({ limit: 1000 }));
       }
     };
     loadBlog();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [dispatch, id, mockMode]);
+  }, [dispatch, routeParam, isLegacyId, mockMode]);
+
+  // Once a blog resolved via legacy ObjectId lookup, replace the URL with its
+  // canonical slug — no reload, and search engines / share cards see the slug.
+  React.useEffect(() => {
+    if (!isLegacyId || !currentBlog?.slug) return;
+    if (currentBlog.slug === routeParam) return;
+    navigate(`/blog/${currentBlog.slug}`, { replace: true });
+  }, [isLegacyId, currentBlog, routeParam, navigate]);
 
   // Transform currentBlog to post format (only when not using mock mode)
   React.useEffect(() => {
@@ -164,7 +181,7 @@ function BlogPost() {
           <h3 className="font-display font-bold text-lg sm:text-xl mb-4">Related Posts</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {related.map(r => (
-              <div key={r.id} className="card cursor-pointer" onClick={() => navigate(`/blog/${r.id}`)}>
+              <div key={r.id} className="card cursor-pointer" onClick={() => navigate(`/blog/${r.slug || r.id}`)}>
                 <div className="card-body">
                   <div className="text-xs text-blue-300">{r.category}</div>
                   <div className="font-semibold text-sm sm:text-base mt-1 line-clamp-2">{r.title}</div>
