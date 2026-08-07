@@ -25,7 +25,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://stackified.github.io/xktradingfloor/academy</loc>
+    <loc>https://stackified.github.io/xktradingfloor/events</loc>
     <lastmod>2026-08-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -61,6 +61,12 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://stackified.github.io/xktradingfloor/reviews/crypto</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://stackified.github.io/xktradingfloor/reviews/traders</loc>
     <lastmod>2026-08-07</lastmod>
     <changefreq>weekly</changefreq>
@@ -89,5 +95,125 @@
     <lastmod>2026-08-07</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/reviews/6958eb57cb6b3989bc832bce</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/reviews/69452ae0096d6a54e754281e</loc>
+    <lastmod>2026-02-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/reviews/6943f01ffef1b1aa7f34288a</loc>
+    <lastmod>2026-08-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/reviews/6938813ae154bbf817bc14bb</loc>
+    <lastmod>2025-12-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/reviews/69387fd1e154bbf817bc1447</loc>
+    <lastmod>2025-12-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/reviews/69387e8ee154bbf817bc13d3</loc>
+    <lastmod>2025-12-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/reviews/69387cade154bbf817bc132a</loc>
+    <lastmod>2025-12-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/reviews/69386881fc606e64760001f1</loc>
+    <lastmod>2025-12-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/reviews/69386461fc606e64760000d5</loc>
+    <lastmod>2025-12-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/reviews/693837bef3a1f5a840a23de1</loc>
+    <lastmod>2025-12-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/reviews/69381d94f3a1f5a840a23667</loc>
+    <lastmod>2025-12-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/reviews/69381561f3a1f5a840a235e4</loc>
+    <lastmod>2025-12-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/blog/69ef9bb2613d00c029a29725</loc>
+    <lastmod>2026-07-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/blog/xellion-review-everything-you-need-to-know-about-this-new-forex-broker</loc>
+    <lastmod>2026-08-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/blog/69887ae212df70d81ef74597</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/blog/why-90-of-forex-traders-lose-money-and-what-profitable-traders-do-differently</loc>
+    <lastmod>2026-08-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/blog/6963834cfdeafa09c8e238ed</loc>
+    <lastmod>2026-07-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/blog/69563760cad1afd481f1e7ff</loc>
+    <lastmod>2026-07-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/blog/69389119e154bbf817bc1836</loc>
+    <lastmod>2025-12-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://stackified.github.io/xktradingfloor/blog/6938293ff3a1f5a840a23abb</loc>
+    <lastmod>2026-07-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>
