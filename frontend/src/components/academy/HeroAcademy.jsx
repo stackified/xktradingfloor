@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 function HeroAcademy() {
   const scrollToEvents = () => {
-    const el = document.getElementById('academy-events');
+    const el = document.getElementById('events');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 

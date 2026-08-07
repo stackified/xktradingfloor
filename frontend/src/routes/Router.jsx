@@ -49,6 +49,7 @@ const AboutEditor = React.lazy(() => import("../pages/admin/AboutEditor.jsx"));
 const AdminSettings = React.lazy(() => import("../pages/admin/AdminSettings.jsx"));
 const AdminVerifiedTraders = React.lazy(() => import("../pages/admin/AdminVerifiedTraders.jsx"));
 const EmailCampaigns = React.lazy(() => import("../pages/admin/EmailCampaigns.jsx"));
+const AdminSpreads = React.lazy(() => import("../pages/admin/AdminSpreads.jsx"));
 const MyBlogs = React.lazy(() => import("../pages/MyBlogs.jsx"));
 const OperatorBlogs = React.lazy(() => import("../pages/operator/OperatorBlogs.jsx"));
 const OperatorReviews = React.lazy(() => import("../pages/operator/OperatorReviews.jsx"));
@@ -115,10 +116,14 @@ export default function AppRouter() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/academy" element={<Academy />} />
+          <Route path="/events" element={<Academy />} />
+          {/* Preserve old URLs and any external inbound links */}
+          <Route path="/academy" element={<Navigate to="/events" replace />} />
           <Route path="/events/:eventId" element={<EventDetails />} />
           <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:id" element={<BlogPost />} />
+          {/* URLs are slug-based. Legacy Mongo-ObjectId URLs still resolve —
+              BlogPost detects the shape and redirects to the canonical slug. */}
+          <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/reviews/broker" element={<Reviews />} />
           <Route path="/reviews/propfirm" element={<Reviews />} />
@@ -256,6 +261,14 @@ export default function AppRouter() {
             element={
               <ProtectedRoute role="admin">
                 <AdminSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/spreads"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminSpreads />
               </ProtectedRoute>
             }
           />

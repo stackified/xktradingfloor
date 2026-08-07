@@ -23,3 +23,21 @@ export function spreadsToRow(pairs = {}) {
   });
   return row;
 }
+
+// Admin-only: force a fresh scrape run right now. Returns the scraper's
+// per-broker summary. Requires an authenticated admin/operator session.
+export async function refreshSpreads() {
+  const response = await api.post("/admin/spreads/refresh");
+  return response.data;
+}
+
+// Admin-only: manually set one or more pair spreads for a broker. Body:
+// { brokerId, pairs: { "EUR/USD": 0.8, ... } }. Overrides are flagged as
+// manual so the auto-scrape doesn't stomp on them.
+export async function overrideSpreads(brokerId, pairs) {
+  const response = await api.put("/admin/spreads/override", {
+    brokerId,
+    pairs,
+  });
+  return response.data;
+}

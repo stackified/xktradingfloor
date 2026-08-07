@@ -114,16 +114,84 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
     }));
   };
 
+  // Client-side crop-to-16:9. The public site and admin preview all use a
+  // 16:9 aspect-[16/9] container with object-cover, so if we normalise the
+  // upload itself the "wrong ratio" case never happens. Auto-crops around the
+  // configurable focal anchor (top/center/bottom); center is the safe default.
+  const cropTo169 = React.useCallback(async (file, anchorY = "center") => {
+    try {
+      const bitmap = await createImageBitmap(file);
+      const targetAspect = 16 / 9;
+      const srcAspect = bitmap.width / bitmap.height;
+      let sx = 0, sy = 0, sw = bitmap.width, sh = bitmap.height;
+      if (srcAspect > targetAspect) {
+        // Source wider than 16:9 — trim sides.
+        sw = Math.round(bitmap.height * targetAspect);
+        sx = Math.round((bitmap.width - sw) / 2);
+      } else if (srcAspect < targetAspect) {
+        // Source taller than 16:9 — trim top/bottom around chosen anchor.
+        sh = Math.round(bitmap.width / targetAspect);
+        if (anchorY === "top") sy = 0;
+        else if (anchorY === "bottom") sy = bitmap.height - sh;
+        else sy = Math.round((bitmap.height - sh) / 2);
+      }
+      // Downscale huge originals; 1920×1080 is plenty for a card + detail hero.
+      const maxWidth = 1920;
+      const outW = Math.min(sw, maxWidth);
+      const outH = Math.round(outW / targetAspect);
+      const canvas = document.createElement("canvas");
+      canvas.width = outW;
+      canvas.height = outH;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, outW, outH);
+      bitmap.close?.();
+      const blob = await new Promise((resolve) =>
+        canvas.toBlob(resolve, "image/jpeg", 0.9)
+      );
+      if (!blob) return file; // fallback: send original if canvas fails
+      const base = file.name.replace(/\.[^.]+$/, "") || "event";
+      return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
+    } catch (err) {
+      console.warn("cropTo169 failed, uploading original:", err);
+      return file;
+    }
+  }, []);
+
+  const [cropAnchor, setCropAnchor] = React.useState("center");
+  const [originalFile, setOriginalFile] = React.useState(null);
+
+  // Regenerate the preview whenever the source file OR anchor changes so the
+  // admin sees the exact crop the site will render.
+  React.useEffect(() => {
+    if (!originalFile) return;
+    let revoked = false;
+    let objectUrl;
+    cropTo169(originalFile, cropAnchor).then((cropped) => {
+      if (revoked) return;
+      setFeaturedImageFile(cropped);
+      objectUrl = URL.createObjectURL(cropped);
+      setFeaturedImagePreview(objectUrl);
+    });
+    return () => {
+      revoked = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [originalFile, cropAnchor, cropTo169]);
+
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    setFeaturedImageFile(file);
-    setFeaturedImagePreview(URL.createObjectURL(file));
+    // Preview + upload payload are both derived from cropTo169 via the effect
+    // above. Keep the original around in case admin flips the anchor after.
+    setOriginalFile(file);
+    setCropAnchor("center");
   };
 
   const handleRemoveImage = () => {
     setFeaturedImageFile(null);
     setFeaturedImagePreview("");
+    setOriginalFile(null);
+    setCropAnchor("center");
   };
 
   const handleFreebiesChange = (freebies) => {
@@ -442,32 +510,67 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
             />
           </div>
 
-          {/* Featured Image */}
+          {/* Featured Image — always 16:9. Uploads are auto-cropped so the
+              preview exactly matches what the public site will show. */}
           <div>
             <label className="block text-sm font-medium mb-2">
               Featured Image
             </label>
             {featuredImagePreview ? (
-              <div className="relative">
-                <img
-                  src={featuredImagePreview}
-                  alt="Featured"
-                  className="w-full h-64 object-cover rounded-lg border border-white/10"
-                />
-                <button
-                  type="button"
-                  onClick={handleRemoveImage}
-                  className="absolute top-2 right-2 p-2 rounded-full bg-red-500/20 text-red-300 hover:bg-red-500/30 transition-colors"
-                >
-                  <XCircle className="h-5 w-5" />
-                </button>
+              <div className="space-y-3">
+                <div className="relative">
+                  <div className="w-full aspect-[16/9] overflow-hidden rounded-lg border border-white/10 bg-gray-900/40">
+                    <img
+                      src={featuredImagePreview}
+                      alt="Featured"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 p-2 rounded-full bg-red-500/20 text-red-300 hover:bg-red-500/30 transition-colors"
+                    aria-label="Remove image"
+                  >
+                    <XCircle className="h-5 w-5" />
+                  </button>
+                </div>
+                {originalFile && (
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <p className="text-xs text-gray-500">
+                      Auto-cropped to 16:9 · this is exactly how it will appear on the site.
+                    </p>
+                    <div className="inline-flex items-center gap-2 text-xs">
+                      <span className="text-gray-400">Focal anchor:</span>
+                      <div className="inline-flex rounded-full bg-gray-900 border border-gray-700 p-0.5">
+                        {["top", "center", "bottom"].map((pos) => (
+                          <button
+                            key={pos}
+                            type="button"
+                            onClick={() => setCropAnchor(pos)}
+                            className={`px-2.5 py-1 rounded-full transition-all capitalize ${
+                              cropAnchor === pos
+                                ? "bg-blue-500 text-white"
+                                : "text-gray-400 hover:text-white"
+                            }`}
+                          >
+                            {pos}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/20 rounded-lg cursor-pointer bg-gray-900/50 hover:bg-gray-900/70 transition-colors">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              <label className="flex flex-col items-center justify-center w-full aspect-[16/9] border-2 border-dashed border-white/20 rounded-lg cursor-pointer bg-gray-900/50 hover:bg-gray-900/70 transition-colors">
+                <div className="flex flex-col items-center justify-center">
                   <Upload className="h-8 w-8 mb-2 text-gray-400" />
                   <p className="text-sm text-gray-400">
                     Click to upload or drag and drop
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Any size — we'll crop to 16:9 automatically
                   </p>
                 </div>
                 <input

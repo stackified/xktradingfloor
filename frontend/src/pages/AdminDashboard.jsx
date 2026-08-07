@@ -29,6 +29,7 @@ import {
   FileText,
   Mail,
   BadgeCheck,
+  LineChart as LineChartIcon,
 } from "lucide-react";
 import { getAllCompanies } from "../controllers/companiesController.js";
 import {
@@ -772,6 +773,20 @@ function AdminDashboard() {
               Verified Traders
             </div>
             <div className="text-sm text-gray-400">Review applications</div>
+          </div>
+        </Link>
+        <Link
+          to="/admin/spreads"
+          className="card hover:border-yellow-500/50 transition-all hover:scale-105"
+        >
+          <div className="card-body">
+            <div className="font-semibold mb-1 flex items-center gap-2">
+              <LineChartIcon className="w-4 h-4" />
+              Live Spreads
+            </div>
+            <div className="text-sm text-gray-400">
+              Refresh & manual overrides
+            </div>
           </div>
         </Link>
         <Link

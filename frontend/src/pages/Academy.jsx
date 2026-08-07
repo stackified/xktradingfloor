@@ -27,9 +27,9 @@ function Academy() {
   return (
     <div className="bg-black min-h-screen">
       <Seo
-        title="Academy"
-        description="Master the markets with expert-led programs, live workshops, strategy sessions, and trading bootcamps."
-        path="/academy"
+        title="Events"
+        description="Discover trading events, expos, meetups, and webinars near you. Filter by region, category, and month."
+        path="/events"
       />
       <HeroAcademy />
       <div className="bg-black">

@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { TrendingUp, ShieldCheck, Star } from "lucide-react";
 import { getAssetPath } from "../../utils/assets.js";
 
 const trustPoints = [
@@ -8,6 +9,47 @@ const trustPoints = [
   "Verified traders",
   "Live spreads",
   "Real payouts",
+];
+
+// Floating trust badges positioned around the hero logo. Content and stats
+// mirror the marketing figures shown in StatsSection so the two never disagree.
+const heroBadges = [
+  {
+    id: "spreads",
+    icon: TrendingUp,
+    iconTint: "text-blue-400",
+    iconBg: "bg-blue-500/15",
+    label: "Live Spreads",
+    value: "EUR/USD 0.1",
+    // Top-right of the logo
+    position: "top-2 right-0 md:-right-6 lg:-right-10",
+    delay: 0,
+    withPulse: true,
+  },
+  {
+    id: "payouts",
+    icon: ShieldCheck,
+    iconTint: "text-green-400",
+    iconBg: "bg-green-500/15",
+    label: "Verified Payouts",
+    value: "$23.7M+",
+    sub: "This month",
+    // Bottom-right of the logo
+    position: "bottom-8 right-0 md:-right-8 lg:-right-14",
+    delay: 0.4,
+  },
+  {
+    id: "reviews",
+    icon: Star,
+    iconTint: "text-yellow-400",
+    iconBg: "bg-yellow-500/15",
+    label: "Trusted Reviews",
+    value: "24,369+",
+    sub: "From verified traders",
+    // Top-left of the logo
+    position: "top-4 left-0 md:-left-6 lg:-left-10",
+    delay: 0.8,
+  },
 ];
 
 function HeroSection() {
@@ -92,6 +134,48 @@ function HeroSection() {
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
               className="absolute h-[500px] w-[500px] border border-blue-400/30 rounded-full"
             />
+
+            {/* Floating trust badges */}
+            {heroBadges.map((badge) => {
+              const Icon = badge.icon;
+              return (
+                <motion.div
+                  key={badge.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: [0, -6, 0] }}
+                  transition={{
+                    opacity: { duration: 0.5, delay: badge.delay },
+                    y: {
+                      duration: 3.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: badge.delay,
+                    },
+                  }}
+                  className={`absolute ${badge.position} z-40 flex items-center gap-2 rounded-xl border border-white/10 bg-gray-900/80 backdrop-blur-md px-3 py-2 shadow-xl shadow-black/40`}
+                >
+                  <div className={`h-8 w-8 rounded-lg ${badge.iconBg} flex items-center justify-center flex-shrink-0 relative`}>
+                    <Icon className={`h-4 w-4 ${badge.iconTint}`} />
+                    {badge.withPulse && (
+                      <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-green-400 ring-2 ring-gray-900 animate-pulse" />
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <div className="text-[10px] uppercase tracking-wide text-gray-400 leading-none">
+                      {badge.label}
+                    </div>
+                    <div className="text-sm font-semibold text-white leading-tight">
+                      {badge.value}
+                    </div>
+                    {badge.sub && (
+                      <div className="text-[10px] text-gray-500 leading-none mt-0.5">
+                        {badge.sub}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </div>
