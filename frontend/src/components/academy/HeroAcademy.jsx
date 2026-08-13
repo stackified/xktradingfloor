@@ -21,7 +21,7 @@ function HeroAcademy() {
           transition={{ duration: 0.6 }}
           className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl"
         >
-          Master the <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Markets</span> with Expert-Led Programs
+          Discover <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Global Trading Events</span>
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 10 }}
@@ -30,7 +30,7 @@ function HeroAcademy() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="mt-4 text-sm sm:text-base text-gray-300 max-w-3xl mx-auto"
         >
-          Live workshops, strategy sessions, and trading bootcamps.
+          Expos, conferences, meetups and webinars from around the world — find where the trading community meets next.
         </motion.p>
         <motion.button
           initial={{ opacity: 0, y: 10 }}
@@ -41,7 +41,7 @@ function HeroAcademy() {
           className="btn btn-primary rounded-full mt-6 opacity-100 visible"
           style={{ visibility: 'visible', opacity: 1 }}
         >
-          Join an Event
+          Explore Events
         </motion.button>
       </div>
     </section>
