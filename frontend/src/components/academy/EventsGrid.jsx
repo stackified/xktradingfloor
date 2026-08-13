@@ -2,7 +2,18 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getAllEvents } from "../../controllers/eventsController.js";
-import { Calendar, User, MapPin, Clock, Globe, Building2, Search, Filter, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Calendar, User, MapPin, Clock, Globe, Building2, Search, Filter, ChevronLeft, ChevronRight, X, Presentation, Video, Users, Trophy, GraduationCap, Tent, Wrench } from "lucide-react";
+
+// Map an event category to an icon. Falls back to a calendar for unknowns.
+const CATEGORY_ICON = {
+  Expo: Tent,
+  Conference: Presentation,
+  Webinar: Video,
+  Meetup: Users,
+  Workshop: Wrench,
+  Competition: Trophy,
+  Seminar: GraduationCap,
+};
 import ImageWithFallback from "../shared/ImageWithFallback.jsx";
 import EventWorldMap from "./EventWorldMap.jsx";
 
@@ -224,11 +235,15 @@ function EventCard({ evt, onRegister }) {
               <Building2 className="h-3 w-3" /> Campus
             </span>
           ) : null}
-          {evt.category && (
-            <span className="inline-flex items-center text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-              {evt.category}
-            </span>
-          )}
+          {evt.category && (() => {
+            const CatIcon = CATEGORY_ICON[evt.category] || Calendar;
+            return (
+              <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                <CatIcon className="h-3 w-3" />
+                {evt.category}
+              </span>
+            );
+          })()}
           {evt.region && (
             <span className="inline-flex items-center text-xs px-2 py-0.5 rounded bg-gray-700/40 text-gray-300 border border-gray-600/40">
               {evt.region}
@@ -305,6 +320,7 @@ function EventsGrid({ onOpenRegister }) {
   const [regionFilter, setRegionFilter] = React.useState("");
   const [categoryFilter, setCategoryFilter] = React.useState("");
   const [monthFilter, setMonthFilter] = React.useState("");
+  const [mapModalOpen, setMapModalOpen] = React.useState(false);
   const itemsPerPage = 6;
 
   // Server-supported filters. These reach the API so search/type/region/
@@ -399,7 +415,9 @@ function EventsGrid({ onOpenRegister }) {
           </div>
         </div>
 
-        <div className="mb-6">
+        {/* Inline map — width-capped on desktop so it isn't oversized, with an
+            enlarge control that opens the full-screen modal below. */}
+        <div className="mb-6 mx-auto w-full lg:max-w-4xl">
           <EventWorldMap
             events={events}
             activeRegion={regionFilter}
@@ -407,7 +425,81 @@ function EventsGrid({ onOpenRegister }) {
               setRegionFilter(region);
               setPage(1);
             }}
+            onExpand={() => setMapModalOpen(true)}
           />
+        </div>
+
+        {/* Enlarged map modal */}
+        {mapModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            onClick={() => setMapModalOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Events map"
+          >
+            <div
+              className="relative w-full max-w-6xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => setMapModalOpen(false)}
+                className="absolute -top-3 -right-3 z-10 h-9 w-9 rounded-full bg-gray-900 border border-white/15 text-gray-300 hover:text-white flex items-center justify-center shadow-lg"
+                aria-label="Close map"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <EventWorldMap
+                events={events}
+                activeRegion={regionFilter}
+                onSelectRegion={(region) => {
+                  setRegionFilter(region);
+                  setPage(1);
+                  setMapModalOpen(false);
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Browse Events by Category — cards that drive the same server-side
+            category filter as the dropdown below. Counts are computed from the
+            loaded events; clicking toggles the filter. */}
+        <div className="mb-8">
+          <h3 className="text-sm font-semibold text-gray-300 mb-3">
+            Browse by Category
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 sm:gap-3">
+            {EVENT_CATEGORIES.map((cat) => {
+              const CatIcon = CATEGORY_ICON[cat] || Calendar;
+              const count = events.filter((e) => e.category === cat).length;
+              const active = categoryFilter === cat;
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => {
+                    setCategoryFilter(active ? "" : cat);
+                    setPage(1);
+                  }}
+                  className={`flex flex-col items-center justify-center gap-1.5 rounded-xl border px-3 py-4 transition-all ${
+                    active
+                      ? "border-blue-500 bg-blue-500/15 text-white"
+                      : "border-gray-700/60 bg-gray-900/50 text-gray-300 hover:border-blue-500/40 hover:text-white"
+                  }`}
+                >
+                  <CatIcon className={`h-5 w-5 ${active ? "text-blue-300" : "text-gray-400"}`} />
+                  <span className="text-xs font-medium">{cat}</span>
+                  {count > 0 && (
+                    <span className="text-[10px] text-gray-500">
+                      {count} event{count === 1 ? "" : "s"}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="mb-6 flex items-center gap-2 sm:gap-3 flex-wrap">

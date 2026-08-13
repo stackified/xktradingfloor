@@ -1,35 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, FileText } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { getUserCookie } from '../../utils/cookies.js';
-import { useToast } from '../../contexts/ToastContext.jsx';
+import { FileText } from 'lucide-react';
 import ImageWithFallback from '../shared/ImageWithFallback.jsx';
 
 function FreebiesSection() {
-  const reduxUser = useSelector((state) => state.auth.user);
-  const user = reduxUser || (typeof window !== 'undefined' ? getUserCookie() : null);
-  const navigate = useNavigate();
-  const toast = useToast();
-
-  const handleIndicatorClick = () => {
-    if (!user) {
-      // Redirect to login if not authenticated
-      navigate('/login');
-    } else {
-      // Show custom alert for logged in users
-      toast.info('Your freebie will be soon delivered in your mailbox. Keep checking it frequently.', 6000);
-    }
-  };
   return (
     <section className="py-20 bg-black relative overflow-hidden">
-      {/* Background decoration */}
-      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-0 w-96 h-96 bg-green-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
-      </div> */}
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -58,52 +34,10 @@ function FreebiesSection() {
           </motion.p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Simple XKTF Trading Indicator */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-50px' }}
-            transition={{ duration: 0.8 }}
-            className="card hover:scale-[1.02] transition-transform duration-300 overflow-hidden"
-          >
-            <div className="card-body p-0">
-              {/* Image with fixed height */}
-              <div className="relative h-48 w-full overflow-hidden">
-                <ImageWithFallback
-                  src="/assets/xktf_indicator.jpg"
-                  fallback="/assets/placeholder.jpg"
-                  alt="Trading indicator chart"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {/* Content */}
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                    <TrendingUp className="h-5 w-5 text-green-400" />
-                  </div>
-                  <h3 className="font-display font-bold text-base sm:text-lg tracking-tight">Simple XKTF Trading Indicator</h3>
-                </div>
-                <p className="text-sm sm:text-base text-gray-300 mb-4 line-clamp-3">
-                  I Build This indicator based on a simple strategy While I do Analysis on Chart Check this Indicator out.
-                </p>
-                {!user ? (
-                  <Link to="/login" className="btn inline-flex items-center justify-center w-full rounded-full bg-green-500 hover:bg-green-600 text-white border-2 border-green-500 hover:border-green-600 hover:scale-105 transition-all shadow-lg shadow-green-500/20 px-6 py-3">
-                    Login to access...
-                  </Link>
-                ) : (
-                  <button
-                    onClick={handleIndicatorClick}
-                    className="btn inline-flex items-center justify-center w-full rounded-full bg-green-500 hover:bg-green-600 text-white border-2 border-green-500 hover:border-green-600 hover:scale-105 transition-all shadow-lg shadow-green-500/20 px-6 py-3"
-                  >
-                    Ask for access...
-                  </button>
-                )}
-              </div>
-            </div>
-          </motion.div>
-
+        {/* Single centered card (the XKTF Trading Indicator freebie was removed
+            per client request). Kept in a constrained, centered column so it
+            doesn't stretch awkwardly now that it's the only card. */}
+        <div className="max-w-md mx-auto">
           {/* Trading Journal */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -134,7 +68,7 @@ function FreebiesSection() {
                   <h3 className="font-display font-bold text-base sm:text-lg tracking-tight">Trading Journal</h3>
                 </div>
                 <p className="text-sm sm:text-base text-gray-300 mb-4 line-clamp-3">
-                  Our trade journal is perfectly set up to help you keep track of all your trades. It has our 
+                  Our trade journal is perfectly set up to help you keep track of all your trades. It has our
                   strategy built into it and helps you have statistics on each setup and entry.
                 </p>
                 <button className="btn inline-flex items-center justify-center w-full rounded-full bg-green-500 hover:bg-green-600 opacity-50 cursor-not-allowed text-white border-2 border-green-500 px-6 py-3" disabled>
@@ -150,4 +84,3 @@ function FreebiesSection() {
 }
 
 export default FreebiesSection;
-
