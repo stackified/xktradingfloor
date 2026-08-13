@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { MapPin, Minus, Plus, RotateCcw } from "lucide-react";
+import { MapPin, Minus, Plus, RotateCcw, Maximize2 } from "lucide-react";
 import {
   ComposableMap,
   Geographies,
@@ -92,7 +92,7 @@ const COUNTRY_TO_REGIONS = (() => {
   return map;
 })();
 
-function EventWorldMap({ events = [], activeRegion = "", onSelectRegion }) {
+function EventWorldMap({ events = [], activeRegion = "", onSelectRegion, onExpand }) {
   // Count events per region for the pin badges.
   const counts = React.useMemo(() => {
     const map = {};
@@ -187,6 +187,19 @@ function EventWorldMap({ events = [], activeRegion = "", onSelectRegion }) {
       ref={containerRef}
       className="relative w-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-gray-900 to-black"
     >
+      {/* Expand-to-fullscreen control (only when the parent provides a handler) */}
+      {onExpand && (
+        <button
+          type="button"
+          onClick={onExpand}
+          className="absolute top-3 left-3 z-20 h-7 w-7 rounded-md bg-gray-900/80 border border-white/10 text-gray-300 hover:text-white hover:border-blue-400/40 backdrop-blur-sm flex items-center justify-center"
+          aria-label="Enlarge map"
+          title="Enlarge map"
+        >
+          <Maximize2 className="h-3.5 w-3.5" />
+        </button>
+      )}
+
       {/* Zoom controls */}
       <div className="absolute top-3 right-3 z-20 flex flex-col gap-1">
         <button
