@@ -415,9 +415,9 @@ function EventsGrid({ onOpenRegister }) {
           </div>
         </div>
 
-        {/* Inline map — width-capped on desktop so it isn't oversized, with an
+        {/* Inline map — full content width (client asked to widen it), with an
             enlarge control that opens the full-screen modal below. */}
-        <div className="mb-6 mx-auto w-full lg:max-w-4xl">
+        <div className="mb-6 w-full">
           <EventWorldMap
             events={events}
             activeRegion={regionFilter}
