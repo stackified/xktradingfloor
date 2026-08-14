@@ -7,8 +7,10 @@ import WhatIsXK from '../components/home/WhatIsXK.jsx';
 import MissionResourcesSection from '../components/home/MissionResourcesSection.jsx';
 import CommunitySection from '../components/home/CommunitySection.jsx';
 import FeaturesQuadrantSection from '../components/home/FeaturesQuadrantSection.jsx';
-import HowItWorks from '../components/home/HowItWorks.jsx';
-import FreebiesSection from '../components/home/FreebiesSection.jsx';
+// Hidden per client request (revertible): "How Does It Work?" + "Freebies".
+// Uncomment the import and its usage below to restore.
+// import HowItWorks from '../components/home/HowItWorks.jsx';
+// import FreebiesSection from '../components/home/FreebiesSection.jsx';
 import PodcastSection from '../components/home/PodcastSection.jsx';
 import TradingJournalSection from '../components/home/TradingJournalSection.jsx';
 import FeaturedEvents from '../components/home/FeaturedEvents.jsx';
@@ -29,10 +31,12 @@ function Home() {
       <MissionResourcesSection />
       <CommunitySection />
       <FeaturesQuadrantSection />
+      {/* Hidden per client request (revertible) — restore by uncommenting:
       <div id="how-it-works">
         <HowItWorks />
       </div>
       <FreebiesSection />
+      */}
       <PodcastSection />
       <TradingJournalSection />
       <FeaturedEvents />
