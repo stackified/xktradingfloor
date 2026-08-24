@@ -72,12 +72,30 @@ const server = http.createServer(async (req, res) => {
 
 await new Promise((r) => server.listen(PORT, r));
 
-// Block backend API, ads/analytics, AND web fonts during the snapshot.
+// Backend API calls are left HANGING (never answered) rather than aborted.
+//
+// This distinction is the whole ballgame for hydration. An aborted request
+// makes the fetch *reject*, so a component's catch/finally runs and it leaves
+// its loading state — TopCompaniesTables then hit `if (!loading && empty)
+// return null` and vanished from the snapshot entirely. The browser's first
+// client render still had loading === true and rendered the section, so the
+// trees disagreed: React threw #418 (hydration mismatch) then #423, discarded
+// the whole prerendered DOM and re-rendered from scratch. That cost every bit
+// of the prerender's value and put mobile LCP at 8.3 s.
+//
+// A request that never settles leaves each component parked in exactly the
+// initial state the client starts from, so the snapshot and the first client
+// render agree and hydration succeeds.
+const HANG = /onrender\.com|\/api\//i;
+
+// Ads/analytics/fonts are aborted outright — nothing renders off them.
 // Fonts matter: the font <link> uses media="print" onload="this.media='all'"
 // to load non-blocking. If we let it load during prerender, onload fires and
 // the captured markup has media="all" (render-blocking). Blocking the request
 // keeps media="print" in the snapshot, so it stays non-blocking for real users.
-const BLOCK = /onrender\.com|\/api\/|googlesyndication|googletagmanager|google-analytics|analytics\.google|doubleclick|adtrafficquality|pagead|fonts\.googleapis\.com|fonts\.gstatic\.com/i;
+const ABORT = /googlesyndication|googletagmanager|google-analytics|analytics\.google|doubleclick|adtrafficquality|pagead|fonts\.googleapis\.com|fonts\.gstatic\.com/i;
+
+const BLOCK = new RegExp(`${HANG.source}|${ABORT.source}`, "i");
 
 const browser = await puppeteer.launch({
   executablePath,
@@ -94,7 +112,14 @@ try {
     if (!BLOCK.test(r.url())) console.log("  [req failed]", r.url(), r.failure()?.errorText);
   });
   await page.setRequestInterception(true);
-  page.on("request", (r) => (BLOCK.test(r.url()) ? r.abort() : r.continue()));
+  page.on("request", (r) => {
+    const url = r.url();
+    // Deliberately neither continue nor abort: the request stays pending for
+    // the life of the snapshot, so data promises never settle.
+    if (HANG.test(url)) return;
+    if (ABORT.test(url)) return void r.abort();
+    r.continue();
+  });
 
   const target = `http://localhost:${PORT}${BASE}`;
   await page.goto(target, { waitUntil: "domcontentloaded", timeout: 30000 });
@@ -110,6 +135,18 @@ try {
   const html = await page.content();
   if (!/id="root">\s*<[^>]/.test(html) && !html.includes("A Transparent")) {
     throw new Error("prerender: hero content not found in snapshot");
+  }
+  // Guard the hydration contract: every API-driven section must appear in the
+  // snapshot in its loading state. If one is missing, a data promise settled
+  // during the snapshot and the client's first render will not match — which
+  // silently costs us the entire prerender (see the HANG comment above).
+  for (const marker of ["Rated Companies", "Events &amp; Webinars"]) {
+    if (!html.includes(marker)) {
+      throw new Error(
+        `prerender: "${marker}" missing from snapshot — a data section left its ` +
+        `loading state, which will break hydration. Check the HANG pattern.`
+      );
+    }
   }
 
   // Inline critical CSS and load the full stylesheet async, so the prerendered
