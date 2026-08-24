@@ -27,6 +27,8 @@ function EventCard({ evt, onClick }) {
           alt={evt.title}
           className="h-full w-full object-cover"
           useDynamicFallback={true}
+          width={400}
+          height={160}
         />
       </div>
       <div className="card-body">
@@ -38,15 +40,43 @@ function EventCard({ evt, onClick }) {
   );
 }
 
+// Same box model as EventCard (h-40 image + card-body), so the grid holds its
+// final height from the first paint instead of growing from nothing when the
+// events request lands.
+function EventCardSkeleton() {
+  return (
+    <div className="card overflow-hidden" aria-hidden="true">
+      <div className="h-40 w-full bg-muted" />
+      <div className="card-body">
+        <div className="h-3 w-24 rounded bg-gray-800/70 mb-2" />
+        <div className="h-5 w-3/4 rounded bg-gray-800/70 mb-2" />
+        <div className="h-4 w-full rounded bg-gray-800/50" />
+      </div>
+    </div>
+  );
+}
+
 function FeaturedEvents() {
   const [events, setEvents] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
   const navigate = useNavigate();
 
   React.useEffect(() => {
+    let cancelled = false;
     (async () => {
-      const response = await getAllEvents();
-      setEvents(response.data || []);
+      try {
+        const response = await getAllEvents();
+        if (!cancelled) setEvents(response.data || []);
+      } catch (err) {
+        // Homepage must still render if the backend is cold or down.
+        console.warn("FeaturedEvents load failed:", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -78,13 +108,15 @@ function FeaturedEvents() {
           <Link to="/events" className="text-sm text-blue-400 hover:text-blue-300 hover:underline ml-auto">View All</Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {events.slice(0, 4).map((evt) => (
-            <EventCard
-              key={evt.id}
-              evt={evt}
-              onClick={() => navigate(`/events/${evt.id}`, { state: { event: evt } })}
-            />
-          ))}
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => <EventCardSkeleton key={i} />)
+            : events.slice(0, 4).map((evt) => (
+              <EventCard
+                key={evt.id}
+                evt={evt}
+                onClick={() => navigate(`/events/${evt.id}`, { state: { event: evt } })}
+              />
+            ))}
         </div>
       </div>
     </section>
