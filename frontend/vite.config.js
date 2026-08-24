@@ -1,6 +1,26 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
+// Cloudflare's Rocket Loader rewrites every <script> it sees — including
+// <script type="module"> — into a placeholder type, then downloads and
+// evaluates the bundle itself in a single serial main-thread task. On the live
+// site that measured 1,980 ms Total Blocking Time on desktop (Performance 48)
+// and pushed mobile LCP to 8.3 s, because hydration could not start until
+// Rocket Loader got around to running the bundle.
+//
+// data-cfasync="false" is Cloudflare's documented opt-out: Rocket Loader skips
+// any script carrying it. Stamping it on everything we emit means the site
+// keeps native module semantics even if the dashboard toggle stays on.
+const rocketLoaderOptOut = () => ({
+  name: "rocket-loader-opt-out",
+  transformIndexHtml: {
+    // "post" so this also covers the module/preload tags Vite injects itself.
+    order: "post",
+    handler: (html) =>
+      html.replace(/<script(?![^>]*\bdata-cfasync=)/g, '<script data-cfasync="false"'),
+  },
+});
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Read base path from environment variable, default to "/" for localhost
@@ -10,7 +30,7 @@ export default defineConfig(({ mode }) => {
   const normalizedBasePath = basePath.endsWith("/") ? basePath : `${basePath}/`;
 
   return {
-    plugins: [react()],
+    plugins: [react(), rocketLoaderOptOut()],
     server: {
       port: 5173,
       open: true,

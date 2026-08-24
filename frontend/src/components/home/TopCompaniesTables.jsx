@@ -66,6 +66,8 @@ function CompanyRow({ company, index }) {
             fallback="/assets/placeholder.jpg"
             alt={company.name}
             className="h-full w-full object-contain"
+            width={32}
+            height={32}
           />
         </div>
         <div className="min-w-0">
@@ -91,7 +93,22 @@ function CompanyRow({ company, index }) {
   );
 }
 
-function TableCard({ title, icon: Icon, iconTint, companies, viewAllHref, viewAllLabel }) {
+// Placeholder row matched to CompanyRow's box model (h-8 logo + py-3), so the
+// card is already its final height before the API answers. Without this the
+// two cards grew from "empty" to five rows on load and the whole page below
+// them jumped — most of the 0.154 CLS measured on mobile.
+function SkeletonRow() {
+  return (
+    <div className="flex items-center gap-3 px-3 sm:px-4 py-3" aria-hidden="true">
+      <span className="w-5 h-3 rounded bg-gray-800/70" />
+      <span className="h-8 w-8 rounded-md bg-gray-800/70 flex-shrink-0" />
+      <span className="h-3 flex-1 rounded bg-gray-800/50" />
+      <span className="h-3 w-10 rounded bg-gray-800/50" />
+    </div>
+  );
+}
+
+function TableCard({ title, icon: Icon, iconTint, companies, loading, viewAllHref, viewAllLabel }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -117,7 +134,9 @@ function TableCard({ title, icon: Icon, iconTint, companies, viewAllHref, viewAl
           </Link>
         </div>
         <div className="space-y-1">
-          {companies.length === 0 ? (
+          {loading ? (
+            Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
+          ) : companies.length === 0 ? (
             <div className="py-8 text-center text-sm text-gray-500">
               No companies to show yet.
             </div>
@@ -196,6 +215,7 @@ function TopCompaniesTables() {
             icon={Landmark}
             iconTint="text-blue-300"
             companies={brokers}
+            loading={loading}
             viewAllHref="/reviews/broker"
             viewAllLabel="View all"
           />
@@ -204,6 +224,7 @@ function TopCompaniesTables() {
             icon={TrendingUp}
             iconTint="text-emerald-300"
             companies={propFirms}
+            loading={loading}
             viewAllHref="/reviews/propfirm"
             viewAllLabel="View all"
           />

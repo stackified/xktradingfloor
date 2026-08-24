@@ -2,6 +2,11 @@
 <html lang="en">
 
 <head>
+  <!-- charset must be inside the first 1024 bytes of the document, so nothing
+       (not even the tag manager) may precede it. -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0B0F19" />
   <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -9,9 +14,20 @@
   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
   })(window,document,'script','dataLayer','GTM-PB4G7KLK');</script>
   <!-- End Google Tag Manager -->
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0B0F19" />
+  <!-- Google tag (gtag.js) — GA4 property G-GYPE81F8N8.
+       The GTM container above ships no GA4 configuration tag, so nothing was
+       ever sent to Analytics (window.gtag was undefined on production and no
+       /g/collect request was made). Loading gtag.js directly is what actually
+       starts the tracking. If a GA4 tag is later added inside GTM, remove this
+       block instead of running both — otherwise every hit is counted twice. -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GYPE81F8N8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GYPE81F8N8');
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <!-- Open the API connection early: homepage data (settings, events) is on the
