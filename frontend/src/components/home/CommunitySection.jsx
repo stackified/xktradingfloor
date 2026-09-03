@@ -80,6 +80,8 @@ function CommunitySection() {
                 fallback="/assets/placeholder.jpg"
                 alt="Community trading platform"
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                width={1024}
+                height={1024}
               />
             </div>
           </motion.div>

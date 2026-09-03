@@ -94,6 +94,10 @@ function TradingJournalSection() {
                     src="/assets/lockittrade-logo.png"
                     alt="LockItTrade"
                     className="max-h-full max-w-full object-contain"
+                    width={1000}
+                    height={620}
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div>
