@@ -87,6 +87,8 @@ function PodcastSection() {
                   alt={video.title}
                   className="w-full h-64 object-cover rounded-t-lg"
                   useCdn={false}
+                  width={640}
+                  height={480}
                 />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                   <div className="h-16 w-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white/30 group-hover:scale-110 transition-transform">

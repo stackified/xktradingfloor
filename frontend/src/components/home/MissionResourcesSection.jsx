@@ -158,6 +158,8 @@ function MissionResourcesSection() {
                       alt={`Video ${index + 1}`}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       useCdn={false}
+                      width={480}
+                      height={360}
                     />
                     <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                       <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">
@@ -201,6 +203,8 @@ function MissionResourcesSection() {
                       alt={`Video ${index + 1}`}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       useCdn={false}
+                      width={480}
+                      height={360}
                     />
                     <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                       <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">
@@ -263,6 +267,8 @@ function MissionResourcesSection() {
                       fallback="/assets/placeholder.jpg"
                       alt={`Guest ${index + 1}`}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      width={400}
+                      height={400}
                     />
                   </motion.div>
                 ))}
@@ -308,6 +314,8 @@ function MissionResourcesSection() {
                   fallback="/assets/podcast.jpg"
                   alt="Podcast Recording"
                   className="w-full aspect-video object-cover"
+                  width={1024}
+                  height={511}
                 />
               </div>
             </div>

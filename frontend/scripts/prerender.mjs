@@ -105,6 +105,27 @@ const browser = await puppeteer.launch({
 
 try {
   const page = await browser.newPage();
+
+  // Freeze requestAnimationFrame for the duration of the snapshot.
+  //
+  // framer-motion computes each element's initial visual state during
+  // React's render phase, so React's own HTML output is deterministic and
+  // matches what the browser renders on first paint. What broke hydration
+  // was framer's rAF-driven animation loop mutating those inline styles
+  // afterwards: the hero's decorative animations (ripple circles, logo
+  // pulse) loop forever, so a DOM snapshot always caught them mid-flight
+  // with values like `transform: scale(1.00399)` that no fresh client
+  // render can reproduce. React logged #418, then #423, and discarded the
+  // entire prerendered DOM - costing us the whole prerender.
+  //
+  // With rAF stubbed the loop never advances past frame 0, so the captured
+  // markup is exactly React's render-phase output. React schedules on
+  // MessageChannel rather than rAF, so rendering itself is unaffected.
+  await page.evaluateOnNewDocument(() => {
+    let id = 0;
+    window.requestAnimationFrame = () => ++id;
+    window.cancelAnimationFrame = () => {};
+  });
   await page.setViewport({ width: 1280, height: 900 });
   page.on("console", (m) => console.log("  [page console]", m.type(), m.text()));
   page.on("pageerror", (e) => console.log("  [page error]", e.message));
@@ -131,6 +152,18 @@ try {
     console.log("  [debug] #root after wait:", JSON.stringify(rootHtml));
     throw e;
   }
+
+  // The inline GTM snippet runs during the snapshot and inserts its own
+  // <script src=".../gtm.js">, which then gets baked into the static HTML.
+  // The snippet runs again in the visitor's browser and injects a second
+  // one, so production was fetching and initialising GTM twice. Remove the
+  // injected tag - the snippet recreates it client-side. Matched on gtm.js
+  // specifically so the gtag.js tag authored in index.html is left alone.
+  await page.evaluate(() => {
+    document
+      .querySelectorAll('script[src*="googletagmanager.com/gtm.js"]')
+      .forEach((el) => el.remove());
+  });
 
   const html = await page.content();
   if (!/id="root">\s*<[^>]/.test(html) && !html.includes("A Transparent")) {

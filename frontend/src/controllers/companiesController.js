@@ -912,7 +912,7 @@ export async function deletePromoCode(companyId, promoId) {
 }
 
 // Request company addition (authenticated users only)
-// Backend endpoint: POST /api/protected/company/request
+// Backend endpoint: POST /api/company/request
 export async function requestCompanyAddition(companyData) {
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
@@ -938,9 +938,10 @@ export async function requestCompanyAddition(companyData) {
         }
       });
 
-      // Backend endpoint: POST /api/protected/company/request
+      // Backend endpoint: POST /api/company/request — the protected router is
+      // mounted at the API root (routes/api/index.js), not under /protected.
       // Note: Don't manually set Content-Type for FormData - axios handles it automatically with boundary
-      const response = await api.post("/protected/company/request", formData);
+      const response = await api.post("/company/request", formData);
 
       // Backend returns: { success: true, message: "...", data: {...} }
       if (response.data?.success && response.data?.data) {
