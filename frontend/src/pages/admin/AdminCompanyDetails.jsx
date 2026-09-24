@@ -25,6 +25,7 @@ import {
   hideReview,
   pinReview,
   deleteReview,
+  REVIEW_MODERATION_ENABLED,
 } from "../../controllers/reviewsController.js";
 import ProtectedRoute from "../../components/dashboard/ProtectedRoute.jsx";
 import RatingBreakdownChart from "../../components/reviews/RatingBreakdownChart.jsx";
@@ -772,27 +773,33 @@ function ReviewCard({ review, onPin, onHide, onDelete }) {
           <StarRating value={review.rating} size={16} />
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={onPin}
-            className={`btn btn-xs btn-outline ${review.isPinned
-              ? "border-amber-500/40 text-amber-300"
-              : "border-white/20 text-white"
-              }`}
-            title={review.isPinned ? "Unpin review" : "Pin review"}
-          >
-            {review.isPinned ? (
-              <PinOff className="h-3 w-3" />
-            ) : (
-              <Pin className="h-3 w-3" />
-            )}
-          </button>
-          <button
-            onClick={onHide}
-            className="btn btn-xs btn-outline border-yellow-500/40 text-yellow-300"
-            title="Hide review"
-          >
-            <EyeOff className="h-3 w-3" />
-          </button>
+          {/* Pin/Hide need backend routes that don't exist yet — see
+              REVIEW_MODERATION_ENABLED in reviewsController. */}
+          {REVIEW_MODERATION_ENABLED && (
+            <>
+              <button
+                onClick={onPin}
+                className={`btn btn-xs btn-outline ${review.isPinned
+                  ? "border-amber-500/40 text-amber-300"
+                  : "border-white/20 text-white"
+                  }`}
+                title={review.isPinned ? "Unpin review" : "Pin review"}
+              >
+                {review.isPinned ? (
+                  <PinOff className="h-3 w-3" />
+                ) : (
+                  <Pin className="h-3 w-3" />
+                )}
+              </button>
+              <button
+                onClick={onHide}
+                className="btn btn-xs btn-outline border-yellow-500/40 text-yellow-300"
+                title="Hide review"
+              >
+                <EyeOff className="h-3 w-3" />
+              </button>
+            </>
+          )}
           {onDelete && (
             <button
               onClick={onDelete}
