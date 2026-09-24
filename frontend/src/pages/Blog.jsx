@@ -1,4 +1,5 @@
 import React from "react";
+import { repairStoredHtml } from "../utils/richText.js";
 import Seo from "../components/shared/Seo.jsx";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -14,7 +15,7 @@ import { fetchPublishedBlogs } from "../redux/slices/blogsSlice.js";
 import { BLOG_CONTAINER, BLOG_SECTION_HEADING, BLOG_COLORS } from "../components/blog/blogLayout.js";
 
 function transformBlog(blog) {
-  const plainText = blog.content?.replace(/<[^>]*>/g, "") || "";
+  const plainText = repairStoredHtml(blog.content || "").replace(/<[^>]*>/g, "") || "";
   const wordCount = plainText.split(/\s+/).filter(Boolean).length;
 
   return {
