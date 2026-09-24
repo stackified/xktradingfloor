@@ -8,14 +8,15 @@
     "sitemap": "node scripts/build-sitemap.js",
     "build": "npm run sitemap && vite build",
     "build:local": "cross-env VITE_BASE_PATH=/ npm run sitemap && cross-env VITE_BASE_PATH=/ vite build",
-    "build:gith": "cross-env VITE_BASE_PATH=/xktradingfloor/ npm run sitemap && cross-env VITE_BASE_PATH=/xktradingfloor/ vite build && (cross-env VITE_BASE_PATH=/xktradingfloor/ node scripts/prerender.mjs || echo prerender-skipped)",
+    "build:gith": "cross-env VITE_BASE_PATH=/xktradingfloor/ npm run sitemap && cross-env VITE_BASE_PATH=/xktradingfloor/ vite build && (cross-env VITE_BASE_PATH=/xktradingfloor/ node scripts/prerender.mjs || echo prerender-skipped) && cross-env VITE_BASE_PATH=/xktradingfloor/ node scripts/check-hydration.mjs",
     "prerender": "node scripts/prerender.mjs",
-    "build:prod": "cross-env VITE_BASE_PATH=/ npm run sitemap && cross-env VITE_BASE_PATH=/ vite build && (cross-env VITE_BASE_PATH=/ node scripts/prerender.mjs || echo prerender-skipped)",
+    "build:prod": "cross-env VITE_BASE_PATH=/ npm run sitemap && cross-env VITE_BASE_PATH=/ vite build && (cross-env VITE_BASE_PATH=/ node scripts/prerender.mjs || echo prerender-skipped) && cross-env VITE_BASE_PATH=/ node scripts/check-hydration.mjs",
     "preview": "vite preview --port 5173",
     "predeploy": "npm install && npm run build:gith",
     "deploy": "gh-pages -d docs",
     "clean": "rm -rf node_modules/.vite",
-    "clean:win": "if exist node_modules\\.vite rmdir /s /q node_modules\\.vite"
+    "clean:win": "if exist node_modules\\.vite rmdir /s /q node_modules\\.vite",
+    "check:hydration": "node scripts/check-hydration.mjs"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.5",

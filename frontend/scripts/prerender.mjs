@@ -165,6 +165,47 @@ try {
       .forEach((el) => el.remove());
   });
 
+  // Emit the Suspense boundary markers React's own SSR does.
+  //
+  // Router wraps <Routes> in a single <Suspense>, whose DOM parent is <main>.
+  // renderToString brackets a resolved boundary with <!--$--> and <!--/$-->,
+  // and the hydrator *requires* them: it claims the boundary by looking for a
+  // comment node whose data is "$". A DOM snapshot has no such markers, so
+  // React threw at the boundary, its cursor drifted, and <footer> and the
+  // toast container threw in turn (#418 x3) before the whole root fell back
+  // to client rendering (#423). Every prerender we shipped hit this.
+  //
+  // <main> contains only the boundary's subtree (PageViewTracker renders
+  // null), so the markers go in as its first and last children.
+  await page.evaluate(() => {
+    const main = document.querySelector("#root main");
+    if (!main) throw new Error("prerender: <main> not found; cannot place Suspense markers");
+    main.insertBefore(document.createComment("$"), main.firstChild);
+    main.appendChild(document.createComment("/$"));
+  });
+
+  // Separate adjacent text nodes the way React's own SSR does.
+  //
+  // JSX such as `Top{" "}<span>` or `© {year} XK` renders two or three
+  // sibling text nodes. page.content() serialises them as one run of text,
+  // and when the browser parses the snapshot it gets one merged node where
+  // hydration expects several. React then throws #418 and discards the whole
+  // prerendered tree. renderToString avoids this by emitting <!-- --> between
+  // adjacent text nodes, which the hydrator skips; replicate that here so the
+  // class of bug is closed for every component, not just the ones found.
+  await page.evaluate(() => {
+    const walker = document.createTreeWalker(document.getElementById("root"), NodeFilter.SHOW_TEXT);
+    const texts = [];
+    let node;
+    while ((node = walker.nextNode())) texts.push(node);
+    for (const t of texts) {
+      const next = t.nextSibling;
+      if (next && next.nodeType === Node.TEXT_NODE) {
+        t.parentNode.insertBefore(document.createComment(" "), next);
+      }
+    }
+  });
+
   const html = await page.content();
   if (!/id="root">\s*<[^>]/.test(html) && !html.includes("A Transparent")) {
     throw new Error("prerender: hero content not found in snapshot");

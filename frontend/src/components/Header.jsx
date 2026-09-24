@@ -202,6 +202,11 @@ function Header() {
                     {isActive && (
                       <motion.div
                         className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-600 pointer-events-none"
+                        // framer-motion's layout projection writes opacity into this element's inline
+                        // style, so the prerendered markup can never equal React's own string.
+                        // Suppress that one attribute warning: React 18 only reports the first
+                        // hydration warning per page, and this one was masking real ones.
+                        suppressHydrationWarning
                         layoutId="activeIndicator"
                         layout
                         style={{
@@ -270,6 +275,11 @@ function Header() {
                 {isActive && (
                   <motion.div
                     className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-600 pointer-events-none"
+                    // framer-motion's layout projection writes opacity into this element's inline
+                    // style, so the prerendered markup can never equal React's own string.
+                    // Suppress that one attribute warning: React 18 only reports the first
+                    // hydration warning per page, and this one was masking real ones.
+                    suppressHydrationWarning
                     layoutId="activeIndicator"
                     layout
                     style={{
@@ -311,6 +321,11 @@ function Header() {
                 {isActive && (
                   <motion.div
                     className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-600 pointer-events-none"
+                    // framer-motion's layout projection writes opacity into this element's inline
+                    // style, so the prerendered markup can never equal React's own string.
+                    // Suppress that one attribute warning: React 18 only reports the first
+                    // hydration warning per page, and this one was masking real ones.
+                    suppressHydrationWarning
                     layoutId="activeIndicatorTablet"
                     layout
                     style={{
