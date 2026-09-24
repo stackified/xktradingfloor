@@ -93,7 +93,7 @@ const HANG = /onrender\.com|\/api\//i;
 // to load non-blocking. If we let it load during prerender, onload fires and
 // the captured markup has media="all" (render-blocking). Blocking the request
 // keeps media="print" in the snapshot, so it stays non-blocking for real users.
-const ABORT = /googlesyndication|googletagmanager|google-analytics|analytics\.google|doubleclick|adtrafficquality|pagead|fonts\.googleapis\.com|fonts\.gstatic\.com/i;
+const ABORT = /googlesyndication|googletagmanager|google-analytics|analytics\.google|doubleclick|adtrafficquality|pagead|clarity\.ms|fonts\.googleapis\.com|fonts\.gstatic\.com/i;
 
 const BLOCK = new RegExp(`${HANG.source}|${ABORT.source}`, "i");
 

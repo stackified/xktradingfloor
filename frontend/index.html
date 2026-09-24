@@ -7,27 +7,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0B0F19" />
-  <!-- Google Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','GTM-PB4G7KLK');</script>
-  <!-- End Google Tag Manager -->
-  <!-- Google tag (gtag.js) — GA4 property G-GYPE81F8N8.
-       The GTM container above ships no GA4 configuration tag, so nothing was
-       ever sent to Analytics (window.gtag was undefined on production and no
-       /g/collect request was made). Loading gtag.js directly is what actually
-       starts the tracking. If a GA4 tag is later added inside GTM, remove this
-       block instead of running both — otherwise every hit is counted twice. -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GYPE81F8N8"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-GYPE81F8N8');
-  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <!-- Open the API connection early: homepage data (settings, events) is on the
@@ -47,6 +26,34 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
       rel="stylesheet" />
   </noscript>
+  <!-- Metric-matched fallbacks for the web fonts. Until Inter/Poppins arrive,
+       text renders in local Arial (or Roboto on Android) scaled to the same
+       advance widths and vertical metrics, so the swap does not reflow the
+       page. Without this the hero copy grew when the real fonts landed and
+       shoved the logo column down on phones - a 0.15 CLS from that one
+       element. Values come from each font's cmap/hmtx tables with English
+       letter-frequency weighting (the Fontaine / next-font method); the Inter
+       numbers match Google's own to within 0.03%. Inlined rather than put in
+       the stylesheet so they exist before the first paint. -->
+  <style>
+    /* Regular and bold cuts are matched separately: a bold heading falls back
+       to Arial Bold / Roboto Bold, whose widths differ from the regular face.
+       The bold size-adjust values were then measured against the page's own
+       headline (canvas measureText, web font vs local face) rather than a
+       generic letter-frequency average: the average over-scaled Poppins Bold
+       by ~2.4%, enough to wrap the hero h1 onto a fourth line until the real
+       font landed - the last 0.044 of CLS. Roboto values carry the same
+       correction factor, since Roboto is not installed here to measure. */
+    @font-face { font-family: "Inter Fallback"; font-weight: 400 500; src: local("Arial"); size-adjust: 107.42%; ascent-override: 90.18%; descent-override: 22.45%; line-gap-override: 0.00%; }
+    @font-face { font-family: "Inter Fallback"; font-weight: 600; src: local("Arial Bold"), local("Arial-BoldMT"); size-adjust: 99.85%; ascent-override: 97.02%; descent-override: 24.16%; line-gap-override: 0.00%; }
+    @font-face { font-family: "Inter Fallback"; font-weight: 700; src: local("Arial Bold"), local("Arial-BoldMT"); size-adjust: 102.11%; ascent-override: 94.87%; descent-override: 23.62%; line-gap-override: 0.00%; }
+    @font-face { font-family: "Inter Fallback Android"; font-weight: 400 500; src: local("Roboto"); size-adjust: 106.86%; ascent-override: 90.66%; descent-override: 22.57%; line-gap-override: 0.00%; }
+    @font-face { font-family: "Inter Fallback Android"; font-weight: 600 700; src: local("Roboto Bold"), local("Roboto-Bold"); size-adjust: 106.19%; ascent-override: 91.23%; descent-override: 22.72%; line-gap-override: 0.00%; }
+    @font-face { font-family: "Poppins Fallback"; font-weight: 600; src: local("Arial Bold"), local("Arial-BoldMT"); size-adjust: 103.55%; ascent-override: 101.40%; descent-override: 33.80%; line-gap-override: 9.66%; }
+    @font-face { font-family: "Poppins Fallback"; font-weight: 700; src: local("Arial Bold"), local("Arial-BoldMT"); size-adjust: 105.27%; ascent-override: 99.74%; descent-override: 33.25%; line-gap-override: 9.50%; }
+    @font-face { font-family: "Poppins Fallback Android"; font-weight: 600; src: local("Roboto Bold"), local("Roboto-Bold"); size-adjust: 110.13%; ascent-override: 95.34%; descent-override: 31.78%; line-gap-override: 9.08%; }
+    @font-face { font-family: "Poppins Fallback Android"; font-weight: 700; src: local("Roboto Bold"), local("Roboto-Bold"); size-adjust: 111.96%; ascent-override: 93.79%; descent-override: 31.26%; line-gap-override: 8.93%; }
+  </style>
   <!-- Favicons - Multiple sizes for better display -->
   <!-- Paths will be updated dynamically by main.jsx after React loads -->
   <link rel="icon" type="image/png" href="/assets/favicon.png" sizes="256x256" id="favicon-32" />
@@ -78,46 +85,65 @@
 
   <meta name="google-site-verification" content="be15dc6047cf404fbb18108c7ca59347" />
   <meta name="google-adsense-account" content="ca-pub-8956282576298580" />
-  <!-- GA4 is managed via Google Tag Manager (GTM-PB4G7KLK) -->
   <!-- ads.txt entry: google.com, pub-8956282576298580, DIRECT, f08c47fec0942fa0 -->
-  <!-- Defer AdSense off the critical path: it is ~249 KiB and only powers Auto
-       Ads (no manual ad units in the app), so first paint must not wait on it.
-       Load on first user interaction, or 3s after window load, whichever is first. -->
+  <!-- Third-party scripts load off the critical path: on the first user
+       interaction, or once the page has loaded and the browser is idle (2 s
+       cap), whichever comes first. On the mobile Lighthouse profile these were
+       costing first paint 683 ms (Clarity, via GTM), 486 ms (GA4) and 499 ms
+       (AdSense) of main-thread time. Analytics calls made before the scripts
+       arrive queue in dataLayer and flush on load, so page views still count;
+       only visits shorter than the idle window go unrecorded. Skipped for the
+       build-time prerender (navigator.webdriver) so nothing is baked into the
+       static snapshot, and on localhost. -->
   <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-GYPE81F8N8');
+    window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+
     (function () {
       var host = location.hostname;
-      if (host === 'localhost' || host === '127.0.0.1') return;
+      if (host === 'localhost' || host === '127.0.0.1' || navigator.webdriver) return;
 
-      var loaded = false;
+      function add(src, opts) {
+        var el = document.createElement('script');
+        el.async = true;
+        el.src = src;
+        if (opts && opts.crossOrigin) el.crossOrigin = opts.crossOrigin;
+        if (opts && opts.onerror) el.onerror = opts.onerror;
+        document.head.appendChild(el);
+      }
+
+      var done = false;
       var events = ['scroll', 'pointerdown', 'keydown', 'touchstart'];
-      var loadTimer;
 
-      function cleanup() {
-        events.forEach(function (e) { window.removeEventListener(e, loadAds); });
-        if (loadTimer) clearTimeout(loadTimer);
+      function load() {
+        if (done) return;
+        done = true;
+        events.forEach(function (e) { window.removeEventListener(e, load); });
+
+        // GA4 (gtag.js) for G-GYPE81F8N8. The GTM container ships no GA4 tag,
+        // so this is what actually records page views. If a GA4 tag is ever
+        // added inside GTM, remove this line or every hit is counted twice.
+        add('https://www.googletagmanager.com/gtag/js?id=G-GYPE81F8N8');
+        // GTM (GTM-PB4G7KLK) - currently carries Microsoft Clarity.
+        add('https://www.googletagmanager.com/gtm.js?id=GTM-PB4G7KLK');
+        // AdSense Auto Ads (~249 KiB); the app has no manual ad units.
+        add('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8956282576298580', {
+          crossOrigin: 'anonymous',
+          onerror: function () { window.__adsenseBlocked = true; }
+        });
       }
 
-      function loadAds() {
-        if (loaded) return;
-        loaded = true;
-        cleanup();
-
-        try {
-          var s = document.createElement('script');
-          s.async = true;
-          s.crossOrigin = 'anonymous';
-          s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8956282576298580';
-          s.onerror = function () {
-            window.__adsenseBlocked = true;
-          };
-          document.head.appendChild(s);
-        } catch (e) {
-          window.__adsenseBlocked = true;
-        }
+      function whenIdle() {
+        if ('requestIdleCallback' in window) requestIdleCallback(load, { timeout: 2000 });
+        else setTimeout(load, 2000);
       }
 
-      events.forEach(function (e) { window.addEventListener(e, loadAds, { passive: true }); });
-      loadTimer = setTimeout(loadAds, 3000);
+      events.forEach(function (e) { window.addEventListener(e, load, { passive: true }); });
+      if (document.readyState === 'complete') whenIdle();
+      else window.addEventListener('load', whenIdle);
     })();
   </script>
 </head>
