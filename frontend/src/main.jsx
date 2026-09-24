@@ -8,28 +8,9 @@ import "./index.css";
 import { HelmetProvider } from "react-helmet-async";
 import { ToastProvider } from "./contexts/ToastContext.jsx";
 
-// Microsoft Clarity analytics.
-// Skipped when navigator.webdriver is true so the build-time Puppeteer
-// prerender doesn't inject the tag into the static snapshot or register a
-// bot session. Only loaded in production builds.
-if (
-  import.meta.env.PROD &&
-  typeof window !== "undefined" &&
-  !navigator.webdriver
-) {
-  (function (c, l, a, r, i, t, y) {
-    c[a] =
-      c[a] ||
-      function () {
-        (c[a].q = c[a].q || []).push(arguments);
-      };
-    t = l.createElement(r);
-    t.async = 1;
-    t.src = "https://www.clarity.ms/tag/" + i;
-    y = l.getElementsByTagName(r)[0];
-    y.parentNode.insertBefore(t, y);
-  })(window, document, "clarity", "script", "xi4p0egkbk");
-}
+// Microsoft Clarity is loaded by the GTM container (GTM-PB4G7KLK), which
+// index.html defers off the critical path. A second copy used to be injected
+// here as well, so production ran the Clarity tag twice.
 
 // Get base path from environment variables
 // VITE_BASE_PATH is set via environment variable during build
