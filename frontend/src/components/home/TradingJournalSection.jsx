@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Copy, CheckCircle2, LineChart, ShieldCheck, Camera } from "lucide-react";
+import { getAssetPath } from "../../utils/assets.js";
 
 const LOCKITTRADE_URL =
   "https://www.lockittrade.com/?utm_source=xktf&utm_medium=journal_cta&utm_campaign=lockittrade";
@@ -91,7 +92,7 @@ function TradingJournalSection() {
               <div className="flex items-center gap-4 mb-6">
                 <div className="h-16 w-16 rounded-2xl bg-white/95 border border-gray-700 flex items-center justify-center p-2 shadow-lg">
                   <img
-                    src="/assets/lockittrade-logo.png"
+                    src={getAssetPath("/assets/lockittrade-logo.png")}
                     alt="LockItTrade"
                     className="max-h-full max-w-full object-contain"
                     width={1000}
