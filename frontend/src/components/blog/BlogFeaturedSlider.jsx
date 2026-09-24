@@ -1,6 +1,6 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Star, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import ImageWithFallback from "../shared/ImageWithFallback.jsx";
 import { getAssetPath } from "../../utils/assets.js";
 import { BLOG_CONTAINER, BLOG_COLORS, BLOG_NAV_BTN } from "./blogLayout.js";
@@ -8,7 +8,6 @@ import { BLOG_CONTAINER, BLOG_COLORS, BLOG_NAV_BTN } from "./blogLayout.js";
 const FALLBACK_IMAGE = "/assets/blog-hero-globe.jpg";
 
 function BlogFeaturedSlider({ posts = [] }) {
-  const navigate = useNavigate();
   const [index, setIndex] = React.useState(0);
   const [paused, setPaused] = React.useState(false);
 
@@ -92,7 +91,7 @@ function BlogFeaturedSlider({ posts = [] }) {
             </span>
           </div>
 
-          <div className="relative min-h-[280px] lg:min-h-[300px] flex items-center">
+          <div className="relative min-h-[260px] lg:min-h-[280px] flex items-center">
             {slides.map((slide, i) => (
               <div
                 key={slide.id}
@@ -109,8 +108,14 @@ function BlogFeaturedSlider({ posts = [] }) {
                   {(slide.category || "Featured").toUpperCase()}
                 </span>
 
-                <h2 className="mb-4 max-w-[650px] text-[26px] sm:text-[34px] lg:text-[48px] font-extrabold leading-[1.1] text-white">
-                  {slide.title}
+                <h2 className="mb-4 max-w-[650px] line-clamp-3 font-display text-[24px] sm:text-[30px] lg:text-[36px] font-bold leading-[1.15] tracking-[-0.02em] text-white">
+                  <Link
+                    to={`/blog/${slide.slug || slide.id}`}
+                    tabIndex={i === index ? undefined : -1}
+                    className="transition-colors duration-300 hover:text-[#93C5FD]"
+                  >
+                    {slide.title}
+                  </Link>
                 </h2>
 
                 <p className="mb-5 max-w-[580px] line-clamp-3 text-[15px] lg:text-[16px] leading-[1.75] text-[#A1A1AA]">
@@ -122,17 +127,18 @@ function BlogFeaturedSlider({ posts = [] }) {
                     {(slide.author || "A").charAt(0).toUpperCase()}
                   </div>
                   <span className="text-[13px] leading-none text-[#94A3B8]">
-                    {slide.author} - {slide.date} - {slide.readTime}
+                    {[slide.author, slide.date, slide.readTime].filter(Boolean).join(" · ")}
                   </span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => navigate(`/blog/${slide.slug || slide.id}`)}
-                  className="inline-flex h-[46px] items-center gap-2 rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#2563EB] px-6 text-[14px] font-semibold text-white shadow-[0_4px_18px_rgba(59,130,246,0.3)] transition-all duration-300 hover:brightness-110"
+                <Link
+                  to={`/blog/${slide.slug || slide.id}`}
+                  tabIndex={i === index ? undefined : -1}
+                  className="group inline-flex h-[46px] items-center gap-2 rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#2563EB] px-6 text-[14px] font-semibold text-white shadow-[0_4px_18px_rgba(59,130,246,0.3)] transition-all duration-300 hover:brightness-110"
                 >
-                  Read Article -
-                </button>
+                  Read Article
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                </Link>
               </div>
             ))}
           </div>
