@@ -50,3 +50,21 @@ jobs:
             **/.git*
             **/.git*/**
             **/node_modules/**
+      # Cloudflare fronts the site. index.html is served with Cache-Control:
+      # no-cache from Bluehost, so today every visit goes to origin (~1.25 s on
+      # mobile). The plan is an edge cache rule for HTML; that is only safe if a
+      # deploy purges the edge, otherwise the previous index.html keeps being
+      # served until the TTL runs out. Hashed assets are immutable, so purging
+      # everything is cheap. No-op until CLOUDFLARE_ZONE_ID and
+      # CLOUDFLARE_API_TOKEN (Zone > Cache Purge permission) are added as secrets.
+      - name: Purge Cloudflare cache
+        if: ${{ secrets.CLOUDFLARE_ZONE_ID != '' && secrets.CLOUDFLARE_API_TOKEN != '' }}
+        env:
+          CF_ZONE: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          curl --fail --silent --show-error -X POST \
+            "https://api.cloudflare.com/client/v4/zones/$CF_ZONE/purge_cache" \
+            -H "Authorization: Bearer $CF_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
