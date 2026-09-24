@@ -1,4 +1,5 @@
 import React from "react";
+import { repairStoredHtml } from "../../utils/richText.js";
 import { motion } from "framer-motion";
 import { ExternalLink, ShieldCheck, Wallet, Clock, Globe, Layers, Server, TrendingUp } from "lucide-react";
 import ImageWithFallback from "../shared/ImageWithFallback.jsx";
@@ -146,7 +147,7 @@ function CompanyProfileHeader({ company }) {
           company.description ? (
             <div
               className="rich-text-content text-sm sm:text-base text-gray-300"
-              dangerouslySetInnerHTML={{ __html: company.description }}
+              dangerouslySetInnerHTML={{ __html: repairStoredHtml(company.description) }}
             />
           ) : (
             <p className="text-sm sm:text-base text-gray-300 leading-relaxed">

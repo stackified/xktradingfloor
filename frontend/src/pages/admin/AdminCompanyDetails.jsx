@@ -1,4 +1,5 @@
 import React from "react";
+import { repairStoredHtml } from "../../utils/richText.js";
 import { Helmet } from "react-helmet-async";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
@@ -319,7 +320,7 @@ function AdminCompanyDetailsContent() {
                   {company.description ? (
                     <div
                       className="rich-text-content text-gray-300"
-                      dangerouslySetInnerHTML={{ __html: company.description }}
+                      dangerouslySetInnerHTML={{ __html: repairStoredHtml(company.description) }}
                     />
                   ) : (
                     <p className="text-gray-300">{company.details}</p>

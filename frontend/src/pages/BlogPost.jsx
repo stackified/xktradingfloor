@@ -1,6 +1,7 @@
 import React from 'react';
 import Seo from '../components/shared/Seo.jsx';
 import { articleJsonLd, breadcrumbJsonLd } from '../utils/structuredData.js';
+import { repairStoredHtml } from '../utils/richText.js';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
@@ -174,7 +175,7 @@ function BlogPost() {
       </motion.section>
 
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <article className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
+        <article className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: repairStoredHtml(post.content) }} />
         <BlogAuthorInfo author={post.authorInfo} />
 
         <div className="mt-10">

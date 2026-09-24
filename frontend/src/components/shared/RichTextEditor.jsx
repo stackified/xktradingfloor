@@ -10,6 +10,7 @@ import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
 import { TableHeader } from "@tiptap/extension-table-header";
 import { TableCell } from "@tiptap/extension-table-cell";
+import { looksLikeHtmlSource, extractBodyHtml } from "../../utils/richText.js";
 import {
   FileCode,
   Bold,
@@ -35,33 +36,9 @@ import {
   Minus,
 } from "lucide-react";
 
-// Admins sometimes paste raw HTML *source* (Sahil did, for the Pipze broker
-// description). A WYSIWYG editor treats that as literal text and escapes it,
-// so the public page showed `<h2>` as code. These helpers let the editor
-// recognise source and interpret it instead.
-
-// Cheap heuristic: does this plain text contain HTML tags?
-const HTML_SOURCE_RE =
-  /<\s*(!doctype|html|head|body|h[1-6]|p|div|section|article|ul|ol|li|table|thead|tbody|tr|td|th|a|img|br|hr|strong|b|em|i|u|span|blockquote|pre|code|iframe)\b[^>]*>/i;
-
-export function looksLikeHtmlSource(text) {
-  return typeof text === "string" && HTML_SOURCE_RE.test(text);
-}
-
-// Reduce any HTML — including a full document with <!doctype>, <head>,
-// <meta>, <title> — to just its body markup, with the tags that never
-// belong in a description (scripts, styles, head-only elements) removed.
-// DOMParser is lenient, so partial or sloppy markup still comes through.
-export function extractBodyHtml(html) {
-  if (typeof html !== "string") return "";
-  if (typeof DOMParser === "undefined") return html;
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  doc.body
-    .querySelectorAll("script, style, meta, link, title, base, noscript, template")
-    .forEach((el) => el.remove());
-  return doc.body.innerHTML.trim();
-}
-
+// Pasted HTML source is interpreted rather than escaped; the helpers live in
+// utils/richText.js so the pages that render stored content share them
+// without pulling the editor (and Tiptap) into their chunk.
 function ToolbarButton({ onClick, active, disabled, label, children }) {
   return (
     <button
