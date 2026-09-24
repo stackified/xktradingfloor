@@ -12,6 +12,9 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      CF_ZONE: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+      CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -58,10 +61,9 @@ jobs:
       # everything is cheap. No-op until CLOUDFLARE_ZONE_ID and
       # CLOUDFLARE_API_TOKEN (Zone > Cache Purge permission) are added as secrets.
       - name: Purge Cloudflare cache
-        if: ${{ secrets.CLOUDFLARE_ZONE_ID != '' && secrets.CLOUDFLARE_API_TOKEN != '' }}
-        env:
-          CF_ZONE: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        # The secrets context is not allowed in a step-level if; the job-level env
+        # below mirrors the two secrets so the check can read them from env.*
+        if: ${{ env.CF_ZONE != '' && env.CF_TOKEN != '' }}
         run: |
           curl --fail --silent --show-error -X POST \
             "https://api.cloudflare.com/client/v4/zones/$CF_ZONE/purge_cache" \
