@@ -4,6 +4,12 @@ import api from "./api.js";
 // Set to false to always use real data from database
 const FORCE_REAL_DATA_MODE = true;
 
+// Admin review moderation (hide / pin) has no backend yet: the routes in
+// backend/routes/api/admin/review.routes.js are commented out, so the PATCH
+// calls below 404 and the buttons just surfaced an error. The UI hides the
+// controls while this is false; flip it once the endpoints exist.
+export const REVIEW_MODERATION_ENABLED = false;
+
 // Helper to check if mock mode is enabled
 // Checks backend first, then falls back to localStorage (synced by Redux)
 async function isMockModeEnabled() {
@@ -699,6 +705,9 @@ export async function approveReview(reviewId) {
 
 // Hide review (admin only)
 export async function hideReview(reviewId) {
+  if (!REVIEW_MODERATION_ENABLED) {
+    throw new Error("Hiding reviews isn't available yet — the backend moderation endpoint is still pending.");
+  }
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
@@ -736,6 +745,9 @@ export async function hideReview(reviewId) {
 
 // Pin review (admin only)
 export async function pinReview(reviewId) {
+  if (!REVIEW_MODERATION_ENABLED) {
+    throw new Error("Pinning reviews isn't available yet — the backend moderation endpoint is still pending.");
+  }
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 

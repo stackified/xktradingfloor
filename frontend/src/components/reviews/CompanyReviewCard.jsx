@@ -1,7 +1,7 @@
 import React from "react";
 import { Flag } from "lucide-react";
 import StarRating from "./StarRating.jsx";
-import { deleteReview, reportReview, hideReview, pinReview } from "../../controllers/reviewsController.js";
+import { deleteReview, reportReview, hideReview, pinReview, REVIEW_MODERATION_ENABLED } from "../../controllers/reviewsController.js";
 import { getAssetPath } from "../../utils/assets.js";
 import { useSelector } from "react-redux";
 import { getUserCookie } from "../../utils/cookies.js";
@@ -112,7 +112,9 @@ function CompanyReviewCard({ review, currentUserId, onUpdate, onDelete }) {
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              {userRole === 'admin' && (
+              {/* Moderation controls stay hidden until the backend hide/pin
+                  routes exist — see REVIEW_MODERATION_ENABLED. */}
+              {REVIEW_MODERATION_ENABLED && userRole === 'admin' && (
                 <>
                   <button onClick={handlePin} className="text-xs text-blue-400 hover:text-blue-300">
                     {review.isPinned ? "Unpin" : "Pin"}

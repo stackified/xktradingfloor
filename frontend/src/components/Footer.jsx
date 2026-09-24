@@ -47,7 +47,10 @@ function Footer() {
           </form>
         </div>
       </div>
-      <div className="border-t border-border/60 py-4 text-center text-xs text-gray-400">© {new Date().getFullYear()} XK Trading Floor</div>
+      {/* One template string, not `© {year} XK…`: that JSX yields three adjacent text
+          nodes, which the browser merges when parsing the prerendered HTML, so
+          hydration saw one node where React expected three and threw #418. */}
+      <div className="border-t border-border/60 py-4 text-center text-xs text-gray-400">{`© ${new Date().getFullYear()} XK Trading Floor`}</div>
     </footer>
   );
 }

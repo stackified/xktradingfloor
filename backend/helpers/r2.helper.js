@@ -92,8 +92,43 @@ const getR2PublicUrl = async (key, usePresigned = false) => {
     return `${environment.r2.endpoint}/${environment.r2.bucketName}/${key}`;
 };
 
-const r2 = {
-    uploadPrivate: async (file, fileName, folder = "folderName") => {
+// Content-Type for an uploaded object, from its file extension.
+//
+// Uploads used to omit ContentType, so R2 stored and served everything as
+// application/octet-stream. Browsers sniff PNG/JPEG and render them anyway,
+// but an SVG in <img> is only drawn when served as image/svg+xml — which is
+// why an uploaded .svg company logo showed the text fallback instead. Multer
+// keeps the original extension in the stored filename, so the extension is
+// a reliable source here. Unknown extensions keep the old default.
+const CONTENT_TYPES = {
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".webp": "image/webp",
+    ".avif": "image/avif",
+    ".bmp": "image/bmp",
+    ".ico": "image/x-icon",
+    ".tif": "image/tiff",
+    ".tiff": "image/tiff",
+    ".pdf": "application/pdf",
+    ".csv": "text/csv",
+    ".xls": "application/vnd.ms-excel",
+    ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ".doc": "application/msword",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".txt": "text/plain",
+    ".json": "application/json",
+    ".mp4": "video/mp4",
+    ".webm": "video/webm",
+    ".mp3": "audio/mpeg",
+};
+
+const contentTypeFor = (fileName) =>
+    CONTENT_TYPES[path.extname(String(fileName || "")).toLowerCase()] || "application/octet-stream";
+
+const r2 = {    uploadPrivate: async (file, fileName, folder = "folderName") => {
         try {
             // Validate bucket name
             if (!environment.r2.bucketName) {
@@ -107,6 +142,7 @@ const r2 = {
                 Bucket: environment.r2.bucketName,
                 Key: key,
                 Body: fileContent,
+                ContentType: contentTypeFor(fileName),
                 // Note: R2 doesn't support ACL in the same way as S3
             });
 
@@ -144,6 +180,7 @@ const r2 = {
                 Bucket: environment.r2.bucketName,
                 Key: key,
                 Body: fileContent,
+                ContentType: contentTypeFor(fileName),
             });
 
             await r2ClientObj.send(command);
@@ -174,7 +211,7 @@ const r2 = {
             const command = new PutObjectCommand({
                 Bucket: environment.r2.bucketName,
                 Key: key,
-                ContentType: 'application/octet-stream',
+                ContentType: contentTypeFor(fileName),
             });
 
             const uploadUrl = await getSignedUrl(r2ClientObj, command, { expiresIn });
@@ -431,6 +468,8 @@ const r2 = {
         }
     }
 }
+
+r2.contentTypeFor = contentTypeFor;
 
 module.exports = r2;
 

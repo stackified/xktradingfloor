@@ -11,6 +11,7 @@ import { TableRow } from "@tiptap/extension-table-row";
 import { TableHeader } from "@tiptap/extension-table-header";
 import { TableCell } from "@tiptap/extension-table-cell";
 import {
+  FileCode,
   Bold,
   Italic,
   Underline as UnderlineIcon,
@@ -34,6 +35,33 @@ import {
   Minus,
 } from "lucide-react";
 
+// Admins sometimes paste raw HTML *source* (Sahil did, for the Pipze broker
+// description). A WYSIWYG editor treats that as literal text and escapes it,
+// so the public page showed `<h2>` as code. These helpers let the editor
+// recognise source and interpret it instead.
+
+// Cheap heuristic: does this plain text contain HTML tags?
+const HTML_SOURCE_RE =
+  /<\s*(!doctype|html|head|body|h[1-6]|p|div|section|article|ul|ol|li|table|thead|tbody|tr|td|th|a|img|br|hr|strong|b|em|i|u|span|blockquote|pre|code|iframe)\b[^>]*>/i;
+
+export function looksLikeHtmlSource(text) {
+  return typeof text === "string" && HTML_SOURCE_RE.test(text);
+}
+
+// Reduce any HTML — including a full document with <!doctype>, <head>,
+// <meta>, <title> — to just its body markup, with the tags that never
+// belong in a description (scripts, styles, head-only elements) removed.
+// DOMParser is lenient, so partial or sloppy markup still comes through.
+export function extractBodyHtml(html) {
+  if (typeof html !== "string") return "";
+  if (typeof DOMParser === "undefined") return html;
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  doc.body
+    .querySelectorAll("script, style, meta, link, title, base, noscript, template")
+    .forEach((el) => el.remove());
+  return doc.body.innerHTML.trim();
+}
+
 function ToolbarButton({ onClick, active, disabled, label, children }) {
   return (
     <button
@@ -57,7 +85,7 @@ function ToolbarDivider() {
   return <div className="w-px h-6 bg-white/10 mx-1" />;
 }
 
-function Toolbar({ editor }) {
+function Toolbar({ editor, sourceMode, onToggleSource }) {
   if (!editor) return null;
 
   const promptForLink = () => {
@@ -225,15 +253,27 @@ function Toolbar({ editor }) {
         disabled={!editor.can().redo()}
         label="Redo"
       >
-        <Redo className="h-4 w-4" />
-      </ToolbarButton>
-    </div>
-  );
-}
+        <Redo className="h-4 w-4" />
+      </ToolbarButton>
+
+      <ToolbarDivider />
+
+      <ToolbarButton
+        onClick={onToggleSource}
+        active={sourceMode}
+        label={sourceMode ? "Back to visual editor" : "Edit HTML source"}
+      >
+        <FileCode className="h-4 w-4" />
+      </ToolbarButton>
+    </div>
+  );
+}
 
-function RichTextEditor({ value, onChange, placeholder = "Start typing..." }) {
-  const editor = useEditor({
-    extensions: [
+function RichTextEditor({ value, onChange, placeholder = "Start typing..." }) {
+  const [sourceMode, setSourceMode] = React.useState(false);
+  const [sourceText, setSourceText] = React.useState("");
+
+  const editor = useEditor({    extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
         codeBlock: false,
@@ -261,13 +301,48 @@ function RichTextEditor({ value, onChange, placeholder = "Start typing..." }) {
       const html = e.getHTML();
       if (onChange) onChange(html === "<p></p>" ? "" : html);
     },
-    editorProps: {
-      attributes: {
-        class:
-          "rich-text-editor-content prose prose-invert max-w-none focus:outline-none min-h-[240px] px-4 py-3",
-      },
-    },
-  });
+    editorProps: {
+      attributes: {
+        class:
+          "rich-text-editor-content prose prose-invert max-w-none focus:outline-none min-h-[240px] px-4 py-3",
+      },
+      // Pasted HTML source arrives as text/plain (a code editor may add a
+      // text/html flavour, but that is just the same source wrapped in
+      // <span>s). Real rich content pasted from a web page or Word has no
+      // tags in its text/plain flavour, so it is left to the default path.
+      handlePaste: (view, event) => {
+        const text = event.clipboardData?.getData("text/plain");
+        if (!looksLikeHtmlSource(text)) return false;
+        const html = extractBodyHtml(text);
+        if (!html) return false;
+        view.pasteHTML(html);
+        return true;
+      },
+    },
+  });
+
+  // Source mode shows the HTML in a textarea. Leaving it feeds the (cleaned)
+  // markup back through the editor, which also normalises it and fires
+  // onChange with the canonical HTML.
+  const toggleSource = () => {
+    if (!editor) return;
+    if (sourceMode) {
+      editor.commands.setContent(extractBodyHtml(sourceText), { emitUpdate: true });
+      setSourceMode(false);
+      return;
+    }
+    const html = editor.getHTML();
+    setSourceText(html === "<p></p>" ? "" : html);
+    setSourceMode(true);
+  };
+
+  // Keep the parent's value current while typing in source mode, so saving
+  // the form without toggling back still persists what is on screen.
+  const handleSourceChange = (e) => {
+    const text = e.target.value;
+    setSourceText(text);
+    if (onChange) onChange(extractBodyHtml(text));
+  };
 
   React.useEffect(() => {
     if (!editor) return;
@@ -356,11 +431,26 @@ function RichTextEditor({ value, onChange, placeholder = "Start typing..." }) {
           height: 0;
         }
       `}</style>
-      <div className="rich-text-editor-shell">
-        <Toolbar editor={editor} />
-        <EditorContent editor={editor} />
-      </div>
-    </>
+      <div className="rich-text-editor-shell">
+        <Toolbar editor={editor} sourceMode={sourceMode} onToggleSource={toggleSource} />
+        {sourceMode ? (
+          <div>
+            <textarea
+              value={sourceText}
+              onChange={handleSourceChange}
+              spellCheck={false}
+              aria-label="HTML source"
+              className="w-full min-h-[240px] bg-transparent px-4 py-3 font-mono text-[13px] leading-relaxed text-gray-200 focus:outline-none resize-y"
+            />
+            <p className="px-4 pb-2 text-xs text-gray-500">
+              Paste or edit HTML here. Only the page content is kept &mdash; document tags such as
+              <code className="mx-1">&lt;head&gt;</code>and<code className="mx-1">&lt;meta&gt;</code>are dropped.
+            </p>
+          </div>
+        ) : (
+          <EditorContent editor={editor} />
+        )}
+      </div>    </>
   );
 }
 

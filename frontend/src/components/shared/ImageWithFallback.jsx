@@ -4,7 +4,16 @@ import {
   getCdnAssetUrl,
   getCdnAssetWithFallback,
   getCdnBaseUrl,
-} from "../../utils/cdn.js";
+} from "../../utils/cdn.js";
+
+// Append a throwaway query param so the browser refetches instead of
+// replaying a cached response. Browsers cache image responses heuristically
+// when the server sends no Cache-Control (R2 does not), so a response that
+// was broken when first seen keeps failing from cache until it expires.
+function withCacheBuster(url) {
+  if (!url || url.startsWith("data:")) return url;
+  return `${url}${url.includes("?") ? "&" : "?"}r=${Date.now()}`;
+}
 
 /**
  * Generate a dynamic fallback image with text (blog title or company name)
@@ -387,10 +396,14 @@ export default function ImageWithFallback({
           return;
         }
 
-        setTimeout(() => {
-          setImgSrc(cdnUrl);
-          setHasError(false);
-        }, 500);
+        // Retry on a cache-busted URL, not the same one. Company logos were
+        // served with the wrong Content-Type before the R2 upload fix; a
+        // browser that cached one of those keeps failing from cache, and a
+        // retry of the identical URL never reaches the (now correct) origin.
+        setTimeout(() => {
+          setImgSrc(withCacheBuster(cdnUrl));
+          setHasError(false);
+        }, 500);
         return;
       }
     }
