@@ -19,8 +19,11 @@ export default {
         border: '#1C2333'
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        display: ['Poppins', 'Inter', 'system-ui', 'sans-serif']
+        // 'X Fallback' families are local Arial/Roboto with size-adjust and
+        // ascent/descent overrides matching the web font (defined inline in
+        // index.html), so text does not reflow when Inter/Poppins swap in.
+        sans: ['Inter', 'Inter Fallback', 'Inter Fallback Android', 'system-ui', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        display: ['Poppins', 'Poppins Fallback', 'Poppins Fallback Android', 'Inter', 'system-ui', 'sans-serif']
       },
       boxShadow: {
         card: '0 8px 24px rgba(0,0,0,0.35)'
