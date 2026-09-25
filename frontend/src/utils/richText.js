@@ -69,3 +69,105 @@ export function repairStoredHtml(content) {
   const repaired = extractBodyHtml(source);
   return repaired || content;
 }
+
+// Blocks the editor leaves behind as spacing: <p><br></p>, <h2><br></h2>,
+// &nbsp;-only paragraphs. With real typography the article already has
+// rhythm, so these only add holes.
+function isEmptyBlock(el) {
+  if (el.querySelector("img, iframe, video, hr, table, svg")) return false;
+  return (el.textContent || "").replace(/\u00a0/g, " ").trim() === "";
+}
+
+// Authors draw section dividers as a paragraph of dashes. Anything that is
+// only dashes, underscores, em/en dashes, asterisks or box-drawing lines
+// (5+ characters) becomes a real <hr>.
+const DIVIDER_RE = /^[\s\-_\u2013\u2014\u2500*=~]{5,}$/;
+
+function slugify(text) {
+  return (
+    text
+      .toLowerCase()
+      .replace(/&/g, " and ")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .slice(0, 80) || "section"
+  );
+}
+
+// Everything the public article view needs from stored content: repaired,
+// tidied HTML with ids on h2/h3, plus the heading list for the table of
+// contents. Pure DOM work, no network, safe to memoise on the content string.
+export function prepareArticle(content) {
+  const repaired = repairStoredHtml(content || "");
+  if (typeof DOMParser === "undefined") return { html: repaired, headings: [] };
+
+  const doc = new DOMParser().parseFromString(repaired, "text/html");
+  const body = doc.body;
+
+  body.querySelectorAll("script, style, meta, link, title, base").forEach((el) => el.remove());
+
+  body.querySelectorAll("p, div").forEach((el) => {
+    if (el.children.length === 0 && DIVIDER_RE.test(el.textContent || "")) {
+      el.replaceWith(doc.createElement("hr"));
+    }
+  });
+
+  body.querySelectorAll("p, h1, h2, h3, h4, h5, h6").forEach((el) => {
+    if (isEmptyBlock(el)) el.remove();
+  });
+
+  // Collapse runs of dividers and drop leading/trailing ones.
+  body.querySelectorAll("hr").forEach((hr) => {
+    const prev = hr.previousElementSibling;
+    if (!prev || prev.tagName === "HR" || !hr.nextElementSibling) hr.remove();
+  });
+
+  // The page title is the article's only <h1>; demote any in the body.
+  body.querySelectorAll("h1").forEach((h1) => {
+    const h2 = doc.createElement("h2");
+    h2.innerHTML = h1.innerHTML;
+    h1.replaceWith(h2);
+  });
+
+  // Links to other sites open in a new tab and pass no referrer/opener.
+  body.querySelectorAll("a[href]").forEach((a) => {
+    if (/^https?:\/\//i.test(a.getAttribute("href")) && !a.href.includes("xktradingfloor.com")) {
+      a.setAttribute("target", "_blank");
+      a.setAttribute("rel", "noopener noreferrer");
+    }
+  });
+
+  // Wide tables scroll inside their own box instead of the page.
+  body.querySelectorAll("table").forEach((table) => {
+    if (table.parentElement?.classList.contains("table-scroll")) return;
+    const wrap = doc.createElement("div");
+    wrap.className = "table-scroll";
+    table.replaceWith(wrap);
+    wrap.appendChild(table);
+  });
+
+  const used = new Set();
+  const headings = [];
+  body.querySelectorAll("h2, h3").forEach((el) => {
+    const text = (el.textContent || "").replace(/\s+/g, " ").trim();
+    if (!text) return;
+    let id = el.id || slugify(text);
+    let n = 2;
+    while (used.has(id)) id = `${slugify(text)}-${n++}`;
+    used.add(id);
+    el.id = id;
+    headings.push({ id, text, level: el.tagName === "H2" ? 2 : 3 });
+  });
+
+  return { html: body.innerHTML.trim(), headings };
+}
+
+// Words in the article body, for "N min read".
+export function readingMinutes(content) {
+  if (!content) return null;
+  const text = repairStoredHtml(content).replace(/<[^>]*>/g, " ");
+  const words = text.split(/\s+/).filter(Boolean).length;
+  return words ? Math.max(1, Math.round(words / 220)) : null;
+}
