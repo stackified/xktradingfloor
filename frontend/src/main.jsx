@@ -79,11 +79,22 @@ const app = (
   </React.StrictMode>
 );
 
-// If the page was prerendered at build time (#root has markup), hydrate it so
-// the static content counts toward FCP/LCP. Otherwise render fresh (dev, or
-// routes that weren't prerendered).
-if (container.hasChildNodes()) {
+// Only the homepage is prerendered, but the server returns that same HTML for
+// every route. Hydrating it anywhere else means hydrating the wrong page:
+// React throws #418/#423, discards it and re-renders. An inline script in
+// index.html already clears the markup off other routes before paint; this
+// check is the backstop. The GitHub Pages redirect above has already put the
+// real path back into location by this point.
+const withSlash = (p) => (p.endsWith("/") ? p : `${p}/`);
+const isHomeRoute =
+  withSlash(window.location.pathname.replace(/index\.html$/, "")) ===
+  withSlash(basePath);
+
+// Hydrate the prerendered homepage so its static content counts toward
+// FCP/LCP. Everything else (other routes, dev) renders fresh.
+if (isHomeRoute && container.hasChildNodes()) {
   hydrateRoot(container, app);
 } else {
+  container.textContent = "";
   createRoot(container).render(app);
 }

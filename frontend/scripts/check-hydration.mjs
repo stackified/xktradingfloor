@@ -88,29 +88,45 @@ const browser = await puppeteer.launch({
   args: ["--no-sandbox", "--disable-setuid-sandbox"],
 });
 
+// The homepage must hydrate its snapshot. Every other route is served the
+// same file (SPA fallback), so it must NOT try to hydrate the homepage
+// markup - that was a live bug on every page but "/" until the snapshot was
+// cleared off non-home routes.
+const ROUTES = [
+  { path: "", label: "homepage" },
+  { path: "about", label: "/about (non-prerendered route)", notHome: true },
+];
+
 let failures = [];
 try {
-  const page = await browser.newPage();
-  page.on("pageerror", (e) => {
-    if (HYDRATION_ERROR.test(e.message)) failures.push(e.message.split("\n")[0].slice(0, 140));
-  });
-  page.on("console", (m) => {
-    const t = m.text();
-    if (m.type() === "error" && /Hydration failed|error while hydrating|did not match/i.test(t)) {
-      failures.push("[console] " + t.slice(0, 140));
+  for (const route of ROUTES) {
+    const page = await browser.newPage();
+    page.on("pageerror", (e) => {
+      if (HYDRATION_ERROR.test(e.message)) failures.push(`${route.label}: ${e.message.split("\n")[0].slice(0, 120)}`);
+    });
+    page.on("console", (m) => {
+      const t = m.text();
+      if (m.type() === "error" && /Hydration failed|error while hydrating|did not match/i.test(t)) {
+        failures.push(`${route.label} [console] ${t.slice(0, 120)}`);
+      }
+    });
+    await page.setViewport({ width: 1280, height: 900 });
+    await page.setRequestInterception(true);
+    page.on("request", (r) => {
+      const url = r.url();
+      if (HANG.test(url)) return;
+      if (ABORT.test(url)) return void r.abort();
+      r.continue();
+    });
+    await page.goto(`http://localhost:${PORT}${BASE}${route.path}`, { waitUntil: "domcontentloaded", timeout: 30000 });
+    await page.waitForSelector("#root main", { timeout: 20000 });
+    await new Promise((r) => setTimeout(r, 2500));
+    if (route.notHome) {
+      const leaked = await page.evaluate(() => document.getElementById("root").innerHTML.includes("Rated Companies"));
+      if (leaked) failures.push(`${route.label}: homepage markup is still in the page`);
     }
-  });
-  await page.setViewport({ width: 1280, height: 900 });
-  await page.setRequestInterception(true);
-  page.on("request", (r) => {
-    const url = r.url();
-    if (HANG.test(url)) return;
-    if (ABORT.test(url)) return void r.abort();
-    r.continue();
-  });
-  await page.goto(`http://localhost:${PORT}${BASE}`, { waitUntil: "domcontentloaded", timeout: 30000 });
-  await page.waitForSelector("#root h1", { timeout: 20000 });
-  await new Promise((r) => setTimeout(r, 2500));
+    await page.close();
+  }
 } finally {
   await browser.close();
   await new Promise((r) => server.close(r));
@@ -122,4 +138,4 @@ if (failures.length) {
   console.error("The prerendered HTML does not match React's first render; the whole snapshot would be discarded in the browser.");
   process.exit(1);
 }
-console.log(`check-hydration: OK — prerendered homepage hydrates cleanly at base ${BASE}`);
+console.log(`check-hydration: OK — homepage hydrates cleanly and other routes render fresh at base ${BASE}`);
