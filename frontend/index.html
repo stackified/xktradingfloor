@@ -154,6 +154,31 @@
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
   <div id="root"></div>
+  <!-- The build prerenders only the homepage into #root, but the server
+       answers every route with this same file (Bluehost rewrite, GitHub
+       Pages 404 redirect). On any other route that markup is the wrong page:
+       visitors saw the homepage flash before their page, and React threw
+       #418/#423 trying to hydrate it. Clear it before it is painted; main.jsx
+       then renders the real route from scratch. Runs as a no-op during the
+       prerender itself, which is always at the homepage. -->
+  <script>
+    (function () {
+      try {
+        var base = "%BASE_URL%";
+        if (base.charAt(base.length - 1) !== "/") base += "/";
+        var path = location.pathname;
+        var redirected = null;
+        try { redirected = sessionStorage.getItem("github-404-redirect"); } catch (e) {}
+        if (redirected) path = redirected;
+        path = path.replace(/index\.html$/, "");
+        if (path.charAt(path.length - 1) !== "/") path += "/";
+        if (path !== base) {
+          var root = document.getElementById("root");
+          if (root) root.textContent = "";
+        }
+      } catch (e) {}
+    })();
+  </script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 
