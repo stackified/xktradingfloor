@@ -1,7 +1,6 @@
 import React from "react";
-import { repairStoredHtml } from "../utils/richText.js";
+import { readingMinutes } from "../utils/richText.js";
 import Seo from "../components/shared/Seo.jsx";
-import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import BlogHero from "../components/blog/BlogHero.jsx";
 import BlogInterestCategories from "../components/blog/BlogInterestCategories.jsx";
@@ -12,11 +11,19 @@ import BlogCard from "../components/blog/BlogCard.jsx";
 import CardLoader from "../components/shared/CardLoader.jsx";
 import { getPublishedBlogs } from "../controllers/blogsController.js";
 import { fetchPublishedBlogs } from "../redux/slices/blogsSlice.js";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { BLOG_CONTAINER, BLOG_SECTION_HEADING, BLOG_COLORS } from "../components/blog/blogLayout.js";
 
+const PAGE_BTN =
+  "inline-flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-[#0B1120] px-3 " +
+  "text-sm font-semibold text-[#94A3B8] transition-colors hover:border-[#3B82F6]/60 hover:text-white " +
+  "disabled:pointer-events-none disabled:opacity-40";
+
 function transformBlog(blog) {
-  const plainText = repairStoredHtml(blog.content || "").replace(/<[^>]*>/g, "") || "";
-  const wordCount = plainText.split(/\s+/).filter(Boolean).length;
+  // The list endpoint does not send the article body, so a read time can
+  // only be shown when content is present; otherwise the card omits it
+  // rather than claiming "1 min read" for every post.
+  const minutes = readingMinutes(blog.content);
 
   return {
     id: blog._id || blog.id,
@@ -34,7 +41,7 @@ function transformBlog(blog) {
       month: "short",
       day: "numeric",
     }),
-    readTime: `${Math.max(1, Math.ceil(wordCount / 200))} min read`,
+    readTime: minutes ? `${minutes} min read` : null,
   };
 }
 
@@ -51,7 +58,6 @@ function Blog() {
   const [page, setPage] = React.useState(1);
   const perPage = 6;
   const trendingSectionRef = React.useRef(null);
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const {
     blogs: publishedBlogs,
@@ -170,12 +176,16 @@ function Blog() {
 
       <div
         ref={trendingSectionRef}
-        className={`${BLOG_CONTAINER} pt-16 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-8 scroll-mt-24`}
+        className={`${BLOG_CONTAINER} pt-16 pb-20 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-10 scroll-mt-24`}
       >
-        <div className="lg:col-span-2 space-y-5">
-          <div className="flex items-center justify-between">
-            <h2 className={`${BLOG_SECTION_HEADING} uppercase tracking-wide`}>
-              Trending This Week
+        <div className="min-w-0 space-y-5">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className={`${BLOG_SECTION_HEADING} min-w-0 truncate`}>
+              {debouncedQuery
+                ? `Results for "${debouncedQuery}"`
+                : category !== "All"
+                  ? `${category} articles`
+                  : "Latest articles"}
             </h2>
             {category !== "All" && (
               <button
@@ -200,13 +210,14 @@ function Blog() {
               {selectedTags.map((tag) => (
                 <span
                   key={tag}
-                  className="text-xs px-2 py-1 rounded-full bg-blue-500/20 border border-blue-500 text-blue-300"
+                  className="inline-flex max-w-full items-center gap-1 rounded-full border border-[#3B82F6]/60 bg-[#3B82F6]/15 py-1 pl-3 pr-1.5 text-xs text-[#93C5FD]"
                 >
-                  #{tag}
+                  <span className="truncate">#{tag}</span>
                   <button
                     type="button"
                     onClick={() => handleTagToggle(tag)}
-                    className="ml-1 hover:text-red-400"
+                    className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full hover:bg-white/10 hover:text-white"
+                    aria-label={`Remove tag ${tag}`}
                   >
                     ×
                   </button>
@@ -225,45 +236,60 @@ function Blog() {
           {blogsLoading ? (
             <CardLoader count={6} blog={true} />
           ) : visiblePosts.length === 0 ? (
-            <div className="card">
-              <div className="card-body text-center py-12 text-gray-400">
-                No articles found. Try a different search or category.
-              </div>
+            <div className="rounded-2xl border border-dashed border-white/[0.1] bg-[#0B1120] px-6 py-14 text-center">
+              <div className="font-semibold text-white">No articles found</div>
+              <p className="mt-1 text-sm text-[#94A3B8]">Try a different search, category or tag.</p>
+              {(query || category !== "All" || selectedTags.length > 0) && (
+                <button
+                  type="button"
+                  onClick={() => { setQuery(""); setCategory("All"); setSelectedTags([]); setPage(1); }}
+                  className="mt-5 text-sm font-semibold text-[#3B82F6] hover:text-[#60A5FA]"
+                >
+                  Clear all filters
+                </button>
+              )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {visiblePosts.map((p) => (
-                <BlogCard
-                  key={p.id}
-                  post={p}
-                  onClick={() => navigate(`/blog/${p.slug || p.id}`)}
-                  isLocked={false}
-                />
+                <BlogCard key={p.id} post={p} href={`/blog/${p.slug || p.id}`} />
               ))}
             </div>
           )}
 
-          <div className="flex items-center justify-center gap-2 pt-2">
-            <button
-              type="button"
-              className="btn btn-secondary rounded-full"
-              disabled={page === 1}
-              onClick={() => handlePageChange(Math.max(1, page - 1))}
-            >
-              Prev
-            </button>
-            <div className="text-sm text-gray-300">
-              Page {page} of {totalPages}
-            </div>
-            <button
-              type="button"
-              className="btn btn-secondary rounded-full"
-              disabled={page === totalPages}
-              onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
-            >
-              Next
-            </button>
-          </div>
+          {totalPages > 1 && (
+            <nav className="flex items-center justify-center gap-1.5 pt-4" aria-label="Pagination">
+              <button
+                type="button"
+                className={PAGE_BTN}
+                disabled={page === 1}
+                onClick={() => handlePageChange(Math.max(1, page - 1))}
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => handlePageChange(n)}
+                  aria-current={n === page ? "page" : undefined}
+                  className={`${PAGE_BTN} ${n === page ? "!border-[#3B82F6] !bg-[#3B82F6] !text-white" : ""}`}
+                >
+                  {n}
+                </button>
+              ))}
+              <button
+                type="button"
+                className={PAGE_BTN}
+                disabled={page === totalPages}
+                onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
+                aria-label="Next page"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </nav>
+          )}
         </div>
 
         <div>
