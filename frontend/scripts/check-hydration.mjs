@@ -66,6 +66,8 @@ const server = http.createServer(async (req, res) => {
     }
     let filePath = path.join(DOCS, urlPath);
     if (urlPath.endsWith("/")) filePath = path.join(filePath, "index.html");
+    // Same resolution as production: /blog/x -> blog/x.html when prerendered.
+    if (!path.extname(filePath) && existsSync(`${filePath}.html`)) filePath = `${filePath}.html`;
     if (!existsSync(filePath) || !path.extname(filePath)) filePath = path.join(DOCS, "index.html");
     res.setHeader("Content-Type", MIME[path.extname(filePath)] || "application/octet-stream");
     res.end(await readFile(filePath));
@@ -96,6 +98,15 @@ const ROUTES = [
   { path: "", label: "homepage" },
   { path: "about", label: "/about (non-prerendered route)", notHome: true },
 ];
+
+// A prerendered blog post (scripts/prerender-blog.mjs) must also render
+// fresh: its snapshot is for crawlers and link previews, never hydrated.
+const blogDir = path.join(DOCS, "blog");
+if (existsSync(blogDir)) {
+  const { readdirSync } = await import("node:fs");
+  const first = readdirSync(blogDir).find((f) => f.endsWith(".html"));
+  if (first) ROUTES.push({ path: `blog/${first.slice(0, -5)}`, label: `/blog/${first.slice(0, -5)} (prerendered post)`, notHome: true });
+}
 
 let failures = [];
 try {

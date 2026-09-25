@@ -4,14 +4,23 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { login } from "../controllers/authController.js";
 import { loginSuccess } from "../redux/slices/authSlice.js";
 import { useToast } from "../contexts/ToastContext.jsx";
 
+// ?redirect=/blog/some-post sends the user back after login (e.g. from
+// "Log in to comment"). Only in-app paths are honoured, never another site.
+function safeRedirect(value) {
+  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\")) return null;
+  return value;
+}
+
 function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = safeRedirect(searchParams.get("redirect"));
   const toast = useToast();
   const [form, setForm] = React.useState({ email: "", password: "" });
   const [loading, setLoading] = React.useState(false);
@@ -38,7 +47,9 @@ function Login() {
         setTimeout(() => {
           // Redirect based on user role (case-insensitive)
           const userRole = res.data.role?.toLowerCase();
-          if (userRole === 'admin' || userRole === 'subadmin' || userRole === 'supervisor') {
+          if (redirectTo) {
+            navigate(redirectTo, { replace: true });
+          } else if (userRole === 'admin' || userRole === 'subadmin' || userRole === 'supervisor') {
             navigate("/admin/blogs");
           } else if (userRole === 'operator') {
             navigate("/operator/blogs");
