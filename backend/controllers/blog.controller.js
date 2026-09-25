@@ -63,6 +63,16 @@ const transformBlogForResponse = (blog) => {
     return b;
 };
 
+// Whole minutes at ~220 words per minute, from stored HTML.
+const readingMinutes = (html) => {
+    const words = String(html || '')
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&[a-z#0-9]+;/gi, ' ')
+        .split(/\s+/)
+        .filter(Boolean).length;
+    return words ? Math.max(1, Math.round(words / 220)) : null;
+};
+
 const buildPublishedBlogQuery = ({ category, tag, search, featured }) => {
     const query = {
         status: "published",
@@ -265,15 +275,22 @@ exports.getAllPublishedBlogs = async (req, res) => {
         const { limit: perPage, offset } = getPagination(page, pageSize);
         const query = buildPublishedBlogQuery({ category, tag, search, featured });
 
+        // Content is read only to work out reading time; it is dropped from
+        // the list response. Author email stays private on this public route.
         const blogs = await BlogModel.find(query)
-            .populate('author', 'fullName email profileImage')
+            .populate('author', 'fullName profileImage')
             .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1 })
             .skip(offset)
             .limit(perPage)
-            .select('-content -viewedBy');
+            .select('-viewedBy');
 
         const totalItems = await BlogModel.countDocuments(query);
-        const transformed = blogs.map(transformBlogForResponse);
+        const transformed = blogs.map((blog) => {
+            const b = transformBlogForResponse(blog);
+            b.readingMinutes = readingMinutes(b.content);
+            delete b.content;
+            return b;
+        });
 
         return sendSuccessResponse(
             res,

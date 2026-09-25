@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const blogController = require('../../../controllers/blog.controller');
+const blogCommentController = require('../../../controllers/blogComment.controller');
+const { commentLimiter } = require('../../../middleware/rateLimit.middleware');
 const pdfUpload = require("../../../middleware/file-upload.middleware");
 
 router.post('/addblog',
@@ -40,5 +42,9 @@ router.put('/:blogid/updateblog',
     blogController.updateBlog);
 
 router.delete('/:blogid/deleteblog', blogController.deleteBlog);
+
+// Comments (reading them is public, see routes/api/public/blog.routes.js)
+router.post('/:blogid/comments', commentLimiter, blogCommentController.addComment);
+router.delete('/comments/:commentid', blogCommentController.deleteComment);
 
 module.exports = router;
