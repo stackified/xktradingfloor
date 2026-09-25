@@ -10,6 +10,7 @@ import { getAllBlogs, getBlogById } from '../controllers/blogsController.js';
 import BlogAuthorInfo from '../components/blog/BlogAuthorInfo.jsx';
 import BlogCard from '../components/blog/BlogCard.jsx';
 import BlogShare from '../components/blog/BlogShare.jsx';
+import BlogComments from '../components/blog/BlogComments.jsx';
 import ImageWithFallback from '../components/shared/ImageWithFallback.jsx';
 import { BLOG_IMAGE_BOX, BLOG_IMAGE, BLOG_COLORS } from '../components/blog/blogLayout.js';
 
@@ -70,8 +71,45 @@ function ReadingProgress({ targetRef }) {
 }
 
 // "On this page" list; highlights the section currently being read.
-function TableOfContents({ headings, onNavigate }) {
+// `scrollable` gives it its own scroll area (the sticky desktop sidebar):
+// no native scrollbar track, a thin thumb on hover, soft fades at whichever
+// edge has more items, and the active entry kept in view as the reader moves
+// through the article.
+function TableOfContents({ headings, onNavigate, scrollable = false }) {
   const [active, setActive] = React.useState(headings[0]?.id);
+  const scrollRef = React.useRef(null);
+  const [edges, setEdges] = React.useState({ top: false, bottom: false });
+
+  const updateEdges = React.useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const top = el.scrollTop > 2;
+    const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 2;
+    setEdges((prev) => (prev.top === top && prev.bottom === bottom ? prev : { top, bottom }));
+  }, []);
+
+  React.useEffect(() => {
+    if (!scrollable) return undefined;
+    updateEdges();
+    window.addEventListener('resize', updateEdges);
+    return () => window.removeEventListener('resize', updateEdges);
+  }, [scrollable, updateEdges, headings]);
+
+  // Keep the active entry visible inside the list without moving the page.
+  React.useEffect(() => {
+    const box = scrollRef.current;
+    if (!scrollable || !box || !active) return;
+    const link = box.querySelector(`a[href="#${CSS.escape(active)}"]`);
+    if (!link) return;
+    const linkTop = link.offsetTop;
+    const linkBottom = linkTop + link.offsetHeight;
+    const pad = 48;
+    if (linkTop - pad < box.scrollTop) {
+      box.scrollTo({ top: Math.max(0, linkTop - pad), behavior: 'smooth' });
+    } else if (linkBottom + pad > box.scrollTop + box.clientHeight) {
+      box.scrollTo({ top: linkBottom + pad - box.clientHeight, behavior: 'smooth' });
+    }
+  }, [active, scrollable]);
   React.useEffect(() => {
     const els = headings.map((h) => document.getElementById(h.id)).filter(Boolean);
     if (!els.length || typeof IntersectionObserver === 'undefined') return undefined;
@@ -98,9 +136,8 @@ function TableOfContents({ headings, onNavigate }) {
     onNavigate?.();
   };
 
-  return (
-    <nav aria-label="On this page">
-      <ul className="space-y-0.5 border-l border-white/[0.08]">
+  const list = (
+    <ul className="space-y-0.5 border-l border-white/[0.08]">
         {headings.map((h) => (
           <li key={h.id}>
             <a
@@ -118,7 +155,24 @@ function TableOfContents({ headings, onNavigate }) {
             </a>
           </li>
         ))}
-      </ul>
+    </ul>
+  );
+
+  return (
+    <nav aria-label="On this page">
+      {scrollable ? (
+        <div
+          ref={scrollRef}
+          onScroll={updateEdges}
+          className={`toc-scroll relative max-h-[calc(100vh-10rem)] overflow-y-auto overscroll-contain pr-2 ${
+            edges.top ? 'toc-fade-top' : ''
+          } ${edges.bottom ? 'toc-fade-bottom' : ''}`}
+        >
+          {list}
+        </div>
+      ) : (
+        list
+      )}
     </nav>
   );
 }
@@ -234,6 +288,7 @@ function BlogPost() {
           tags: blog.tags || [],
           date: formatDate(blog.publishedAt || blog.createdAt),
           publishedAt: blog.publishedAt || blog.createdAt,
+          readTime: blog.readingMinutes ? `${blog.readingMinutes} min read` : null,
         }))
       );
     }
@@ -436,16 +491,18 @@ function BlogPost() {
             </div>
 
             <BlogAuthorInfo author={post.authorInfo} />
+
+            {!mockMode && OBJECT_ID_RE.test(String(post._id || '')) && <BlogComments blogId={post._id} />}
           </div>
 
           {showToc && (
             <aside className="hidden xl:col-start-3 xl:block xl:pl-12">
-              <div className="sticky top-24 max-h-[calc(100vh-7rem)] max-w-[250px] overflow-y-auto pb-4">
+              <div className="sticky top-24 max-w-[250px] pb-4">
                 <div className="mb-3 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.1em] text-[#94A3B8]">
                   <ListOrdered className="h-3.5 w-3.5" />
                   On this page
                 </div>
-                <TableOfContents headings={article.headings} />
+                <TableOfContents headings={article.headings} scrollable />
               </div>
             </aside>
           )}

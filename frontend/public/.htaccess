@@ -1,3 +1,10 @@
+# blog/ is a real folder (prerendered posts), so Apache would answer /blog
+# with a 301 to /blog/ before the rules below run. Routes never end in a
+# slash; let the rewrite rules handle it instead.
+<IfModule mod_dir.c>
+  DirectorySlash Off
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
@@ -6,10 +13,15 @@
   RewriteCond %{HTTPS} !=on
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-  # Serve real files/directories as-is (ads.txt, verification file, assets, etc.)
-  RewriteCond %{REQUEST_FILENAME} -f [OR]
-  RewriteCond %{REQUEST_FILENAME} -d
+  # Serve real files as-is (ads.txt, verification file, assets, etc.).
+  # Directories are deliberately NOT served: blog/ holds the prerendered
+  # posts, and /blog itself must still reach the app, not the folder.
+  RewriteCond %{REQUEST_FILENAME} -f
   RewriteRule ^ - [L]
+
+  # Prerendered pages: /blog/some-post -> blog/some-post.html
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.+)$ $1.html [L]
 
   # SPA fallback: everything else -> index.html
   RewriteRule ^ index.html [L]
