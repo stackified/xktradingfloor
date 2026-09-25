@@ -23,7 +23,7 @@ function transformBlog(blog) {
   // The list endpoint does not send the article body, so a read time can
   // only be shown when content is present; otherwise the card omits it
   // rather than claiming "1 min read" for every post.
-  const minutes = readingMinutes(blog.content);
+  const minutes = readingMinutes(blog.content) || blog.readingMinutes || null;
 
   return {
     id: blog._id || blog.id,

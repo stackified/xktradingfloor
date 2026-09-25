@@ -55,6 +55,13 @@ function rateLimit(keyPrefix, maxAttempts, windowMs, getKey) {
 
 module.exports = {
     getClientIp,
+    // Blog comments: per signed-in user, 6 per 10 minutes.
+    commentLimiter: rateLimit(
+        "blog-comment",
+        6,
+        10 * 60 * 1000,
+        (req) => String(req.user?._id || getClientIp(req))
+    ),
     forgotPasswordLimiter: rateLimit(
         "forgot-ip",
         10,

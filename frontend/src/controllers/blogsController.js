@@ -236,3 +236,38 @@ export async function getPublishedBlogs(filters = {}) {
     (blog) => blog.status === "published" || blog.status === "Published"
   );
 }
+
+// ---------------------------------------------------------------------------
+// Comments
+// GET    /api/blogs/:blogId/comments?page=&size=   (public)
+// POST   /api/blogs/:blogId/comments { content }   (signed in)
+// DELETE /api/blogs/comments/:commentId            (author, Admin, Operator)
+// ---------------------------------------------------------------------------
+
+// Resolves to null when the comments API is not available on the backend,
+// so the page can hide the section instead of showing an error. A backend
+// without the route answers this public GET with 401 (it falls through to
+// the auth middleware) for visitors, or 404 for signed-in users.
+export async function getBlogComments(blogId, { page = 1, size = 20 } = {}) {
+  try {
+    const response = await api.get(`/blogs/${blogId}/comments`, { params: { page, size } });
+    if (!Array.isArray(response.data?.data)) return null;
+    return {
+      comments: response.data.data,
+      pagination: response.data?.pagination || { totalItems: 0, totalPages: 1, currentPage: page },
+    };
+  } catch (error) {
+    const status = error?.response?.status;
+    if (!error?.response || status === 401 || status === 403 || status === 404) return null;
+    throw error;
+  }
+}
+
+export async function addBlogComment(blogId, content) {
+  const response = await api.post(`/blogs/${blogId}/comments`, { content });
+  return response.data?.data;
+}
+
+export async function deleteBlogComment(commentId) {
+  await api.delete(`/blogs/comments/${commentId}`);
+}
