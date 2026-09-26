@@ -189,7 +189,7 @@ Analytics utilities are available in `frontend/src/utils/analytics.js` for custo
 
 ## 📄 License
 
-This project is private and proprietary.
+Proprietary. Copyright (c) 2025-2026 XK Trading Floor. All rights reserved. Designed and developed by [Stackified](https://github.com/stackified). See [LICENSE](LICENSE).
 
 ## 📞 Support
 
