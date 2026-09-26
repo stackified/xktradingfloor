@@ -1,5 +1,6 @@
 import React from "react";
 import ImageWithFallback from "../shared/ImageWithFallback.jsx";
+import CompanyLogo from "../shared/CompanyLogo.jsx";
 
 export function FeatureCard({ icon, title, description }) {
   return (
@@ -75,15 +76,7 @@ export function ReviewCard({ company, onView }) {
     <div className="card h-full">
       <div className="card-body">
         <div className="flex items-center gap-3 mb-3">
-          <div className="h-10 w-10 rounded bg-muted overflow-hidden">
-            <ImageWithFallback
-              src={company.logo}
-              fallback="/assets/placeholder.jpg"
-              alt={company.name}
-              className="h-full w-full object-cover"
-              useDynamicFallback={true}
-            />
-          </div>
+          <CompanyLogo src={company.logo} name={company.name} size="sm" />
           <div>
             <div className="text-sm text-gray-400">{company.category}</div>
             <div className="font-semibold">{company.name}</div>

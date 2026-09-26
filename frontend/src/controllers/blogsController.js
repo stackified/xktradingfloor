@@ -1,4 +1,5 @@
 import api from "./api.js";
+import { cachedRequest } from "./responseCache.js";
 
 // FORCE REAL DATA MODE - Mock functionality is hidden but code is kept for future use
 // Set to false to always use real data from database
@@ -108,8 +109,8 @@ export async function getAllBlogs(filters = {}) {
 export async function getBlogBySlug(slug) {
   if (!slug) return null;
   try {
-    const publicResponse = await api.get(
-      `/blogs/${encodeURIComponent(slug)}/getblogbyslug`
+    const publicResponse = await cachedRequest("blogs", `slug:${slug}`, () =>
+      api.get(`/blogs/${encodeURIComponent(slug)}/getblogbyslug`)
     );
     if (publicResponse.data?.success && publicResponse.data?.data) {
       const blog = publicResponse.data.data;
@@ -197,7 +198,9 @@ export async function getPublishedBlogs(filters = {}) {
     const { page, size, search, category, tag, featured } = filters;
 
     const params = { page, size, search, category, tag, featured };
-    const response = await api.get("/blogs/getpublishedblogs", { params });
+    const response = await cachedRequest("blogs", `published:${JSON.stringify(params)}`, () =>
+      api.get("/blogs/getpublishedblogs", { params })
+    );
 
     // Backend returns: { success: true, data: [...], pagination: { page, limit, total, pages } }
     if (response.data?.success && response.data?.data) {

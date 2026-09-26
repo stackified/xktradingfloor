@@ -5,7 +5,7 @@ import { useParams, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ExternalLink } from "lucide-react";
 import { getEventById } from "../controllers/eventsController.js";
-import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
+import EventImage from "../components/shared/EventImage.jsx";
 import RegisterModal from "../components/academy/RegisterModal.jsx";
 import { getUserCookie } from "../utils/cookies.js";
 
@@ -79,15 +79,12 @@ function EventDetails() {
       />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 card overflow-hidden">
-          <div className="w-full aspect-[16/9] bg-muted overflow-hidden rounded-xl">
-            <ImageWithFallback
-              src={((event.featuredImage || event.image || '').trim() || null)}
-              fallback="/assets/placeholder.jpg"
-              alt={event.title}
-              className="h-full w-full object-cover"
-              useDynamicFallback={true}
-            />
-          </div>
+          <EventImage
+            src={event.featuredImage || event.image}
+            alt={event.title}
+            rounded="rounded-xl"
+            priority
+          />
           <div className="card-body">
             <div className="flex items-center justify-between mb-2">
               <h1 className="font-display font-bold text-xl sm:text-2xl lg:text-3xl">

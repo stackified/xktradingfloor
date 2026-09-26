@@ -12,6 +12,8 @@ import {
 } from "../../../controllers/companiesController.js";
 import { getUserCookie } from "../../../utils/cookies.js";
 import RichTextEditor from "../../shared/RichTextEditor.jsx";
+import CompanyLogo from "../../shared/CompanyLogo.jsx";
+import { processLogo } from "../../../utils/imageProcessing.js";
 import CustomSelect from "../../shared/CustomSelect.jsx";
 
 const MAX_SHORT_DESCRIPTION = 150;
@@ -45,6 +47,8 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
   });
   const [logoFile, setLogoFile] = React.useState(null);
   const [logoPreview, setLogoPreview] = React.useState("");
+  const [logoProcessing, setLogoProcessing] = React.useState(false);
+  const [logoNote, setLogoNote] = React.useState("");
   const [images, setImages] = React.useState([]);
   const [imageFiles, setImageFiles] = React.useState([]);
   const imageInputRef = React.useRef(null);
@@ -101,11 +105,25 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
     }
   }
 
-  function handleLogoChange(e) {
+  // Logos are trimmed of empty borders and centred on a 512×512 square in the
+  // browser before upload, so they look the same in every place on the site.
+  async function handleLogoChange(e) {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
-    setLogoFile(file);
-    setLogoPreview(URL.createObjectURL(file));
+    setLogoProcessing(true);
+    try {
+      const { file: processed, previewUrl, trimmed } = await processLogo(file);
+      setLogoFile(processed);
+      setLogoPreview(previewUrl);
+      setLogoNote(trimmed ? "Empty space around the logo was trimmed and it was centred automatically." : "");
+    } catch (err) {
+      setLogoFile(file);
+      setLogoPreview(URL.createObjectURL(file));
+      setLogoNote("");
+    } finally {
+      setLogoProcessing(false);
+    }
   }
 
   function handleImagesChange(e) {
@@ -606,20 +624,33 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                 Company Logo
               </label>
               <div className="rounded-2xl border border-dashed border-white/20 bg-gray-950/30 p-4">
-                {logoPreview ? (
-                  <div className="relative">
-                    <img
-                      src={logoPreview}
-                      alt="Logo preview"
-                      className="max-h-32 w-auto rounded-xl object-contain"
-                    />
+                {logoProcessing ? (
+                  <div className="px-6 py-10 text-center text-sm text-gray-400">Preparing logo…</div>
+                ) : logoPreview ? (
+                  <div className="relative space-y-3">
+                    {/* How the logo will look across the site */}
+                    <div className="flex flex-wrap items-end gap-4">
+                      {[
+                        ["xl", "Profile"],
+                        ["md", "Reviews list"],
+                        ["sm", "Home tables"],
+                        ["xs", "Sidebar"],
+                      ].map(([size, label]) => (
+                        <div key={size} className="flex flex-col items-center gap-1.5">
+                          <CompanyLogo src={logoPreview} name={form.name} size={size} />
+                          <span className="text-[11px] text-gray-500">{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {logoNote && <p className="text-xs text-emerald-300/90">{logoNote}</p>}
                     <button
                       type="button"
                       onClick={() => {
                         setLogoFile(null);
                         setLogoPreview("");
+                        setLogoNote("");
                       }}
-                      className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-red-500/80 px-3 py-1 text-xs font-semibold text-white"
+                      className="absolute right-0 top-0 inline-flex items-center gap-1 rounded-full bg-red-500/80 px-3 py-1 text-xs font-semibold text-white"
                     >
                       <XCircle className="h-3.5 w-3.5" />
                       Remove
@@ -628,7 +659,10 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                 ) : (
                   <label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-white/10 bg-gray-900/50 px-6 py-10 text-center text-gray-400 hover:border-indigo-400/40">
                     <Upload className="h-6 w-6" />
-                    <span>Upload logo (JPG/PNG)</span>
+                    <span>Upload logo (JPG/PNG/SVG)</span>
+                    <span className="text-xs text-gray-500">
+                      Best: the logo alone on a transparent or plain background. Empty space is trimmed automatically.
+                    </span>
                     <input
                       type="file"
                       accept="image/*"
@@ -671,6 +705,7 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                 value={form.description}
                 onChange={handleDescriptionChange}
                 placeholder="Detailed description of the company..."
+                allowDesign
               />
             </div>
 

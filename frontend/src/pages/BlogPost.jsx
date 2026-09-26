@@ -2,6 +2,7 @@ import React from 'react';
 import Seo from '../components/shared/Seo.jsx';
 import { articleJsonLd, breadcrumbJsonLd } from '../utils/structuredData.js';
 import { prepareArticle, readingMinutes } from '../utils/richText.js';
+import DesignedHtml from '../components/shared/DesignedHtml.jsx';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ChevronRight, Clock, CalendarDays, ArrowLeft, ListOrdered } from 'lucide-react';
@@ -294,7 +295,10 @@ function BlogPost() {
     }
   }, [publishedBlogs, mockMode]);
 
-  const article = React.useMemo(() => prepareArticle(post?.content || ''), [post?.content]);
+  const article = React.useMemo(
+    () => prepareArticle(post?.content || '', { pageTitle: post?.title }),
+    [post?.content, post?.title]
+  );
 
   // Same category or a shared tag first, then the newest other posts, so the
   // section is never empty.
@@ -339,7 +343,12 @@ function BlogPost() {
     <div className="min-h-screen" style={{ backgroundColor: BLOG_COLORS.bg }}>
       <Seo
         title={post?.metaTitle || post?.title || 'Blog Post'}
-        description={post?.metaDescription || post?.excerpt || 'Read our latest trading insights and market analysis.'}
+        description={
+          post?.metaDescription ||
+          post?.excerpt ||
+          article.designed?.meta?.description ||
+          'Read our latest trading insights and market analysis.'
+        }
         path={post ? `/blog/${post.slug || post._id}` : '/blog'}
         canonical={post?.canonicalUrl || undefined}
         keywords={post?.seoKeywords?.length ? post.seoKeywords.join(', ') : undefined}
@@ -463,11 +472,19 @@ function BlogPost() {
               </details>
             )}
 
-            <article
-              ref={articleRef}
-              className="article-content"
-              dangerouslySetInnerHTML={{ __html: article.html }}
-            />
+            {article.designed ? (
+              // A designed post keeps its own styling, isolated from the
+              // article typography (.article-content would leak into it).
+              <article ref={articleRef}>
+                <DesignedHtml rendered={article.designed} className="rounded-2xl overflow-hidden" />
+              </article>
+            ) : (
+              <article
+                ref={articleRef}
+                className="article-content"
+                dangerouslySetInnerHTML={{ __html: article.html }}
+              />
+            )}
 
             {post.tags?.length > 0 && (
               <div className="mt-10 flex flex-wrap gap-2">

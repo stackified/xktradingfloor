@@ -1,4 +1,5 @@
 import api from "./api.js";
+import { cachedRequest, clearCache } from "./responseCache.js";
 
 /**
  * Append a company field to FormData in a shape the backend (multer + `...req.body`,
@@ -29,6 +30,27 @@ function appendCompanyField(formData, key, value) {
     return;
   }
   formData.append(key, value);
+}
+
+// ---------------------------------------------------------------------------
+// Company caches (see responseCache.js).
+//
+// The reviews page, its sidebar and the homepage tables all ask for company
+// lists, and the backend can take a long time to answer after idling. Public
+// lists and profiles are reused for up to 10 minutes (refreshed quietly in the
+// background once a minute old); admin lists for 30s, in memory only. Any
+// company change clears both.
+export function clearCompaniesCache() {
+  clearCache("companies");
+  clearCache("companies-admin");
+}
+
+function postCompaniesList(endpoint, body, params, adminView) {
+  const key = JSON.stringify([endpoint, body, params]);
+  const request = () => api.post(endpoint, body, { params });
+  return adminView
+    ? cachedRequest("companies-admin", key, request, { maxAge: 30 * 1000, refreshAfter: Infinity, persist: false })
+    : cachedRequest("companies", key, request);
 }
 
 // FORCE REAL DATA MODE - Mock functionality is hidden but code is kept for future use
@@ -220,9 +242,12 @@ export async function getAllCompanies(filters = {}) {
         // Category is passed in body if provided
       }
 
-      const response = await api.post(endpoint, requestBody, {
-        params: { search, page, size },
-      });
+      const response = await postCompaniesList(
+        endpoint,
+        requestBody,
+        { search, page, size },
+        authenticated && userIsAdmin
+      );
 
       // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
       // OR: { success: true, data: [...], pagination: {...} } depending on endpoint implementation
@@ -369,7 +394,14 @@ export async function getCompanyById(companyId) {
         endpoint = `/companies/${companyId}/getcompanybyid`;
       }
 
-      const response = await api.get(endpoint);
+      const request = () => api.get(endpoint);
+      const response = authenticated
+        ? await cachedRequest("companies-admin", endpoint, request, {
+            maxAge: 30 * 1000,
+            refreshAfter: Infinity,
+            persist: false,
+          })
+        : await cachedRequest("companies", endpoint, request);
 
       // Backend returns: { success: true, data: {...} }
       if (response.data?.success && response.data?.data) {
@@ -416,6 +448,7 @@ export async function getCompanyById(companyId) {
 
 // Create company (admin only)
 export async function createCompany(companyData) {
+  clearCompaniesCache(); // lists change with this
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
@@ -490,6 +523,7 @@ export async function createCompany(companyData) {
 
 // Update company (admin can update any, operator can only update their own)
 export async function updateCompany(companyId, updates) {
+  clearCompaniesCache(); // lists change with this
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
@@ -574,6 +608,7 @@ export async function updateCompany(companyId, updates) {
 
 // Delete company (admin only)
 export async function deleteCompany(companyId) {
+  clearCompaniesCache(); // lists change with this
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
@@ -624,6 +659,7 @@ export async function deleteCompany(companyId) {
 
 // Toggle company active/blocked status (admin only)
 export async function toggleCompanyStatus(companyId) {
+  clearCompaniesCache(); // lists change with this
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
@@ -681,6 +717,7 @@ export async function toggleCompanyStatus(companyId) {
 // Add promo code to company
 // Backend endpoint: POST /api/admin/company/:companyId/addpromocode
 export async function addPromoCode(companyId, promoData) {
+  clearCompaniesCache(); // lists change with this
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
@@ -760,6 +797,7 @@ export async function addPromoCode(companyId, promoData) {
 // Update promo code
 // Backend endpoint: PUT /api/admin/company/:companyId/updatepromocode/:promoId
 export async function updatePromoCode(companyId, promoId, updates) {
+  clearCompaniesCache(); // lists change with this
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
@@ -842,6 +880,7 @@ export async function updatePromoCode(companyId, promoId, updates) {
 // Delete promo code
 // Backend endpoint: DELETE /api/admin/company/:companyId/deletepromocode/:promoId
 export async function deletePromoCode(companyId, promoId) {
+  clearCompaniesCache(); // lists change with this
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
