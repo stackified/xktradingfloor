@@ -11,7 +11,7 @@ import { TableRow } from "@tiptap/extension-table-row";
 import { TableHeader } from "@tiptap/extension-table-header";
 import { TableCell } from "@tiptap/extension-table-cell";
 import { looksLikeHtmlSource, extractBodyHtml } from "../../utils/richText.js";
-import { isDesignedHtml, buildDesignedHtml } from "../../utils/designedHtml.js";
+import { isDesignedHtml, buildDesignedHtml, designedLook, DESIGN_LOOKS } from "../../utils/designedHtml.js";
 import DesignedHtml from "./DesignedHtml.jsx";
 import {
   FileCode,
@@ -258,9 +258,9 @@ function Toolbar({ editor, sourceMode, onToggleSource, onDesign }) {
 
 // Designed-HTML mode: the pasted page is kept verbatim (styles included) and
 // shown in a live preview instead of being flattened by the visual editor.
-function DesignPanel({ source, onSourceChange, onLeave }) {
+function DesignPanel({ source, look, onSourceChange, onLookChange, onLeave }) {
   const [tab, setTab] = React.useState(source.trim() ? "preview" : "code");
-  const stored = React.useMemo(() => buildDesignedHtml(source), [source]);
+  const stored = React.useMemo(() => buildDesignedHtml(source, { look }), [source, look]);
   const tabClass = (active) =>
     `inline-flex items-center gap-1.5 px-3 h-8 rounded text-xs font-medium transition-colors ${
       active
@@ -280,6 +280,18 @@ function DesignPanel({ source, onSourceChange, onLeave }) {
         <button type="button" className={tabClass(tab === "code")} onClick={() => setTab("code")}>
           <Code2 className="h-3.5 w-3.5" /> Code
         </button>
+        <label className="inline-flex items-center gap-2 text-xs text-gray-400 ml-2">
+          Look
+          <select
+            value={look}
+            onChange={(e) => onLookChange(e.target.value)}
+            className="h-8 rounded border border-white/10 bg-gray-900 px-2 text-xs text-gray-200"
+            title="Match site style: keeps the cards, tables and callouts but uses the site's background, font and heading sizes."
+          >
+            <option value={DESIGN_LOOKS.site}>Match site style</option>
+            <option value={DESIGN_LOOKS.original}>Keep original design</option>
+          </select>
+        </label>
         <button
           type="button"
           onClick={onLeave}
@@ -329,6 +341,7 @@ function RichTextEditor({ value, onChange, placeholder = "Start typing...", allo
   const startsDesigned = allowDesign && isDesignedHtml(value);
   const [designMode, setDesignMode] = React.useState(startsDesigned);
   const [designSource, setDesignSource] = React.useState(startsDesigned ? value : "");
+  const [designLook, setDesignLookState] = React.useState(() => designedLook(startsDesigned ? value : ""));
   const enterDesignRef = React.useRef(null);
 
   const editor = useEditor({    extensions: [
@@ -388,16 +401,23 @@ function RichTextEditor({ value, onChange, placeholder = "Start typing...", allo
   // markup back through the editor, which also normalises it and fires
   // onChange with the canonical HTML.
   const enterDesign = (text) => {
+    const nextLook = designedLook(text || "");
     setDesignSource(text || "");
+    setDesignLookState(nextLook);
     setDesignMode(true);
     setSourceMode(false);
-    if (onChange) onChange(buildDesignedHtml(text || ""));
+    if (onChange) onChange(buildDesignedHtml(text || "", { look: nextLook }));
   };
   enterDesignRef.current = enterDesign;
 
   const handleDesignChange = (text) => {
     setDesignSource(text);
-    if (onChange) onChange(buildDesignedHtml(text));
+    if (onChange) onChange(buildDesignedHtml(text, { look: designLook }));
+  };
+
+  const handleLookChange = (nextLook) => {
+    setDesignLookState(nextLook);
+    if (onChange) onChange(buildDesignedHtml(designSource, { look: nextLook }));
   };
 
   const leaveDesign = () => {
@@ -444,6 +464,7 @@ function RichTextEditor({ value, onChange, placeholder = "Start typing...", allo
     if (allowDesign && isDesignedHtml(value)) {
       if (!designMode) {
         setDesignSource(value);
+        setDesignLookState(designedLook(value));
         setDesignMode(true);
       }
       return;
@@ -536,7 +557,13 @@ function RichTextEditor({ value, onChange, placeholder = "Start typing...", allo
       `}</style>
       <div className="rich-text-editor-shell">
         {designMode ? (
-          <DesignPanel source={designSource} onSourceChange={handleDesignChange} onLeave={leaveDesign} />
+          <DesignPanel
+            source={designSource}
+            look={designLook}
+            onSourceChange={handleDesignChange}
+            onLookChange={handleLookChange}
+            onLeave={leaveDesign}
+          />
         ) : (
         <>
         <Toolbar

@@ -116,93 +116,33 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
     }));
   };
 
-  // Client-side crop-to-16:9 (the "top/center/bottom" framing options). The
-  // public site shows every event image in a 16:9 frame (EventImage), so a
-  // cropped upload fills it exactly; "fit" keeps the whole image instead.
-  // Crops around the chosen focal anchor.
-  const cropTo169 = React.useCallback(async (file, anchorY = "center") => {
-    try {
-      const bitmap = await createImageBitmap(file);
-      const targetAspect = 16 / 9;
-      const srcAspect = bitmap.width / bitmap.height;
-      let sx = 0, sy = 0, sw = bitmap.width, sh = bitmap.height;
-      if (srcAspect > targetAspect) {
-        // Source wider than 16:9 — trim sides.
-        sw = Math.round(bitmap.height * targetAspect);
-        sx = Math.round((bitmap.width - sw) / 2);
-      } else if (srcAspect < targetAspect) {
-        // Source taller than 16:9 — trim top/bottom around chosen anchor.
-        sh = Math.round(bitmap.width / targetAspect);
-        if (anchorY === "top") sy = 0;
-        else if (anchorY === "bottom") sy = bitmap.height - sh;
-        else sy = Math.round((bitmap.height - sh) / 2);
-      }
-      // Downscale huge originals; 1920×1080 is plenty for a card + detail hero.
-      const maxWidth = 1920;
-      const outW = Math.min(sw, maxWidth);
-      const outH = Math.round(outW / targetAspect);
-      const canvas = document.createElement("canvas");
-      canvas.width = outW;
-      canvas.height = outH;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, outW, outH);
-      bitmap.close?.();
-      const blob = await new Promise((resolve) =>
-        canvas.toBlob(resolve, "image/jpeg", 0.9)
-      );
-      if (!blob) return file; // fallback: send original if canvas fails
-      const base = file.name.replace(/\.[^.]+$/, "") || "event";
-      return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
-    } catch (err) {
-      console.warn("cropTo169 failed, uploading original:", err);
-      return file;
-    }
-  }, []);
-
-  const [cropAnchor, setCropAnchor] = React.useState("center");
+  // Event images are never cropped (client's request): the whole image is
+  // kept, resized to at most 1600px wide, and the site shows it in a 16:9
+  // frame over a blurred fill (EventImage), exactly like the preview here.
   const [originalFile, setOriginalFile] = React.useState(null);
 
-  // Regenerate the preview whenever the source file OR anchor changes so the
-  // admin sees the exact crop the site will render.
   React.useEffect(() => {
     if (!originalFile) return;
     let revoked = false;
     let objectUrl;
-    // "fit" keeps the whole image (resized, not cropped); the site shows it
-    // in the same 16:9 frame over a blurred fill, so posters stay complete.
-    const prepare =
-      cropAnchor === "fit"
-        ? processEventImage(originalFile).then((r) => r.file).catch(() => originalFile)
-        : cropTo169(originalFile, cropAnchor);
-    prepare.then((prepared) => {
-      if (revoked) return;
-      setFeaturedImageFile(prepared);
-      objectUrl = URL.createObjectURL(prepared);
-      setFeaturedImagePreview(objectUrl);
-    });
+    processEventImage(originalFile)
+      .then((r) => r.file)
+      .catch(() => originalFile)
+      .then((prepared) => {
+        if (revoked) return;
+        setFeaturedImageFile(prepared);
+        objectUrl = URL.createObjectURL(prepared);
+        setFeaturedImagePreview(objectUrl);
+      });
     return () => {
       revoked = true;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [originalFile, cropAnchor, cropTo169]);
+  }, [originalFile]);
 
-  const handleFileChange = async (event) => {
+  const handleFileChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    // Preview + upload payload are both derived via the effect above. Keep the
-    // original around in case admin flips the anchor after. Images that are
-    // already about 16:9 are cropped (nothing visible is lost); anything else
-    // — posters, squares — defaults to "fit" so nothing gets cut off.
-    let anchor = "fit";
-    try {
-      const bitmap = await createImageBitmap(file);
-      const ratio = bitmap.width / bitmap.height;
-      bitmap.close?.();
-      if (Math.abs(ratio - 16 / 9) / (16 / 9) < 0.12) anchor = "center";
-    } catch {
-      /* unreadable here; "fit" uploads it unchanged */
-    }
-    setCropAnchor(anchor);
     setOriginalFile(file);
   };
 
@@ -210,7 +150,6 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
     setFeaturedImageFile(null);
     setFeaturedImagePreview("");
     setOriginalFile(null);
-    setCropAnchor("center");
   };
 
   const handleFreebiesChange = (freebies) => {
@@ -554,34 +493,9 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
                     <XCircle className="h-5 w-5" />
                   </button>
                 </div>
-                {originalFile && (
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <p className="text-xs text-gray-500">
-                      {cropAnchor === "fit"
-                        ? "Whole image kept · shown in the 16:9 frame exactly like this on the site."
-                        : "Cropped to 16:9 · this is exactly how it will appear on the site."}
-                    </p>
-                    <div className="inline-flex items-center gap-2 text-xs">
-                      <span className="text-gray-400">Framing:</span>
-                      <div className="inline-flex rounded-full bg-gray-900 border border-gray-700 p-0.5">
-                        {["fit", "top", "center", "bottom"].map((pos) => (
-                          <button
-                            key={pos}
-                            type="button"
-                            onClick={() => setCropAnchor(pos)}
-                            className={`px-2.5 py-1 rounded-full transition-all capitalize ${
-                              cropAnchor === pos
-                                ? "bg-blue-500 text-white"
-                                : "text-gray-400 hover:text-white"
-                            }`}
-                          >
-                            {pos === "fit" ? "Fit whole image" : pos}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <p className="text-xs text-gray-500">
+                  Whole image kept, never cropped · shown in this 16:9 frame exactly like this on the site.
+                </p>
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center w-full aspect-[16/9] border-2 border-dashed border-white/20 rounded-lg cursor-pointer bg-gray-900/50 hover:bg-gray-900/70 transition-colors">

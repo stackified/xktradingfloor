@@ -8,7 +8,15 @@ import { Lock } from "lucide-react";
 import { getCompanyById } from "../controllers/companiesController.js";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
 import DesignedHtml from "../components/shared/DesignedHtml.jsx";
-import { isDesignedHtml } from "../utils/designedHtml.js";
+import { isDesignedHtml, designedMeta } from "../utils/designedHtml.js";
+
+// "Is Pipze Legit? Pipze Broker Review 2026" (Seo appends "| XK Trading Floor").
+function seoTitle(company) {
+  const name = (company.name || "").trim();
+  if (!name) return "Company Review";
+  const kind = company.category === "PropFirm" ? "Prop Firm" : company.category === "Crypto" ? "Crypto Exchange" : "Broker";
+  return `Is ${name} Legit? ${name} ${kind} Review ${new Date().getFullYear()}`;
+}
 import CardLoader from "../components/shared/CardLoader.jsx";
 import { getReviewsByCompanyId, deleteReview } from "../controllers/reviewsController.js";
 import StarRating from "../components/reviews/StarRating.jsx";
@@ -193,9 +201,15 @@ function CompanyDetails() {
 
   return (
     <div className="bg-black text-white min-h-screen">
+      {/* Built-in SEO title from the broker's name, aimed at what traders
+          search for ("is <broker> legit"). The pasted review's own
+          <meta description> is used when there is one. */}
       <Seo
-        title={company.name}
-        description={`${company.details || company.description || "Read reviews and details about"} ${company.name} on XK Trading Floor.`}
+        title={seoTitle(company)}
+        description={
+          designedMeta(company.description).description ||
+          `${company.details || "Read reviews and details about"} ${company.name} on XK Trading Floor.`
+        }
         path={`/reviews/${company._id}`}
         image={company.logo}
         jsonLd={[

@@ -104,9 +104,9 @@ function slugify(text) {
 //
 // Designed posts (a full styled HTML page, see designedHtml.js) are rendered
 // separately: `designed` carries the scoped markup/CSS and `html` is empty.
-export function prepareArticle(content) {
+export function prepareArticle(content, { pageTitle } = {}) {
   if (isDesignedHtml(content)) {
-    const designed = renderDesignedHtml(content);
+    const designed = renderDesignedHtml(content, { pageTitle });
     return { html: "", headings: designed.headings, designed };
   }
   const repaired = repairStoredHtml(content || "");

@@ -7,7 +7,9 @@ import React from "react";
 // • Square tile, fixed size per `size`, `object-contain`: the whole logo is
 //   visible, never cropped. Non-square logos get breathing room; square ones
 //   (already padded by the admin upload clean-up) fill the tile.
-// • Light tile by default so dark logos stay visible on the dark site.
+// • Dark tile, matching the site (the client's choice). Logos with dark
+//   artwork on a transparent background get a light backing when they are
+//   uploaded (utils/imageProcessing.js), so they stay visible here.
 // • Many existing uploads are 1080×1350 "Launching Soon" posters with the
 //   logo small in the middle of a black canvas. Those are detected on load
 //   (tall aspect ratio) and shown cropped to the centre on a black tile,
@@ -45,7 +47,7 @@ function CompanyLogo({ src, name = "", size = "md", className = "", priority = f
   const [failed, setFailed] = React.useState(!url);
   // "poster": old tall upload → centre crop on black.
   // "square": already a padded square (e.g. trimmed by the admin form) → fill the tile.
-  // "other":  anything else → whole logo with breathing room on a light tile.
+  // "other":  anything else → whole logo with breathing room.
   const [shape, setShape] = React.useState("other");
   const retried = React.useRef(false);
 
@@ -91,8 +93,8 @@ function CompanyLogo({ src, name = "", size = "md", className = "", priority = f
         poster
           ? "bg-black border-white/10"
           : shape === "square"
-          ? "bg-white border-white/10"
-          : `bg-white border-gray-200/20 ${s.pad}`
+          ? "bg-[#0B1220] border-white/10"
+          : `bg-[#0B1220] border-white/10 ${s.pad}`
       } ${className}`}
     >
       <img

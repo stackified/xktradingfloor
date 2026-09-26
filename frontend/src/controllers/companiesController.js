@@ -1,4 +1,5 @@
 import api from "./api.js";
+import { cachedRequest, clearCache } from "./responseCache.js";
 
 /**
  * Append a company field to FormData in a shape the backend (multer + `...req.body`,
@@ -32,85 +33,24 @@ function appendCompanyField(formData, key, value) {
 }
 
 // ---------------------------------------------------------------------------
-// Company list cache.
+// Company caches (see responseCache.js).
 //
 // The reviews page, its sidebar and the homepage tables all ask for company
-// lists, and the backend can take seconds to answer (especially after idling).
-// Identical requests in flight are shared, and a recent answer is reused:
-// public lists for up to 10 minutes (refreshed quietly in the background once
-// they are a minute old, so the next view is current), admin lists for 30s
-// and only in memory. Any company change clears the cache.
-const LIST_STORE_KEY = "xk_companies_list_v1";
-const PUBLIC_MAX_AGE = 10 * 60 * 1000;
-const PUBLIC_REFRESH_AFTER = 60 * 1000;
-const ADMIN_MAX_AGE = 30 * 1000;
-const listMemory = new Map();
-const listInflight = new Map();
-
-function readListStore() {
-  try {
-    return JSON.parse(localStorage.getItem(LIST_STORE_KEY) || "{}");
-  } catch {
-    return {};
-  }
-}
-
-function writeListStore(key, entry) {
-  try {
-    const store = { ...readListStore(), [key]: entry };
-    const newest = Object.keys(store)
-      .sort((a, b) => store[b].t - store[a].t)
-      .slice(0, 20);
-    localStorage.setItem(
-      LIST_STORE_KEY,
-      JSON.stringify(Object.fromEntries(newest.map((k) => [k, store[k]])))
-    );
-  } catch {
-    // Storage full or blocked (private mode) — the memory cache still works.
-  }
-}
-
+// lists, and the backend can take a long time to answer after idling. Public
+// lists and profiles are reused for up to 10 minutes (refreshed quietly in the
+// background once a minute old); admin lists for 30s, in memory only. Any
+// company change clears both.
 export function clearCompaniesCache() {
-  listMemory.clear();
-  try {
-    localStorage.removeItem(LIST_STORE_KEY);
-  } catch {
-    // ignore
-  }
+  clearCache("companies");
+  clearCache("companies-admin");
 }
 
 function postCompaniesList(endpoint, body, params, adminView) {
   const key = JSON.stringify([endpoint, body, params]);
-  const maxAge = adminView ? ADMIN_MAX_AGE : PUBLIC_MAX_AGE;
-  let entry = listMemory.get(key);
-  if (!entry && !adminView) {
-    entry = readListStore()[key];
-    if (entry) listMemory.set(key, entry);
-  }
-
-  const fetchFresh = () => {
-    if (listInflight.has(key)) return listInflight.get(key);
-    const request = api
-      .post(endpoint, body, { params })
-      .then((res) => {
-        if (res.data?.success) {
-          const fresh = { t: Date.now(), data: res.data };
-          listMemory.set(key, fresh);
-          if (!adminView) writeListStore(key, fresh);
-        }
-        return res;
-      })
-      .finally(() => listInflight.delete(key));
-    listInflight.set(key, request);
-    return request;
-  };
-
-  const age = entry ? Date.now() - entry.t : Infinity;
-  if (age < maxAge) {
-    if (!adminView && age > PUBLIC_REFRESH_AFTER) fetchFresh().catch(() => {});
-    return Promise.resolve({ data: entry.data });
-  }
-  return fetchFresh();
+  const request = () => api.post(endpoint, body, { params });
+  return adminView
+    ? cachedRequest("companies-admin", key, request, { maxAge: 30 * 1000, refreshAfter: Infinity, persist: false })
+    : cachedRequest("companies", key, request);
 }
 
 // FORCE REAL DATA MODE - Mock functionality is hidden but code is kept for future use
@@ -454,7 +394,14 @@ export async function getCompanyById(companyId) {
         endpoint = `/companies/${companyId}/getcompanybyid`;
       }
 
-      const response = await api.get(endpoint);
+      const request = () => api.get(endpoint);
+      const response = authenticated
+        ? await cachedRequest("companies-admin", endpoint, request, {
+            maxAge: 30 * 1000,
+            refreshAfter: Infinity,
+            persist: false,
+          })
+        : await cachedRequest("companies", endpoint, request);
 
       // Backend returns: { success: true, data: {...} }
       if (response.data?.success && response.data?.data) {

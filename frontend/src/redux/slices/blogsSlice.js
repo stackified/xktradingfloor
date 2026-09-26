@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../controllers/api.js";
+import { cachedRequest, clearCache } from "../../controllers/responseCache.js";
 import { getUserCookie } from "../../utils/cookies.js";
 
 // Helper to get auth token from cookies
@@ -195,7 +196,9 @@ export const fetchBlogBySlug = createAsyncThunk(
         return rejectWithValue("Invalid blog slug");
       }
       const encoded = encodeURIComponent(slug);
-      const response = await api.get(`/blogs/${encoded}/getblogbyslug`);
+      const response = await cachedRequest("blogs", `slug:${slug}`, () =>
+        api.get(`/blogs/${encoded}/getblogbyslug`)
+      );
       if (response.data?.data) return response.data.data;
       return response.data;
     } catch (error) {
@@ -212,6 +215,7 @@ export const fetchBlogBySlug = createAsyncThunk(
 export const createBlog = createAsyncThunk(
   "blogs/create",
   async (formData, { rejectWithValue, getState }) => {
+    clearCache("blogs"); // public blog lists/posts change with this
     try {
       const token = getAuthToken();
 
@@ -297,6 +301,7 @@ export const createBlog = createAsyncThunk(
 export const updateBlog = createAsyncThunk(
   "blogs/update",
   async ({ blogId, formData }, { rejectWithValue }) => {
+    clearCache("blogs"); // public blog lists/posts change with this
     try {
       // Validate blogId
       if (!blogId || typeof blogId !== "string") {
@@ -381,6 +386,7 @@ export const updateBlog = createAsyncThunk(
 export const deleteBlog = createAsyncThunk(
   "blogs/delete",
   async (blogId, { rejectWithValue }) => {
+    clearCache("blogs"); // public blog lists/posts change with this
     try {
       // Validate blogId
       if (!blogId || typeof blogId !== "string") {
@@ -447,6 +453,7 @@ export const deleteBlog = createAsyncThunk(
 export const permanentDeleteBlog = createAsyncThunk(
   "blogs/permanentDelete",
   async (blogId, { rejectWithValue }) => {
+    clearCache("blogs"); // public blog lists/posts change with this
     try {
       // Validate blogId
       if (!blogId || typeof blogId !== "string") {
@@ -711,9 +718,10 @@ export const fetchPublishedBlogs = createAsyncThunk(
       const publicConfig = {
         params: { page, limit, category, tag, search, featured },
       };
-      const publicResponse = await api.get(
-        "/blogs/getpublishedblogs",
-        publicConfig
+      const publicResponse = await cachedRequest(
+        "blogs",
+        `published:${JSON.stringify(publicConfig.params)}`,
+        () => api.get("/blogs/getpublishedblogs", publicConfig)
       );
 
       if (
@@ -852,6 +860,7 @@ export const fetchPublishedBlogs = createAsyncThunk(
 export const flagBlog = createAsyncThunk(
   "blogs/flag",
   async ({ blogId, flagType, reason, description }, { rejectWithValue }) => {
+    clearCache("blogs"); // public blog lists/posts change with this
     try {
       // Validate blogId
       if (!blogId || typeof blogId !== "string") {
@@ -923,6 +932,7 @@ export const flagBlog = createAsyncThunk(
 export const unflagBlog = createAsyncThunk(
   "blogs/unflag",
   async (blogId, { rejectWithValue }) => {
+    clearCache("blogs"); // public blog lists/posts change with this
     try {
       // Validate blogId
       if (!blogId || typeof blogId !== "string") {

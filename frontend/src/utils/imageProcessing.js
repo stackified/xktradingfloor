@@ -62,24 +62,32 @@ function findContentBox(img) {
     : [0, 1, 2].map((k) => Math.round(corners.reduce((s, c) => s + c[k], 0) / corners.length));
   // Corners that disagree strongly → no uniform background to trim.
   if (!transparent && corners.some((c) => Math.max(...[0, 1, 2].map((k) => Math.abs(c[k] - bg[k]))) > 40)) {
-    return { box: null, bg: null, transparent: false };
+    return { box: null, bg: null, transparent: false, darkInk: false };
   }
 
   const isContent = (c) =>
     transparent ? c[3] > 24 : c[3] > 24 && Math.max(...[0, 1, 2].map((k) => Math.abs(c[k] - bg[k]))) > 32;
 
   let minX = w, minY = h, maxX = -1, maxY = -1;
+  let lumSum = 0;
+  let lumCount = 0;
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      if (isContent(px(x, y))) {
+      const c = px(x, y);
+      if (isContent(c)) {
         if (x < minX) minX = x;
         if (x > maxX) maxX = x;
         if (y < minY) minY = y;
         if (y > maxY) maxY = y;
+        lumSum += (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255;
+        lumCount++;
       }
     }
   }
-  if (maxX < 0) return { box: null, bg, transparent };
+  // Mostly-dark artwork on a transparent background would vanish on the
+  // site's dark logo tiles.
+  const darkInk = transparent && lumCount > 0 && lumSum / lumCount < 0.35;
+  if (maxX < 0) return { box: null, bg, transparent, darkInk: false };
 
   const inv = 1 / scale;
   const pad = 1; // one scan pixel of slack so anti-aliased edges survive
@@ -89,7 +97,7 @@ function findContentBox(img) {
     w: Math.min(img.naturalWidth, (maxX - minX + 1 + pad * 2) * inv),
     h: Math.min(img.naturalHeight, (maxY - minY + 1 + pad * 2) * inv),
   };
-  return { box, bg, transparent };
+  return { box, bg, transparent, darkInk };
 }
 
 /**
@@ -106,7 +114,11 @@ export async function processLogo(file) {
 
   const { img, url } = await loadImage(file);
   try {
-    const { box, bg, transparent } = findContentBox(img);
+    const { box, bg: detectedBg, transparent: detectedTransparent, darkInk } = findContentBox(img);
+    // Dark artwork on transparency gets a white backing so it stays visible
+    // on the site's dark tiles.
+    const transparent = detectedTransparent && !darkInk;
+    const bg = darkInk ? [255, 255, 255] : detectedBg;
     const src = box || { x: 0, y: 0, w: img.naturalWidth, h: img.naturalHeight };
 
     const canvas = document.createElement("canvas");
