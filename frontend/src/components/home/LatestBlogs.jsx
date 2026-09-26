@@ -4,13 +4,12 @@ import { ArrowRight } from 'lucide-react';
 import { getPublishedBlogs } from '../../controllers/blogsController.js';
 import BlogCard from '../blog/BlogCard.jsx';
 
-// Homepage "latest articles" strip. Not currently mounted on the homepage
-// (removed from Home.jsx in an earlier redesign); kept in step with the blog
-// page so it can be re-enabled by importing it into Home.jsx.
+// Homepage "Latest articles" strip: up to 3 articles the admin marked as
+// Featured, topped up with the newest posts.
 //
-// If it is re-enabled: the homepage is prerendered with API calls left
-// pending, so this renders nothing until data arrives on the client — the
-// snapshot and first client render agree and hydration stays clean.
+// The homepage is prerendered with API calls left pending, so this renders
+// nothing until data arrives on the client — the snapshot and first client
+// render agree and hydration stays clean.
 
 function toCard(blog) {
   const published = blog.publishedAt || blog.createdAt;
@@ -33,9 +32,22 @@ function LatestBlogs() {
 
   React.useEffect(() => {
     let cancelled = false;
-    getPublishedBlogs({ page: 1, size: 3 })
-      .then((data) => { if (!cancelled) setPosts((data || []).slice(0, 3).map(toCard)); })
-      .catch(() => {});
+    // The admin picks which articles show here with the blog's "Featured"
+    // toggle. If fewer than 3 are featured, the newest posts fill the gaps.
+    Promise.all([
+      getPublishedBlogs({ page: 1, size: 3, featured: 'true' }).catch(() => []),
+      getPublishedBlogs({ page: 1, size: 3 }).catch(() => []),
+    ]).then(([featured, latest]) => {
+      if (cancelled) return;
+      const seen = new Set();
+      const picked = [...(featured || []), ...(latest || [])].filter((b) => {
+        const key = b._id || b.id;
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      setPosts(picked.slice(0, 3).map(toCard));
+    });
     return () => { cancelled = true; };
   }, []);
 

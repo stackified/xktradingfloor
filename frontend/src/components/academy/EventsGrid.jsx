@@ -14,7 +14,7 @@ const CATEGORY_ICON = {
   Competition: Trophy,
   Seminar: GraduationCap,
 };
-import ImageWithFallback from "../shared/ImageWithFallback.jsx";
+import EventImage from "../shared/EventImage.jsx";
 import EventWorldMap from "./EventWorldMap.jsx";
 
 const MONTH_NAMES = [
@@ -215,15 +215,7 @@ function EventCard({ evt, onRegister }) {
       className="card overflow-hidden cursor-pointer hover:bg-gray-800/70 transition-colors"
       onClick={handleCardClick}
     >
-      <div className="aspect-[16/9] w-full bg-muted overflow-hidden">
-        <ImageWithFallback
-          src={imageSrc}
-          fallback="/assets/placeholder.jpg"
-          alt={evt.title}
-          className="h-full w-full object-cover"
-          useDynamicFallback={true}
-        />
-      </div>
+      <EventImage src={imageSrc} alt={evt.title} />
       <div className="card-body">
         <div className="flex items-center gap-2 mb-2">
           {evt.type === "online" ? (

@@ -14,6 +14,7 @@ import FeaturesQuadrantSection from '../components/home/FeaturesQuadrantSection.
 import PodcastSection from '../components/home/PodcastSection.jsx';
 import TradingJournalSection from '../components/home/TradingJournalSection.jsx';
 import FeaturedEvents from '../components/home/FeaturedEvents.jsx';
+import LatestBlogs from '../components/home/LatestBlogs.jsx';
 import CTASection from '../components/home/CTASection.jsx';
 
 function Home() {
@@ -40,6 +41,7 @@ function Home() {
       <PodcastSection />
       <TradingJournalSection />
       <FeaturedEvents />
+      <LatestBlogs />
       <CTASection />
     </div>
   );

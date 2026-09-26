@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Star, ArrowRight, Landmark, TrendingUp } from "lucide-react";
 import { getAllCompanies } from "../../controllers/companiesController.js";
 import { computeTrustScore } from "../../utils/trustScore.js";
-import ImageWithFallback from "../shared/ImageWithFallback.jsx";
+import CompanyLogo from "../shared/CompanyLogo.jsx";
 
 // Same 5-star rendering as the reviews list, kept tiny for a table row.
 function Stars({ rating = 0 }) {
@@ -60,16 +60,7 @@ function CompanyRow({ company, index }) {
         {String(index + 1).padStart(2, "0")}
       </span>
       <div className="flex items-center gap-3 min-w-0">
-        <div className="h-8 w-8 rounded-md bg-gray-800/70 overflow-hidden flex-shrink-0 border border-white/5">
-          <ImageWithFallback
-            src={company.logo}
-            fallback="/assets/placeholder.jpg"
-            alt={company.name}
-            className="h-full w-full object-contain"
-            width={32}
-            height={32}
-          />
-        </div>
+        <CompanyLogo src={company.logo} name={company.name} size="sm" />
         <div className="min-w-0">
           <div className="text-sm font-medium text-white truncate group-hover:text-blue-300 transition-colors">
             {company.name}

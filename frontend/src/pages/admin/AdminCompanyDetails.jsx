@@ -1,5 +1,7 @@
 import React from "react";
 import { repairStoredHtml } from "../../utils/richText.js";
+import { isDesignedHtml } from "../../utils/designedHtml.js";
+import DesignedHtml from "../../components/shared/DesignedHtml.jsx";
 import { Helmet } from "react-helmet-async";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
@@ -30,7 +32,7 @@ import {
 } from "../../controllers/reviewsController.js";
 import ProtectedRoute from "../../components/dashboard/ProtectedRoute.jsx";
 import RatingBreakdownChart from "../../components/reviews/RatingBreakdownChart.jsx";
-import ImageWithFallback from "../../components/shared/ImageWithFallback.jsx";
+import CompanyLogo from "../../components/shared/CompanyLogo.jsx";
 import StarRating from "../../components/reviews/StarRating.jsx";
 import ConfirmModal from "../../components/shared/ConfirmModal.jsx";
 import { useSelector } from "react-redux";
@@ -282,15 +284,7 @@ function AdminCompanyDetailsContent() {
           <div className="card-body">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-start gap-4">
-                <div className="h-20 w-20 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                  <ImageWithFallback
-                    src={company.logo}
-                    fallback="/assets/placeholder.jpg"
-                    alt={company.name}
-                    className="h-full w-full object-cover"
-                    useDynamicFallback={true}
-                  />
-                </div>
+                <CompanyLogo src={company.logo} name={company.name} size="lg" />
                 <div>
                   <h1 className="text-3xl font-bold mb-2">{company.name}</h1>
                   <div className="flex items-center gap-3 mb-2">
@@ -317,7 +311,9 @@ function AdminCompanyDetailsContent() {
                       </span>
                     </div>
                   </div>
-                  {company.description ? (
+                  {isDesignedHtml(company.description) ? (
+                    <DesignedHtml content={company.description} className="mt-2 rounded-xl overflow-hidden" />
+                  ) : company.description ? (
                     <div
                       className="rich-text-content text-gray-300"
                       dangerouslySetInnerHTML={{ __html: repairStoredHtml(company.description) }}

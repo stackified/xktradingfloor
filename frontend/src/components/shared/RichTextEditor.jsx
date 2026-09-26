@@ -11,8 +11,13 @@ import { TableRow } from "@tiptap/extension-table-row";
 import { TableHeader } from "@tiptap/extension-table-header";
 import { TableCell } from "@tiptap/extension-table-cell";
 import { looksLikeHtmlSource, extractBodyHtml } from "../../utils/richText.js";
+import { isDesignedHtml, buildDesignedHtml, designedLook, DESIGN_LOOKS } from "../../utils/designedHtml.js";
+import DesignedHtml from "./DesignedHtml.jsx";
 import {
   FileCode,
+  LayoutTemplate,
+  Eye,
+  Code2,
   Bold,
   Italic,
   Underline as UnderlineIcon,
@@ -62,7 +67,7 @@ function ToolbarDivider() {
   return <div className="w-px h-6 bg-white/10 mx-1" />;
 }
 
-function Toolbar({ editor, sourceMode, onToggleSource }) {
+function Toolbar({ editor, sourceMode, onToggleSource, onDesign }) {
   if (!editor) return null;
 
   const promptForLink = () => {
@@ -230,26 +235,115 @@ function Toolbar({ editor, sourceMode, onToggleSource }) {
         disabled={!editor.can().redo()}
         label="Redo"
       >
-        <Redo className="h-4 w-4" />
-      </ToolbarButton>
-
-      <ToolbarDivider />
-
-      <ToolbarButton
-        onClick={onToggleSource}
-        active={sourceMode}
-        label={sourceMode ? "Back to visual editor" : "Edit HTML source"}
-      >
-        <FileCode className="h-4 w-4" />
-      </ToolbarButton>
-    </div>
-  );
-}
+        <Redo className="h-4 w-4" />
+      </ToolbarButton>
 
-function RichTextEditor({ value, onChange, placeholder = "Start typing..." }) {
-  const [sourceMode, setSourceMode] = React.useState(false);
-  const [sourceText, setSourceText] = React.useState("");
-
+      <ToolbarDivider />
+
+      <ToolbarButton
+        onClick={onToggleSource}
+        active={sourceMode}
+        label={sourceMode ? "Back to visual editor" : "Edit HTML source"}
+      >
+        <FileCode className="h-4 w-4" />
+      </ToolbarButton>
+      {onDesign && (
+        <ToolbarButton onClick={onDesign} label="Paste a designed HTML page (keeps its styling)">
+          <LayoutTemplate className="h-4 w-4" />
+        </ToolbarButton>
+      )}
+    </div>
+  );
+}
+
+// Designed-HTML mode: the pasted page is kept verbatim (styles included) and
+// shown in a live preview instead of being flattened by the visual editor.
+function DesignPanel({ source, look, onSourceChange, onLookChange, onLeave }) {
+  const [tab, setTab] = React.useState(source.trim() ? "preview" : "code");
+  const stored = React.useMemo(() => buildDesignedHtml(source, { look }), [source, look]);
+  const tabClass = (active) =>
+    `inline-flex items-center gap-1.5 px-3 h-8 rounded text-xs font-medium transition-colors ${
+      active
+        ? "bg-blue-500/30 text-blue-200 border border-blue-500/40"
+        : "text-gray-300 hover:bg-white/10 border border-transparent"
+    }`;
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center gap-2 p-2 bg-gray-900/60 border-b border-white/10">
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-300 px-2">
+          <LayoutTemplate className="h-4 w-4" /> Designed HTML
+        </span>
+        <button type="button" className={tabClass(tab === "preview")} onClick={() => setTab("preview")}>
+          <Eye className="h-3.5 w-3.5" /> Preview
+        </button>
+        <button type="button" className={tabClass(tab === "code")} onClick={() => setTab("code")}>
+          <Code2 className="h-3.5 w-3.5" /> Code
+        </button>
+        <label className="inline-flex items-center gap-2 text-xs text-gray-400 ml-2">
+          Look
+          <select
+            value={look}
+            onChange={(e) => onLookChange(e.target.value)}
+            className="h-8 rounded border border-white/10 bg-gray-900 px-2 text-xs text-gray-200"
+            title="Match site style: keeps the cards, tables and callouts but uses the site's background, font and heading sizes."
+          >
+            <option value={DESIGN_LOOKS.site}>Match site style</option>
+            <option value={DESIGN_LOOKS.original}>Keep original design</option>
+          </select>
+        </label>
+        <button
+          type="button"
+          onClick={onLeave}
+          className="ml-auto text-xs text-gray-400 hover:text-white px-2 h-8"
+          title="Convert to the normal editor (the page's own styling will be removed)"
+        >
+          Switch to normal editor
+        </button>
+      </div>
+      {tab === "code" ? (
+        <div>
+          <textarea
+            value={source}
+            onChange={(e) => onSourceChange(e.target.value)}
+            spellCheck={false}
+            aria-label="Designed HTML source"
+            placeholder="Paste the full HTML page here, including its <style> block."
+            className="w-full min-h-[360px] bg-transparent px-4 py-3 font-mono text-[13px] leading-relaxed text-gray-200 focus:outline-none resize-y"
+          />
+          <p className="px-4 pb-2 text-xs text-gray-500">
+            The page is shown exactly as designed. Scripts, forms and embedded frames are removed for
+            safety; links, images, tables and FAQ dropdowns (&lt;details&gt;) keep working.
+          </p>
+        </div>
+      ) : (
+        <div className="max-h-[70vh] overflow-auto bg-black/40">
+          {stored ? (
+            <DesignedHtml content={stored} />
+          ) : (
+            <p className="p-6 text-sm text-gray-500">
+              Nothing to preview yet — paste the HTML in the Code tab.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const HAS_STYLE_RE = /<style[\s>]/i;
+
+function RichTextEditor({ value, onChange, placeholder = "Start typing...", allowDesign = false }) {
+  const [sourceMode, setSourceMode] = React.useState(false);
+  const [sourceText, setSourceText] = React.useState("");
+  // Designed-HTML mode, offered only where the public page can render it
+  // (company descriptions, blog posts).
+  const startsDesigned = allowDesign && isDesignedHtml(value);
+  const [designMode, setDesignMode] = React.useState(startsDesigned);
+  const [designSource, setDesignSource] = React.useState(startsDesigned ? value : "");
+  const [designLook, setDesignLookState] = React.useState(() => designedLook(startsDesigned ? value : ""));
+  const enterDesignRef = React.useRef(null);
+
   const editor = useEditor({    extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
@@ -278,57 +372,112 @@ function RichTextEditor({ value, onChange, placeholder = "Start typing..." }) {
       const html = e.getHTML();
       if (onChange) onChange(html === "<p></p>" ? "" : html);
     },
-    editorProps: {
-      attributes: {
-        class:
-          "rich-text-editor-content prose prose-invert max-w-none focus:outline-none min-h-[240px] px-4 py-3",
-      },
-      // Pasted HTML source arrives as text/plain (a code editor may add a
-      // text/html flavour, but that is just the same source wrapped in
-      // <span>s). Real rich content pasted from a web page or Word has no
-      // tags in its text/plain flavour, so it is left to the default path.
-      handlePaste: (view, event) => {
-        const text = event.clipboardData?.getData("text/plain");
-        if (!looksLikeHtmlSource(text)) return false;
-        const html = extractBodyHtml(text);
-        if (!html) return false;
-        view.pasteHTML(html);
-        return true;
-      },
-    },
-  });
-
-  // Source mode shows the HTML in a textarea. Leaving it feeds the (cleaned)
-  // markup back through the editor, which also normalises it and fires
-  // onChange with the canonical HTML.
-  const toggleSource = () => {
-    if (!editor) return;
-    if (sourceMode) {
-      editor.commands.setContent(extractBodyHtml(sourceText), { emitUpdate: true });
-      setSourceMode(false);
-      return;
-    }
-    const html = editor.getHTML();
-    setSourceText(html === "<p></p>" ? "" : html);
-    setSourceMode(true);
-  };
-
-  // Keep the parent's value current while typing in source mode, so saving
-  // the form without toggling back still persists what is on screen.
-  const handleSourceChange = (e) => {
-    const text = e.target.value;
-    setSourceText(text);
-    if (onChange) onChange(extractBodyHtml(text));
-  };
+    editorProps: {
+      attributes: {
+        class:
+          "rich-text-editor-content prose prose-invert max-w-none focus:outline-none min-h-[240px] px-4 py-3",
+      },
+      // Pasted HTML source arrives as text/plain (a code editor may add a
+      // text/html flavour, but that is just the same source wrapped in
+      // <span>s). Real rich content pasted from a web page or Word has no
+      // tags in its text/plain flavour, so it is left to the default path.
+      handlePaste: (view, event) => {
+        const text = event.clipboardData?.getData("text/plain");
+        // A whole designed page (it carries its own <style>): keep it as designed.
+        if (allowDesign && text && HAS_STYLE_RE.test(text) && enterDesignRef.current) {
+          enterDesignRef.current(text);
+          return true;
+        }
+        if (!looksLikeHtmlSource(text)) return false;
+        const html = extractBodyHtml(text);
+        if (!html) return false;
+        view.pasteHTML(html);
+        return true;
+      },
+    },
+  });
+
+  // Source mode shows the HTML in a textarea. Leaving it feeds the (cleaned)
+  // markup back through the editor, which also normalises it and fires
+  // onChange with the canonical HTML.
+  const enterDesign = (text) => {
+    const nextLook = designedLook(text || "");
+    setDesignSource(text || "");
+    setDesignLookState(nextLook);
+    setDesignMode(true);
+    setSourceMode(false);
+    if (onChange) onChange(buildDesignedHtml(text || "", { look: nextLook }));
+  };
+  enterDesignRef.current = enterDesign;
+
+  const handleDesignChange = (text) => {
+    setDesignSource(text);
+    if (onChange) onChange(buildDesignedHtml(text, { look: designLook }));
+  };
+
+  const handleLookChange = (nextLook) => {
+    setDesignLookState(nextLook);
+    if (onChange) onChange(buildDesignedHtml(designSource, { look: nextLook }));
+  };
+
+  const leaveDesign = () => {
+    if (
+      designSource.trim() &&
+      !window.confirm(
+        "Switch to the normal editor? The page's own design (colours, cards, layout) will be removed and only the text kept."
+      )
+    ) {
+      return;
+    }
+    setDesignMode(false);
+    if (editor) editor.commands.setContent(extractBodyHtml(designSource), { emitUpdate: true });
+  };
+
+  const toggleSource = () => {
+    if (!editor || editor.isDestroyed) return;
+    if (sourceMode) {
+      if (allowDesign && HAS_STYLE_RE.test(sourceText)) {
+        enterDesign(sourceText);
+        return;
+      }
+      editor.commands.setContent(extractBodyHtml(sourceText), { emitUpdate: true });
+      setSourceMode(false);
+      return;
+    }
+    const html = editor.getHTML();
+    setSourceText(html === "<p></p>" ? "" : html);
+    setSourceMode(true);
+  };
+
+  // Keep the parent's value current while typing in source mode, so saving
+  // the form without toggling back still persists what is on screen.
+  const handleSourceChange = (e) => {
+    const text = e.target.value;
+    setSourceText(text);
+    if (!onChange) return;
+    onChange(allowDesign && HAS_STYLE_RE.test(text) ? buildDesignedHtml(text) : extractBodyHtml(text));
+  };
 
   React.useEffect(() => {
-    if (!editor) return;
+    // Stored designed content (e.g. opening an existing company to edit) must
+    // never go through the visual editor, which would strip its styling.
+    if (allowDesign && isDesignedHtml(value)) {
+      if (!designMode) {
+        setDesignSource(value);
+        setDesignLookState(designedLook(value));
+        setDesignMode(true);
+      }
+      return;
+    }
+    // A destroyed editor (React StrictMode re-mount, fast navigation) has no
+    // schema; reading it throws and would blank the whole page.
+    if (!editor || editor.isDestroyed || designMode) return;
     const current = editor.getHTML();
     if ((value || "") !== current && (value || "") !== (current === "<p></p>" ? "" : current)) {
       editor.commands.setContent(value || "", { emitUpdate: false });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, editor]);
+  }, [value, editor, allowDesign]);
 
   return (
     <>
@@ -408,26 +557,44 @@ function RichTextEditor({ value, onChange, placeholder = "Start typing..." }) {
           height: 0;
         }
       `}</style>
-      <div className="rich-text-editor-shell">
-        <Toolbar editor={editor} sourceMode={sourceMode} onToggleSource={toggleSource} />
-        {sourceMode ? (
-          <div>
-            <textarea
-              value={sourceText}
-              onChange={handleSourceChange}
-              spellCheck={false}
-              aria-label="HTML source"
-              className="w-full min-h-[240px] bg-transparent px-4 py-3 font-mono text-[13px] leading-relaxed text-gray-200 focus:outline-none resize-y"
-            />
-            <p className="px-4 pb-2 text-xs text-gray-500">
-              Paste or edit HTML here. Only the page content is kept &mdash; document tags such as
-              <code className="mx-1">&lt;head&gt;</code>and<code className="mx-1">&lt;meta&gt;</code>are dropped.
-            </p>
-          </div>
-        ) : (
-          <EditorContent editor={editor} />
-        )}
-      </div>    </>
+      <div className="rich-text-editor-shell">
+        {designMode ? (
+          <DesignPanel
+            source={designSource}
+            look={designLook}
+            onSourceChange={handleDesignChange}
+            onLookChange={handleLookChange}
+            onLeave={leaveDesign}
+          />
+        ) : (
+        <>
+        <Toolbar
+          editor={editor}
+          sourceMode={sourceMode}
+          onToggleSource={toggleSource}
+          onDesign={allowDesign ? () => enterDesign("") : undefined}
+        />
+        {sourceMode ? (
+          <div>
+            <textarea
+              value={sourceText}
+              onChange={handleSourceChange}
+              spellCheck={false}
+              aria-label="HTML source"
+              className="w-full min-h-[240px] bg-transparent px-4 py-3 font-mono text-[13px] leading-relaxed text-gray-200 focus:outline-none resize-y"
+            />
+            <p className="px-4 pb-2 text-xs text-gray-500">
+              Paste or edit HTML here. Only the page content is kept &mdash; document tags such as
+              <code className="mx-1">&lt;head&gt;</code>and<code className="mx-1">&lt;meta&gt;</code>are dropped.
+            </p>
+          </div>
+        ) : (
+          <EditorContent editor={editor} />
+        )}
+        </>
+        )}
+      </div>
+    </>
   );
 }
 
