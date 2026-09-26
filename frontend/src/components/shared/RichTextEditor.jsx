@@ -434,7 +434,7 @@ function RichTextEditor({ value, onChange, placeholder = "Start typing...", allo
   };
 
   const toggleSource = () => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
     if (sourceMode) {
       if (allowDesign && HAS_STYLE_RE.test(sourceText)) {
         enterDesign(sourceText);
@@ -469,7 +469,9 @@ function RichTextEditor({ value, onChange, placeholder = "Start typing...", allo
       }
       return;
     }
-    if (!editor || designMode) return;
+    // A destroyed editor (React StrictMode re-mount, fast navigation) has no
+    // schema; reading it throws and would blank the whole page.
+    if (!editor || editor.isDestroyed || designMode) return;
     const current = editor.getHTML();
     if ((value || "") !== current && (value || "") !== (current === "<p></p>" ? "" : current)) {
       editor.commands.setContent(value || "", { emitUpdate: false });
