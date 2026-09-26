@@ -69,7 +69,7 @@ function findContentBox(img) {
     transparent ? c[3] > 24 : c[3] > 24 && Math.max(...[0, 1, 2].map((k) => Math.abs(c[k] - bg[k]))) > 32;
 
   let minX = w, minY = h, maxX = -1, maxY = -1;
-  let lumSum = 0;
+  let lightCount = 0;
   let lumCount = 0;
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
@@ -79,14 +79,15 @@ function findContentBox(img) {
         if (x > maxX) maxX = x;
         if (y < minY) minY = y;
         if (y > maxY) maxY = y;
-        lumSum += (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255;
+        if ((0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255 > 0.5) lightCount++;
         lumCount++;
       }
     }
   }
-  // Mostly-dark artwork on a transparent background would vanish on the
-  // site's dark logo tiles.
-  const darkInk = transparent && lumCount > 0 && lumSum / lumCount < 0.35;
+  // Artwork on a transparent background with almost nothing light in it
+  // (black wordmarks, dark icons) would vanish on the site's dark logo tiles.
+  // A dark badge with a light mark inside is fine as it is.
+  const darkInk = transparent && lumCount > 0 && lightCount / lumCount < 0.12;
   if (maxX < 0) return { box: null, bg, transparent, darkInk: false };
 
   const inv = 1 / scale;
