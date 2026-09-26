@@ -9,7 +9,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import StarRating from "./StarRating.jsx";
-import ImageWithFallback from "../shared/ImageWithFallback.jsx";
+import CompanyLogo from "../shared/CompanyLogo.jsx";
 import { computeTrustScore } from "../../utils/trustScore.js";
 
 const whyChooseItems = [
@@ -78,15 +78,7 @@ function CompanyListItem({ company, rank, showMetric }) {
           {String(rank).padStart(2, "0")}
         </span>
       )}
-      <div className="h-8 w-8 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-        <ImageWithFallback
-          src={company.logo}
-          fallback="/assets/placeholder.jpg"
-          alt={company.name}
-          useDynamicFallback
-          className="h-full w-full object-cover"
-        />
-      </div>
+      <CompanyLogo src={company.logo} name={company.name} size="xs" />
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-white group-hover:text-blue-300 transition-colors truncate">
           {company.name}

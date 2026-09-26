@@ -1,8 +1,9 @@
 import React from "react";
 import { repairStoredHtml } from "../../utils/richText.js";
+import { isDesignedHtml } from "../../utils/designedHtml.js";
 import { motion } from "framer-motion";
 import { ExternalLink, ShieldCheck, Wallet, Clock, Globe, Layers, Server, TrendingUp } from "lucide-react";
-import ImageWithFallback from "../shared/ImageWithFallback.jsx";
+import CompanyLogo from "../shared/CompanyLogo.jsx";
 import StarRating from "./StarRating.jsx";
 
 function csvOrArray(value) {
@@ -60,15 +61,7 @@ function CompanyProfileHeader({ company }) {
     >
       <div className="card-body space-y-6">
         <div className="flex items-start gap-4 sm:gap-5">
-          <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-xl bg-white/95 overflow-hidden flex-shrink-0 border border-gray-700 shadow-lg p-2 flex items-center justify-center">
-            <ImageWithFallback
-              src={company.logo}
-              fallback="/assets/placeholder.jpg"
-              alt={company.name}
-              className="h-full w-full object-contain"
-              useDynamicFallback={true}
-            />
-          </div>
+          <CompanyLogo src={company.logo} name={company.name} size="xl" priority className="shadow-lg" />
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="text-xs sm:text-sm px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 font-semibold">
@@ -143,8 +136,10 @@ function CompanyProfileHeader({ company }) {
           </div>
         )}
 
+        {/* A designed review renders full-width below this card (see
+            CompanyDetails); here we show the short description instead. */}
         {(company.description || company.details) && (
-          company.description ? (
+          company.description && !isDesignedHtml(company.description) ? (
             <div
               className="rich-text-content text-sm sm:text-base text-gray-300"
               dangerouslySetInnerHTML={{ __html: repairStoredHtml(company.description) }}

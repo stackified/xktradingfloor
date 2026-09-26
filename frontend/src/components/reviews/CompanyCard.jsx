@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Lock, ShieldCheck, ExternalLink } from "lucide-react";
 import StarRating from "./StarRating.jsx";
 import TrustScoreGauge from "./TrustScoreGauge.jsx";
-import ImageWithFallback from "../shared/ImageWithFallback.jsx";
+import CompanyLogo from "../shared/CompanyLogo.jsx";
 
 // Backend has stored min deposit either as a bare number ("50") or with a
 // leading currency symbol ("$50", "$10–$200"). Normalise so the display never
@@ -57,17 +57,8 @@ function CompanyCard({ company, user }) {
             keeps the gauge from ever floating over the description text like
             the previous flex-row layout did. */}
         <div className="flex items-start gap-4">
-          <Link
-            to={`/reviews/${id}`}
-            className="h-14 w-14 rounded-xl bg-muted overflow-hidden flex-shrink-0 border border-gray-700/50"
-          >
-            <ImageWithFallback
-              src={company.logo}
-              fallback="/assets/placeholder.jpg"
-              alt={company.name}
-              useDynamicFallback
-              className="h-full w-full object-cover"
-            />
+          <Link to={`/reviews/${id}`} className="flex-shrink-0">
+            <CompanyLogo src={company.logo} name={company.name} size="md" />
           </Link>
 
           <div className="flex-1 min-w-0">

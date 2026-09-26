@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { getAllEvents } from '../../controllers/eventsController.js';
 import { Link, useNavigate } from 'react-router-dom';
-import ImageWithFallback from '../shared/ImageWithFallback.jsx';
+import EventImage from '../shared/EventImage.jsx';
 
 function EventCard({ evt, onClick }) {
   // Normalize image src - convert empty strings to null for proper text-based fallback
@@ -20,17 +20,7 @@ function EventCard({ evt, onClick }) {
 
   return (
     <motion.div whileHover={{ y: -4 }} className="card overflow-hidden cursor-pointer" onClick={onClick}>
-      <div className="h-40 w-full bg-muted">
-        <ImageWithFallback
-          src={imageSrc}
-          fallback="/assets/placeholder.jpg"
-          alt={evt.title}
-          className="h-full w-full object-cover"
-          useDynamicFallback={true}
-          width={400}
-          height={160}
-        />
-      </div>
+      <EventImage src={imageSrc} alt={evt.title} />
       <div className="card-body">
         <div className="text-xs sm:text-sm text-gray-400 mb-2">{formatDate(evt.dateTime || evt.date)}</div>
         <div className="font-display font-semibold text-base sm:text-lg tracking-tight mb-2">{evt.title}</div>
@@ -40,13 +30,13 @@ function EventCard({ evt, onClick }) {
   );
 }
 
-// Same box model as EventCard (h-40 image + card-body), so the grid holds its
+// Same box model as EventCard (16:9 image + card-body), so the grid holds its
 // final height from the first paint instead of growing from nothing when the
 // events request lands.
 function EventCardSkeleton() {
   return (
     <div className="card overflow-hidden" aria-hidden="true">
-      <div className="h-40 w-full bg-muted" />
+      <div className="aspect-[16/9] w-full bg-muted" />
       <div className="card-body">
         <div className="h-3 w-24 rounded bg-gray-800/70 mb-2" />
         <div className="h-5 w-3/4 rounded bg-gray-800/70 mb-2" />

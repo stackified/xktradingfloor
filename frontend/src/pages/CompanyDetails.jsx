@@ -7,6 +7,8 @@ import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
 import { getCompanyById } from "../controllers/companiesController.js";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
+import DesignedHtml from "../components/shared/DesignedHtml.jsx";
+import { isDesignedHtml } from "../utils/designedHtml.js";
 import CardLoader from "../components/shared/CardLoader.jsx";
 import { getReviewsByCompanyId, deleteReview } from "../controllers/reviewsController.js";
 import StarRating from "../components/reviews/StarRating.jsx";
@@ -217,6 +219,12 @@ function CompanyDetails() {
 
         {/* Company Header (with country, regulation, assets, platforms, etc.) */}
         <CompanyProfileHeader company={company} />
+
+        {/* Designed review (a full styled HTML page pasted by the admin),
+            shown exactly as designed. */}
+        {isDesignedHtml(company.description) && (
+          <DesignedHtml content={company.description} className="rounded-2xl overflow-hidden" />
+        )}
 
         {/* Category-specific data section */}
         {company.category === "Broker" && (

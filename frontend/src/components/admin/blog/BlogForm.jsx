@@ -471,6 +471,7 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
                 value={formState.content}
                 onChange={handleContentChange}
                 placeholder="Share your ideas..."
+                allowDesign
               />
             </div>
 
@@ -499,7 +500,13 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
                   onChange={handleChange}
                   className="checkbox checkbox-primary"
                 />
-                Feature this blog on landing pages
+                <span>
+                  Feature this blog on landing pages
+                  <span className="block text-xs text-gray-500">
+                    Featured posts show in the blog page slider and in &ldquo;Latest articles&rdquo; on the homepage
+                    (the 3 most recent featured posts).
+                  </span>
+                </span>
               </label>
             )}
 

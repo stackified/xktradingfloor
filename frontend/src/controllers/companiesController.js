@@ -31,6 +31,88 @@ function appendCompanyField(formData, key, value) {
   formData.append(key, value);
 }
 
+// ---------------------------------------------------------------------------
+// Company list cache.
+//
+// The reviews page, its sidebar and the homepage tables all ask for company
+// lists, and the backend can take seconds to answer (especially after idling).
+// Identical requests in flight are shared, and a recent answer is reused:
+// public lists for up to 10 minutes (refreshed quietly in the background once
+// they are a minute old, so the next view is current), admin lists for 30s
+// and only in memory. Any company change clears the cache.
+const LIST_STORE_KEY = "xk_companies_list_v1";
+const PUBLIC_MAX_AGE = 10 * 60 * 1000;
+const PUBLIC_REFRESH_AFTER = 60 * 1000;
+const ADMIN_MAX_AGE = 30 * 1000;
+const listMemory = new Map();
+const listInflight = new Map();
+
+function readListStore() {
+  try {
+    return JSON.parse(localStorage.getItem(LIST_STORE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writeListStore(key, entry) {
+  try {
+    const store = { ...readListStore(), [key]: entry };
+    const newest = Object.keys(store)
+      .sort((a, b) => store[b].t - store[a].t)
+      .slice(0, 20);
+    localStorage.setItem(
+      LIST_STORE_KEY,
+      JSON.stringify(Object.fromEntries(newest.map((k) => [k, store[k]])))
+    );
+  } catch {
+    // Storage full or blocked (private mode) — the memory cache still works.
+  }
+}
+
+export function clearCompaniesCache() {
+  listMemory.clear();
+  try {
+    localStorage.removeItem(LIST_STORE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+function postCompaniesList(endpoint, body, params, adminView) {
+  const key = JSON.stringify([endpoint, body, params]);
+  const maxAge = adminView ? ADMIN_MAX_AGE : PUBLIC_MAX_AGE;
+  let entry = listMemory.get(key);
+  if (!entry && !adminView) {
+    entry = readListStore()[key];
+    if (entry) listMemory.set(key, entry);
+  }
+
+  const fetchFresh = () => {
+    if (listInflight.has(key)) return listInflight.get(key);
+    const request = api
+      .post(endpoint, body, { params })
+      .then((res) => {
+        if (res.data?.success) {
+          const fresh = { t: Date.now(), data: res.data };
+          listMemory.set(key, fresh);
+          if (!adminView) writeListStore(key, fresh);
+        }
+        return res;
+      })
+      .finally(() => listInflight.delete(key));
+    listInflight.set(key, request);
+    return request;
+  };
+
+  const age = entry ? Date.now() - entry.t : Infinity;
+  if (age < maxAge) {
+    if (!adminView && age > PUBLIC_REFRESH_AFTER) fetchFresh().catch(() => {});
+    return Promise.resolve({ data: entry.data });
+  }
+  return fetchFresh();
+}
+
 // FORCE REAL DATA MODE - Mock functionality is hidden but code is kept for future use
 // Set to false to always use real data from database
 const FORCE_REAL_DATA_MODE = true;
@@ -220,9 +302,12 @@ export async function getAllCompanies(filters = {}) {
         // Category is passed in body if provided
       }
 
-      const response = await api.post(endpoint, requestBody, {
-        params: { search, page, size },
-      });
+      const response = await postCompaniesList(
+        endpoint,
+        requestBody,
+        { search, page, size },
+        authenticated && userIsAdmin
+      );
 
       // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
       // OR: { success: true, data: [...], pagination: {...} } depending on endpoint implementation
@@ -416,6 +501,7 @@ export async function getCompanyById(companyId) {
 
 // Create company (admin only)
 export async function createCompany(companyData) {
+  clearCompaniesCache(); // lists change with this
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
@@ -490,6 +576,7 @@ export async function createCompany(companyData) {
 
 // Update company (admin can update any, operator can only update their own)
 export async function updateCompany(companyId, updates) {
+  clearCompaniesCache(); // lists change with this
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
@@ -574,6 +661,7 @@ export async function updateCompany(companyId, updates) {
 
 // Delete company (admin only)
 export async function deleteCompany(companyId) {
+  clearCompaniesCache(); // lists change with this
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
@@ -624,6 +712,7 @@ export async function deleteCompany(companyId) {
 
 // Toggle company active/blocked status (admin only)
 export async function toggleCompanyStatus(companyId) {
+  clearCompaniesCache(); // lists change with this
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
@@ -681,6 +770,7 @@ export async function toggleCompanyStatus(companyId) {
 // Add promo code to company
 // Backend endpoint: POST /api/admin/company/:companyId/addpromocode
 export async function addPromoCode(companyId, promoData) {
+  clearCompaniesCache(); // lists change with this
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
@@ -760,6 +850,7 @@ export async function addPromoCode(companyId, promoData) {
 // Update promo code
 // Backend endpoint: PUT /api/admin/company/:companyId/updatepromocode/:promoId
 export async function updatePromoCode(companyId, promoId, updates) {
+  clearCompaniesCache(); // lists change with this
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
@@ -842,6 +933,7 @@ export async function updatePromoCode(companyId, promoId, updates) {
 // Delete promo code
 // Backend endpoint: DELETE /api/admin/company/:companyId/deletepromocode/:promoId
 export async function deletePromoCode(companyId, promoId) {
+  clearCompaniesCache(); // lists change with this
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 

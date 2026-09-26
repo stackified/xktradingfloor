@@ -3,6 +3,8 @@
 // module so pages that only *render* content (blog posts, company profiles)
 // do not pull Tiptap into their chunk.
 
+import { isDesignedHtml, renderDesignedHtml, designedText } from "./designedHtml.js";
+
 // Cheap heuristic: does this plain text contain HTML tags?
 const HTML_SOURCE_RE =
   /<\s*(!doctype|html|head|body|h[1-6]|p|div|section|article|ul|ol|li|table|thead|tbody|tr|td|th|a|img|br|hr|strong|b|em|i|u|span|blockquote|pre|code|iframe)\b[^>]*>/i;
@@ -99,7 +101,14 @@ function slugify(text) {
 // Everything the public article view needs from stored content: repaired,
 // tidied HTML with ids on h2/h3, plus the heading list for the table of
 // contents. Pure DOM work, no network, safe to memoise on the content string.
+//
+// Designed posts (a full styled HTML page, see designedHtml.js) are rendered
+// separately: `designed` carries the scoped markup/CSS and `html` is empty.
 export function prepareArticle(content) {
+  if (isDesignedHtml(content)) {
+    const designed = renderDesignedHtml(content);
+    return { html: "", headings: designed.headings, designed };
+  }
   const repaired = repairStoredHtml(content || "");
   if (typeof DOMParser === "undefined") return { html: repaired, headings: [] };
 
@@ -167,7 +176,9 @@ export function prepareArticle(content) {
 // Words in the article body, for "N min read".
 export function readingMinutes(content) {
   if (!content) return null;
-  const text = repairStoredHtml(content).replace(/<[^>]*>/g, " ");
+  const text = isDesignedHtml(content)
+    ? designedText(content)
+    : repairStoredHtml(content).replace(/<[^>]*>/g, " ");
   const words = text.split(/\s+/).filter(Boolean).length;
   return words ? Math.max(1, Math.round(words / 220)) : null;
 }

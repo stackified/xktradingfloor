@@ -2,6 +2,7 @@ import React from 'react';
 import Seo from '../components/shared/Seo.jsx';
 import { articleJsonLd, breadcrumbJsonLd } from '../utils/structuredData.js';
 import { prepareArticle, readingMinutes } from '../utils/richText.js';
+import DesignedHtml from '../components/shared/DesignedHtml.jsx';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ChevronRight, Clock, CalendarDays, ArrowLeft, ListOrdered } from 'lucide-react';
@@ -463,11 +464,19 @@ function BlogPost() {
               </details>
             )}
 
-            <article
-              ref={articleRef}
-              className="article-content"
-              dangerouslySetInnerHTML={{ __html: article.html }}
-            />
+            {article.designed ? (
+              // A designed post keeps its own styling, isolated from the
+              // article typography (.article-content would leak into it).
+              <article ref={articleRef}>
+                <DesignedHtml rendered={article.designed} className="rounded-2xl overflow-hidden" />
+              </article>
+            ) : (
+              <article
+                ref={articleRef}
+                className="article-content"
+                dangerouslySetInnerHTML={{ __html: article.html }}
+              />
+            )}
 
             {post.tags?.length > 0 && (
               <div className="mt-10 flex flex-wrap gap-2">

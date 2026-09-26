@@ -17,6 +17,8 @@ import { createEvent, updateEvent, getEventById } from "../../../controllers/eve
 import { useToast } from "../../../contexts/ToastContext.jsx";
 import ChipInput from "../../shared/ChipInput.jsx";
 import CustomSelect from "../../shared/CustomSelect.jsx";
+import EventImage from "../../shared/EventImage.jsx";
+import { processEventImage } from "../../../utils/imageProcessing.js";
 
 const EVENT_TYPES = ["online", "campus"];
 
@@ -114,10 +116,10 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
     }));
   };
 
-  // Client-side crop-to-16:9. The public site and admin preview all use a
-  // 16:9 aspect-[16/9] container with object-cover, so if we normalise the
-  // upload itself the "wrong ratio" case never happens. Auto-crops around the
-  // configurable focal anchor (top/center/bottom); center is the safe default.
+  // Client-side crop-to-16:9 (the "top/center/bottom" framing options). The
+  // public site shows every event image in a 16:9 frame (EventImage), so a
+  // cropped upload fills it exactly; "fit" keeps the whole image instead.
+  // Crops around the chosen focal anchor.
   const cropTo169 = React.useCallback(async (file, anchorY = "center") => {
     try {
       const bitmap = await createImageBitmap(file);
@@ -166,10 +168,16 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
     if (!originalFile) return;
     let revoked = false;
     let objectUrl;
-    cropTo169(originalFile, cropAnchor).then((cropped) => {
+    // "fit" keeps the whole image (resized, not cropped); the site shows it
+    // in the same 16:9 frame over a blurred fill, so posters stay complete.
+    const prepare =
+      cropAnchor === "fit"
+        ? processEventImage(originalFile).then((r) => r.file).catch(() => originalFile)
+        : cropTo169(originalFile, cropAnchor);
+    prepare.then((prepared) => {
       if (revoked) return;
-      setFeaturedImageFile(cropped);
-      objectUrl = URL.createObjectURL(cropped);
+      setFeaturedImageFile(prepared);
+      objectUrl = URL.createObjectURL(prepared);
       setFeaturedImagePreview(objectUrl);
     });
     return () => {
@@ -178,13 +186,24 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
     };
   }, [originalFile, cropAnchor, cropTo169]);
 
-  const handleFileChange = (event) => {
+  const handleFileChange = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    // Preview + upload payload are both derived from cropTo169 via the effect
-    // above. Keep the original around in case admin flips the anchor after.
+    // Preview + upload payload are both derived via the effect above. Keep the
+    // original around in case admin flips the anchor after. Images that are
+    // already about 16:9 are cropped (nothing visible is lost); anything else
+    // — posters, squares — defaults to "fit" so nothing gets cut off.
+    let anchor = "fit";
+    try {
+      const bitmap = await createImageBitmap(file);
+      const ratio = bitmap.width / bitmap.height;
+      bitmap.close?.();
+      if (Math.abs(ratio - 16 / 9) / (16 / 9) < 0.12) anchor = "center";
+    } catch {
+      /* unreadable here; "fit" uploads it unchanged */
+    }
+    setCropAnchor(anchor);
     setOriginalFile(file);
-    setCropAnchor("center");
   };
 
   const handleRemoveImage = () => {
@@ -510,7 +529,7 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
             />
           </div>
 
-          {/* Featured Image — always 16:9. Uploads are auto-cropped so the
+          {/* Featured Image — always shown in a 16:9 frame. Uploads are prepared so the
               preview exactly matches what the public site will show. */}
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -519,13 +538,13 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
             {featuredImagePreview ? (
               <div className="space-y-3">
                 <div className="relative">
-                  <div className="w-full aspect-[16/9] overflow-hidden rounded-lg border border-white/10 bg-gray-900/40">
-                    <img
-                      src={featuredImagePreview}
-                      alt="Featured"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  {/* Same frame the public site uses */}
+                  <EventImage
+                    src={featuredImagePreview}
+                    alt="Featured"
+                    rounded="rounded-lg"
+                    className="border border-white/10"
+                  />
                   <button
                     type="button"
                     onClick={handleRemoveImage}
@@ -538,12 +557,14 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
                 {originalFile && (
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <p className="text-xs text-gray-500">
-                      Auto-cropped to 16:9 · this is exactly how it will appear on the site.
+                      {cropAnchor === "fit"
+                        ? "Whole image kept · shown in the 16:9 frame exactly like this on the site."
+                        : "Cropped to 16:9 · this is exactly how it will appear on the site."}
                     </p>
                     <div className="inline-flex items-center gap-2 text-xs">
-                      <span className="text-gray-400">Focal anchor:</span>
+                      <span className="text-gray-400">Framing:</span>
                       <div className="inline-flex rounded-full bg-gray-900 border border-gray-700 p-0.5">
-                        {["top", "center", "bottom"].map((pos) => (
+                        {["fit", "top", "center", "bottom"].map((pos) => (
                           <button
                             key={pos}
                             type="button"
@@ -554,7 +575,7 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
                                 : "text-gray-400 hover:text-white"
                             }`}
                           >
-                            {pos}
+                            {pos === "fit" ? "Fit whole image" : pos}
                           </button>
                         ))}
                       </div>
@@ -570,7 +591,7 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
                     Click to upload or drag and drop
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    Any size — we'll crop to 16:9 automatically
+                    Any size — shown in a 16:9 frame; posters are kept whole
                   </p>
                 </div>
                 <input
