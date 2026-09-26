@@ -2,7 +2,9 @@
 
 A full-stack trading education and community platform featuring academy courses, broker reviews, blogs, podcasts, and merchandise.
 
-**🌐 Live Demo:** [https://stackified.github.io/xktradingfloor/](https://stackified.github.io/xktradingfloor/)
+**🌐 Live Site:** [https://xktradingfloor.com](https://xktradingfloor.com)
+
+**🧪 Staging:** [https://stackified.github.io/xktradingfloor/](https://stackified.github.io/xktradingfloor/)
 
 ## 📦 Project Structure
 
@@ -16,16 +18,20 @@ xktradingfloor/
 │   │   ├── models/     # Data models/types
 │   │   ├── pages/      # Page components
 │   │   ├── redux/      # Redux store
-│   │   └── routes/     # React Router
+│   │   ├── routes/     # React Router
+│   │   └── utils/      # Shared utilities (analytics, rich text, etc.)
+│   ├── scripts/        # Sitemap, prerender and hydration-check scripts
 │   └── package.json
 ├── backend/           # Express.js backend application
+│   ├── bin/           # Server entry point (www)
 │   ├── controllers/   # Request handlers
+│   ├── emails/        # EJS email templates
 │   ├── helpers/       # Helper functions
 │   ├── middleware/    # Express middleware
 │   ├── models/        # Database models
 │   ├── routes/        # API routes
+│   ├── services/      # Email and spread-data services
 │   ├── utils/         # Utility functions
-│   ├── views/         # EJS templates
 │   └── package.json
 └── README.md
 ```
@@ -41,8 +47,8 @@ xktradingfloor/
 - **👤 Dashboards**: Personalized dashboards for users, operators, and admins
 - **🔐 Authentication**: User registration, login, and role-based access control
 - **📧 Email Campaigns**: Admin email campaign management with CSV upload, draft management, and campaign history
-- **📧 Email Notifications**: Automated emails via SendGrid
-- **☁️ Cloud Storage**: Secure file upload and storage via AWS S3
+- **📧 Email Notifications**: Automated emails via Brevo
+- **☁️ Cloud Storage**: File upload and storage via Cloudflare R2
 - **🛡️ Error Monitoring**: Real-time error tracking and performance monitoring via Sentry
 - **📊 Analytics**: Google Analytics 4 integration for tracking website performance and user behavior
 
@@ -51,14 +57,14 @@ xktradingfloor/
 ### Frontend
 
 - React 18.3.1
-- Vite 5.4.10
+- Vite 7.3.1
 - React Router DOM 6.26.2
 - Redux Toolkit 2.2.7
 - Tailwind CSS 3.4.14
 - Framer Motion 11.2.13
 - Lucide React 0.474.0
 - React Helmet Async 2.0.5
-- React Quill 2.0.0 (Rich text editor)
+- Tiptap 3 (Rich text editor)
 - Recharts 2.15.4 (Charts)
 
 ### Backend
@@ -67,8 +73,8 @@ xktradingfloor/
 - Express.js 4.16.1
 - MongoDB with Mongoose 8.18.1
 - JWT Authentication
-- AWS SDK (S3)
-- SendGrid (Email)
+- AWS SDK S3 client (Cloudflare R2 storage)
+- Brevo (Email)
 - Sentry (Monitoring)
 - EJS (Templates)
 - File upload support
@@ -77,7 +83,7 @@ xktradingfloor/
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js 20.19 or higher (Vite 7 requirement; CI uses Node 22)
 - npm or yarn
 - MongoDB (local or remote instance)
 
@@ -133,6 +139,8 @@ npm run dev
 ```bash
 npm run dev          # Start development server
 npm run build        # Build for production
+npm run build:prod   # Production build with base "/" plus prerender (used for xktradingfloor.com)
+npm run build:gith   # Build with base "/xktradingfloor/" plus prerender (used for GitHub Pages staging)
 npm run preview      # Preview production build
 ```
 
@@ -142,6 +150,14 @@ npm run preview      # Preview production build
 npm start            # Start production server
 npm run dev          # Start development server with auto-reload
 ```
+
+## 🌍 Deployment
+
+- **Production:** pushes to `main` build the frontend (`npm run build:prod`) and upload it to Bluehost over FTP, serving [xktradingfloor.com](https://xktradingfloor.com).
+- **Staging:** pushes to `dev` build the frontend (`npm run build:gith`) and publish it to the `gh-pages` branch, serving [stackified.github.io/xktradingfloor](https://stackified.github.io/xktradingfloor/).
+- **Backend:** the Express API is hosted on Render.
+
+The workflows live in `.github/workflows/`.
 
 ## 🎨 Styling
 

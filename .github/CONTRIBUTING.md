@@ -60,7 +60,7 @@ missing the prerender step is skipped and the build still completes.
 - `frontend/src/redux/` - Redux Toolkit store and slices (auth, blogs, cart, mock mode, analytics)
 - `frontend/src/models/` - local JSON and JS data used for mock mode and static sections
 - `frontend/scripts/` - sitemap, prerender and hydration-check scripts used by the build
-- `backend/routes/api/` - `auth`, `public/`, `protected/`, `admin/` and `marketing` routers
+- `backend/routes/api/` - API routers (`auth`, `public/`, `protected/`, `admin/`)
 - `backend/controllers/`, `backend/models/` - Express handlers and Mongoose models
 - `backend/services/` - Brevo email, bulk marketing, Myfxbook spread scraper
 - `backend/helpers/r2.helper.js` - Cloudflare R2 uploads and presigned URLs
