@@ -1,0 +1,59 @@
+# XK Trading Floor
+
+> XK Trading Floor (xktradingfloor.com) is a trading community and review platform. It helps traders compare forex brokers, prop firms and crypto platforms, read reviews from real traders, find verified traders, follow live spreads and prop-firm payouts, and discover trading events worldwide.
+
+Key facts:
+- Reviews are written by traders who use the companies; anyone can add one after signing in.
+- Verified Trader badges are awarded after an application, document check and a call with the XK team.
+- Trading education happens in the XK Discord community rather than a separate academy.
+- Content is for information only and is not financial advice.
+
+## Main pages
+- [Home](https://stackified.github.io/xktradingfloor/): overview, top-rated brokers and prop firms, upcoming events
+- [Company reviews](https://stackified.github.io/xktradingfloor/reviews): all reviewed brokers, prop firms and crypto platforms
+- [Broker reviews](https://stackified.github.io/xktradingfloor/reviews/broker)
+- [Prop firm reviews](https://stackified.github.io/xktradingfloor/reviews/propfirm)
+- [Crypto platform reviews](https://stackified.github.io/xktradingfloor/reviews/crypto)
+- [Verified traders](https://stackified.github.io/xktradingfloor/reviews/traders): traders whose track record XK has verified
+- [Live spreads](https://stackified.github.io/xktradingfloor/live-spreads): broker spread comparison
+- [Prop firm payout tracker](https://stackified.github.io/xktradingfloor/payouts)
+- [Trading events](https://stackified.github.io/xktradingfloor/events): expos, conferences, webinars and meetups
+- [Blog](https://stackified.github.io/xktradingfloor/blog): market analysis, broker and prop firm news, trading guides
+- [For brands](https://stackified.github.io/xktradingfloor/services): listing and partnership options for brokers and prop firms
+- [About](https://stackified.github.io/xktradingfloor/about)
+- [Contact](https://stackified.github.io/xktradingfloor/contact)
+
+## Broker reviews
+- [Pipze review](https://stackified.github.io/xktradingfloor/reviews/6ab2240d36d015a5325b5e18)
+- [Elefin review](https://stackified.github.io/xktradingfloor/reviews/6a79bc7e2819c50d577ee323)
+- [Vantage review](https://stackified.github.io/xktradingfloor/reviews/69452ae0096d6a54e754281e)
+- [Xellion review](https://stackified.github.io/xktradingfloor/reviews/6943f01ffef1b1aa7f34288a)
+- [EC Market review](https://stackified.github.io/xktradingfloor/reviews/693837bef3a1f5a840a23de1)
+
+## Prop firm reviews
+- [Funded Squad review](https://stackified.github.io/xktradingfloor/reviews/6958eb57cb6b3989bc832bce)
+- [Blueberry Funded review](https://stackified.github.io/xktradingfloor/reviews/6938813ae154bbf817bc14bb)
+- [e8markets review](https://stackified.github.io/xktradingfloor/reviews/69387fd1e154bbf817bc1447)
+- [the5ers review](https://stackified.github.io/xktradingfloor/reviews/69387e8ee154bbf817bc13d3)
+- [Funding Pips review](https://stackified.github.io/xktradingfloor/reviews/69387cade154bbf817bc132a)
+- [Fxify review](https://stackified.github.io/xktradingfloor/reviews/69386881fc606e64760001f1)
+- [FundedElite review](https://stackified.github.io/xktradingfloor/reviews/69386461fc606e64760000d5)
+- [Vantir review](https://stackified.github.io/xktradingfloor/reviews/69381d94f3a1f5a840a23667)
+- [FTMO review](https://stackified.github.io/xktradingfloor/reviews/69381561f3a1f5a840a235e4)
+
+## Articles
+- [How Interest Rates Are Moving Gold & Forex Markets in 2026 (What Traders Must Know)](https://stackified.github.io/xktradingfloor/blog/69ef9bb2613d00c029a29725): Interest rates remain the biggest driver of forex and gold markets in 2026. This article explains how central bank decisions impact XAUUSD and major currency p…
+- [Xellion Review: Everything You Need to Know About This New Forex Broker](https://stackified.github.io/xktradingfloor/blog/xellion-review-everything-you-need-to-know-about-this-new-forex-broker): Xellion is a new forex broker entering the market with a strong backend team, investor support, and a trader-friendly infrastructure. In this review, we break…
+- [My Forex Funds Return in 2026? Latest Updates, Roadmap & What Traders Need to Know](https://stackified.github.io/xktradingfloor/blog/69887ae212df70d81ef74597): My Forex Funds — one of the most popular proprietary trading firms in the world — has signaled a possible comeback in 2026 after winning major legal battles an…
+- [Why 90% of Forex Traders Lose Money (And What Profitable Traders Do Differently)](https://stackified.github.io/xktradingfloor/blog/why-90-of-forex-traders-lose-money-and-what-profitable-traders-do-differently): Nearly 90% of forex traders lose money in the markets. This article explains the real reasons most traders fail, the psychological and technical mistakes they…
+- [Gold and Silver Trading Explained: How to Trade XAUUSD & XAGUSD Profitably](https://stackified.github.io/xktradingfloor/blog/6963834cfdeafa09c8e238ed): Gold and silver are among the most traded commodities in the world. This complete guide explains how gold and silver trading works, what moves XAUUSD and XAGUS…
+- [Prop Firm Consistency Rule Explained (30% & 35%) – How to Pass Safely](https://stackified.github.io/xktradingfloor/blog/69563760cad1afd481f1e7ff): Most traders fail prop firm challenges because of the consistency rule. This guide explains how 30% and 35% consistency rules work, common mistakes traders mak…
+- [Best Prop Firms for Indian Traders in 2025 (Fast Guide)](https://stackified.github.io/xktradingfloor/blog/69389119e154bbf817bc1836): A quick and honest overview of the top prop firms available to Indian traders in 2025 — rules, payouts, and which firms are actually worth trying.
+- [FTMO Is Returning to India: The OG Prop Firm Is Back](https://stackified.github.io/xktradingfloor/blog/6938293ff3a1f5a840a23abb): FTMO, the original pioneer of modern prop trading, is officially returning to India after a period of restrictions. Here’s why this comeback matters for every…
+
+## Events
+- [Money Expo India 2026 – Mumbai](https://stackified.github.io/xktradingfloor/events/6a79a9936c0cf1ab7f1c7da7): 2026-08-28
+
+## Optional
+- [Privacy policy](https://stackified.github.io/xktradingfloor/privacy-policy)
+- [Terms](https://stackified.github.io/xktradingfloor/terms)
