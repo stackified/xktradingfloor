@@ -1,0 +1,31 @@
+{
+  "organization": {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": "https://xktradingfloor.com/#organization",
+    "name": "XK Trading Floor",
+    "alternateName": "XKTF",
+    "url": "https://xktradingfloor.com",
+    "logo": "https://xktradingfloor.com/assets/logo.png",
+    "description": "XK Trading Floor is a trading community and review platform: reviews of forex brokers, prop firms and crypto platforms, verified trader profiles, live spread comparison, a prop firm payout tracker and global trading events.",
+    "sameAs": [
+      "https://www.youtube.com/@xk_trading_floor",
+      "https://www.instagram.com/xktradingfloor/",
+      "https://www.linkedin.com/company/xk-trading-floor",
+      "https://x.com/XK_Capital"
+    ]
+  },
+  "website": {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://xktradingfloor.com/#website",
+    "name": "XK Trading Floor",
+    "url": "https://xktradingfloor.com",
+    "publisher": { "@id": "https://xktradingfloor.com/#organization" },
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://xktradingfloor.com/reviews?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+}

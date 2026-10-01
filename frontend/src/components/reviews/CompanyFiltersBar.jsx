@@ -32,7 +32,7 @@ function CompanyFiltersBar({ filters, onChange }) {
     <div className="bg-gray-900/40 border border-gray-800/60 rounded-xl p-4 backdrop-blur-sm">
       <div className="flex flex-wrap items-end gap-3 lg:gap-4">
         <div className="flex-1 min-w-[140px]">
-          <label className="text-xs text-gray-500 mb-1.5 block">Category</label>
+          <label className="text-xs text-gray-400 mb-1.5 block">Category</label>
           <CustomSelect
             value={filters.category || ""}
             onChange={(e) => onChange({ ...filters, category: e.target.value })}
@@ -41,7 +41,7 @@ function CompanyFiltersBar({ filters, onChange }) {
         </div>
 
         <div className="flex-1 min-w-[140px]">
-          <label className="text-xs text-gray-500 mb-1.5 block">Rating</label>
+          <label className="text-xs text-gray-400 mb-1.5 block">Rating</label>
           <CustomSelect
             value={filters.minRating || "all"}
             onChange={(e) =>
@@ -55,7 +55,7 @@ function CompanyFiltersBar({ filters, onChange }) {
         </div>
 
         <div className="flex-1 min-w-[140px]">
-          <label className="text-xs text-gray-500 mb-1.5 block">Sort By</label>
+          <label className="text-xs text-gray-400 mb-1.5 block">Sort By</label>
           <CustomSelect
             value={filters.sortBy || "trustScore"}
             onChange={(e) => onChange({ ...filters, sortBy: e.target.value })}
@@ -64,7 +64,7 @@ function CompanyFiltersBar({ filters, onChange }) {
         </div>
 
         <div className="flex-[2] min-w-[180px]">
-          <label className="text-xs text-gray-500 mb-1.5 block">Search</label>
+          <label className="text-xs text-gray-400 mb-1.5 block">Search</label>
           <input
             type="text"
             placeholder="Search companies..."
@@ -86,7 +86,7 @@ function CompanyFiltersBar({ filters, onChange }) {
           )}
           <button
             type="button"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
           >
             <SlidersHorizontal className="h-4 w-4" />
             Filter

@@ -16,7 +16,7 @@ function StarRating({ value = 0, onChange, size = 18 }) {
             onMouseEnter={() => onChange && setHover(v)}
             onMouseLeave={() => onChange && setHover(0)}
             onClick={() => onChange && onChange(v)}
-            className="text-blue-400"
+            className="inline-flex h-7 w-7 items-center justify-center rounded text-blue-400"
             aria-label={`Rate ${v}`}
           >
             <Star style={{ width: size, height: size }} className={filled ? 'fill-blue-400' : ''} />

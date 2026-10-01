@@ -166,7 +166,7 @@ function FeaturesQuadrantSection() {
                           href={feature.buttonLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="btn inline-flex items-center justify-center gap-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 px-5 py-2.5 text-sm font-medium w-fit"
+                          className="btn inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 px-5 py-2.5 text-sm font-medium w-fit"
                         >
                           <span>{feature.buttonText}</span>
                           <ArrowRight className="h-4 w-4" />
@@ -179,7 +179,7 @@ function FeaturesQuadrantSection() {
                             const target = document.querySelector(feature.buttonLink);
                             if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
                           }}
-                          className="btn inline-flex items-center justify-center gap-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 px-5 py-2.5 text-sm font-medium w-fit"
+                          className="btn inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 px-5 py-2.5 text-sm font-medium w-fit"
                         >
                           <span>{feature.buttonText}</span>
                           <ArrowRight className="h-4 w-4" />
@@ -187,7 +187,7 @@ function FeaturesQuadrantSection() {
                       ) : (
                         <Link
                           to={feature.buttonLink}
-                          className="btn inline-flex items-center justify-center gap-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 px-5 py-2.5 text-sm font-medium w-fit"
+                          className="btn inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 px-5 py-2.5 text-sm font-medium w-fit"
                         >
                           <span>{feature.buttonText}</span>
                           <ArrowRight className="h-4 w-4" />

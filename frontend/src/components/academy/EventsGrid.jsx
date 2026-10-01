@@ -2,20 +2,11 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getAllEvents } from "../../controllers/eventsController.js";
-import { Calendar, User, MapPin, Clock, Globe, Building2, Search, Filter, ChevronLeft, ChevronRight, X, Presentation, Video, Users, Trophy, GraduationCap, Tent, Wrench } from "lucide-react";
-
-// Map an event category to an icon. Falls back to a calendar for unknowns.
-const CATEGORY_ICON = {
-  Expo: Tent,
-  Conference: Presentation,
-  Webinar: Video,
-  Meetup: Users,
-  Workshop: Wrench,
-  Competition: Trophy,
-  Seminar: GraduationCap,
-};
+import { Calendar, User, MapPin, Clock, Globe, Building2, Search, Filter, ChevronLeft, ChevronRight, X } from "lucide-react";
+import EventBadges, { CATEGORY_ICON, EVENT_CATEGORIES } from "../shared/EventBadges.jsx";
 import EventImage from "../shared/EventImage.jsx";
 import EventWorldMap from "./EventWorldMap.jsx";
+import EventFeaturedSlider from "./EventFeaturedSlider.jsx";
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -141,7 +132,7 @@ function MonthPicker({ value, onChange }) {
                   onClick={() => pick(i)}
                   className={`px-2 py-2 rounded-md text-xs font-medium transition-all ${
                     isSelected
-                      ? "bg-blue-500 text-white"
+                      ? "bg-blue-600 text-white"
                       : isCurrent
                         ? "border border-blue-500/40 text-blue-200 hover:bg-blue-500/10"
                         : "text-gray-300 hover:bg-white/5 hover:text-white"
@@ -217,31 +208,7 @@ function EventCard({ evt, onRegister }) {
     >
       <EventImage src={imageSrc} alt={evt.title} />
       <div className="card-body">
-        <div className="flex items-center gap-2 mb-2">
-          {evt.type === "online" ? (
-            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
-              <Globe className="h-3 w-3" /> Online
-            </span>
-          ) : evt.type === "campus" ? (
-            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">
-              <Building2 className="h-3 w-3" /> Campus
-            </span>
-          ) : null}
-          {evt.category && (() => {
-            const CatIcon = CATEGORY_ICON[evt.category] || Calendar;
-            return (
-              <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                <CatIcon className="h-3 w-3" />
-                {evt.category}
-              </span>
-            );
-          })()}
-          {evt.region && (
-            <span className="inline-flex items-center text-xs px-2 py-0.5 rounded bg-gray-700/40 text-gray-300 border border-gray-600/40">
-              {evt.region}
-            </span>
-          )}
-        </div>
+        <EventBadges evt={evt} className="mb-2" />
         <h3 className="font-semibold text-base mb-2 line-clamp-2">
           {evt.title}
         </h3>
@@ -291,16 +258,6 @@ function EventCard({ evt, onRegister }) {
 }
 
 const EVENT_REGIONS = ["UAE", "India", "UK", "USA", "Europe", "Asia", "Global"];
-const EVENT_CATEGORIES = [
-  "Expo",
-  "Conference",
-  "Webinar",
-  "Meetup",
-  "Workshop",
-  "Competition",
-  "Seminar",
-];
-
 function EventsGrid({ onOpenRegister }) {
   const [events, setEvents] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -402,7 +359,7 @@ function EventsGrid({ onOpenRegister }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
           <h2 className="text-xl font-semibold">Events</h2>
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-gray-400">
             {filtered.length} {filtered.length === 1 ? "event" : "events"}
           </div>
         </div>
@@ -456,8 +413,10 @@ function EventsGrid({ onOpenRegister }) {
         )}
 
         {/* Browse Events by Category — cards that drive the same server-side
-            category filter as the dropdown below. Counts are computed from the
-            loaded events; clicking toggles the filter. */}
+            category filter as the dropdown below; clicking toggles the filter.
+            No per-category counts: the page only holds one page of events, so
+            any count computed here would be wrong. They come back once the API
+            returns real per-category totals. */}
         <div className="mb-8">
           <h3 className="text-sm font-semibold text-gray-300 mb-3">
             Browse by Category
@@ -465,7 +424,6 @@ function EventsGrid({ onOpenRegister }) {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 sm:gap-3">
             {EVENT_CATEGORIES.map((cat) => {
               const CatIcon = CATEGORY_ICON[cat] || Calendar;
-              const count = events.filter((e) => e.category === cat).length;
               const active = categoryFilter === cat;
               return (
                 <button
@@ -483,16 +441,14 @@ function EventsGrid({ onOpenRegister }) {
                 >
                   <CatIcon className={`h-5 w-5 ${active ? "text-blue-300" : "text-gray-400"}`} />
                   <span className="text-xs font-medium">{cat}</span>
-                  {count > 0 && (
-                    <span className="text-[10px] text-gray-500">
-                      {count} event{count === 1 ? "" : "s"}
-                    </span>
-                  )}
                 </button>
               );
             })}
           </div>
         </div>
+
+        {/* Featured events (3 slides) for the category picked above. */}
+        <EventFeaturedSlider category={categoryFilter} />
 
         <div className="mb-6 flex items-center gap-2 sm:gap-3 flex-wrap">
           <div className="relative flex-1 min-w-[200px] max-w-md">
@@ -513,7 +469,7 @@ function EventsGrid({ onOpenRegister }) {
                 onClick={() => setTimeFilter(v)}
                 className={`px-3 py-1.5 text-xs rounded-full transition-all ${
                   timeFilter === v
-                    ? "bg-blue-500 text-white"
+                    ? "bg-blue-600 text-white"
                     : "text-gray-400 hover:text-white"
                 }`}
               >
@@ -535,7 +491,7 @@ function EventsGrid({ onOpenRegister }) {
                   onClick={() => setTypeFilter(v.key)}
                   className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs rounded-full transition-all ${
                     typeFilter === v.key
-                      ? "bg-blue-500 text-white"
+                      ? "bg-blue-600 text-white"
                       : "text-gray-400 hover:text-white"
                   }`}
                 >

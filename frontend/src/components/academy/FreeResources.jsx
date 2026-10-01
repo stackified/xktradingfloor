@@ -65,7 +65,7 @@ function FreeResources() {
                 </div>
                 <div className="font-semibold">{f.title}</div>
                 <div className="text-sm text-gray-400 mt-1 line-clamp-2">{f.description}</div>
-                <div className="inline-flex items-center gap-2 text-accent text-sm mt-3">Download/Watch <Download className="h-4 w-4" /></div>
+                <div className="inline-flex items-center gap-2 text-accent-light text-sm mt-3">Download/Watch <Download className="h-4 w-4" /></div>
               </div>
             </motion.a>
           ))}

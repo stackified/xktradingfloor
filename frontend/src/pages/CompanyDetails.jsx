@@ -1,6 +1,7 @@
 import React from "react";
 import Seo from "../components/shared/Seo.jsx";
 import { brokerJsonLd, breadcrumbJsonLd } from "../utils/structuredData.js";
+import { extractFaqs, faqJsonLd } from "../utils/faq.js";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
@@ -179,6 +180,7 @@ function CompanyDetails() {
   if (!company || error) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-10">
+        <Seo title="Company not found" path={`/reviews/${companyId}`} noindex />
         <div className="card">
           <div className="card-body text-center">
             <h2 className="text-xl font-semibold mb-2">Company not found</h2>
@@ -219,6 +221,7 @@ function CompanyDetails() {
             { name: "Reviews", url: "/reviews" },
             { name: company.name, url: `/reviews/${company._id}` },
           ]),
+          faqJsonLd(extractFaqs(company.description)),
         ].filter(Boolean)}
       />
 

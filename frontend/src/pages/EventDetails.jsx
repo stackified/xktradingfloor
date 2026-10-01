@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { ExternalLink } from "lucide-react";
 import { getEventById } from "../controllers/eventsController.js";
 import EventImage from "../components/shared/EventImage.jsx";
+import EventBadges from "../components/shared/EventBadges.jsx";
 import RegisterModal from "../components/academy/RegisterModal.jsx";
 import { getUserCookie } from "../utils/cookies.js";
 
@@ -92,44 +93,20 @@ function EventDetails() {
                   {event.title}
                 </span>
               </h1>
-              {event.type && (
-                <span
-                  className={`text-xs px-2 py-0.5 rounded border ${
-                    event.type === "online"
-                      ? "text-blue-300 border-blue-700"
-                      : "text-green-300 border-green-700"
-                  }`}
-                >
-                  {event.type}
-                </span>
-              )}
             </div>
+            <EventBadges evt={event} size="md" className="mb-3" />
             <div className="text-xs sm:text-sm text-gray-300 mb-2">
               {event.dateTime
                 ? new Date(event.dateTime).toLocaleString()
                 : event.date}{" "}
               {event.location ? `• ${event.location}` : ""}
             </div>
-            {(event.organizerName || event.region || event.category) && (
-              <div className="text-xs sm:text-sm text-gray-400 mb-4 flex flex-wrap items-center gap-x-2 gap-y-1">
-                {event.organizerName && (
-                  <span>
-                    Organized by{" "}
-                    <span className="text-gray-200 font-medium">
-                      {event.organizerName}
-                    </span>
-                  </span>
-                )}
-                {event.category && (
-                  <span className="inline-flex items-center text-[11px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-200 border border-purple-500/30">
-                    {event.category}
-                  </span>
-                )}
-                {event.region && (
-                  <span className="inline-flex items-center text-[11px] px-2 py-0.5 rounded-full bg-gray-700/40 text-gray-300 border border-gray-600/40">
-                    {event.region}
-                  </span>
-                )}
+            {event.organizerName && (
+              <div className="text-xs sm:text-sm text-gray-400 mb-4">
+                Organized by{" "}
+                <span className="text-gray-200 font-medium">
+                  {event.organizerName}
+                </span>
               </div>
             )}
             {(event.excerpt || event.description) && (

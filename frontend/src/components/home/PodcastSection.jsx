@@ -84,7 +84,7 @@ function PodcastSection() {
                 <ImageWithFallback
                   src={video.thumbnail}
                   fallback="/assets/placeholder.jpg"
-                  alt={video.title}
+                  alt=""
                   className="w-full h-64 object-cover rounded-t-lg"
                   useCdn={false}
                   width={640}

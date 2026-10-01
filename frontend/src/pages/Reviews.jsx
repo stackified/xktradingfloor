@@ -259,7 +259,7 @@ export default function Reviews() {
       <Seo
         title={pageTitle.replace(" | XK Trading Floor", "")}
         description={heroDescription}
-        path="/reviews"
+        path={pathname}
       />
 
       <ReviewsPageHero
