@@ -1,7 +1,7 @@
 import React from 'react';
 import Seo from '../components/shared/Seo.jsx';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { m as motion } from 'framer-motion';
 import { User, Mail, MapPin, Lock, ArrowRight, UserPlus } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';

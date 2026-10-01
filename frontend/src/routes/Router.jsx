@@ -2,10 +2,7 @@ import React, { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { syncUserFromCookie } from "../redux/slices/authSlice.js";
-import {
-  syncMockModeFromStorage,
-  fetchMockMode,
-} from "../redux/slices/mockSlice.js";
+import { syncMockModeFromStorage } from "../redux/slices/mockSlice.js";
 import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
 import PageViewTracker from "../components/analytics/PageViewTracker.jsx";
@@ -61,9 +58,12 @@ const EventForm = React.lazy(() =>
   import("../components/admin/event/index.js").then((m) => ({ default: m.EventForm }))
 );
 
+// Fills the viewport so the footer stays below the fold while a page chunk
+// loads. At half height the footer sat mid-screen and then jumped down when
+// the page arrived: a 0.34 layout shift on every route except the homepage.
 function PageLoader() {
   return (
-    <div className="min-h-[50vh] flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center">
       <div
         className="h-8 w-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"
         role="status"
@@ -80,24 +80,20 @@ function Layout({ children }) {
     dispatch(syncUserFromCookie());
   }, [dispatch]);
 
+  // Mock mode is fetched by the admin dashboard, the only place it can be
+  // changed. Polling /settings/mock-mode from every page put an extra API
+  // call on the critical path of each visit and every minute after.
   React.useEffect(() => {
-    dispatch(fetchMockMode());
-
     const handleStorageChange = (e) => {
       if (e.key === "xk_mock_mode") {
         dispatch(syncMockModeFromStorage());
       }
     };
 
-    const interval = setInterval(() => {
-      dispatch(fetchMockMode());
-    }, 60000);
-
     window.addEventListener("storage", handleStorageChange);
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
-      clearInterval(interval);
     };
   }, [dispatch]);
 

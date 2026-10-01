@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { Star, ArrowRight, Landmark, TrendingUp } from "lucide-react";
 import { getAllCompanies } from "../../controllers/companiesController.js";
 import { computeTrustScore } from "../../utils/trustScore.js";

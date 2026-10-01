@@ -86,7 +86,7 @@ function BlogFeaturedSlider({ posts = [] }) {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
               </div>
             ))}
-            <span className="absolute top-3.5 left-3.5 z-10 rounded-full bg-[#3B82F6] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-white">
+            <span className="absolute top-3.5 left-3.5 z-10 rounded-full bg-[#2563EB] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-white">
               Featured
             </span>
           </div>
@@ -152,14 +152,18 @@ function BlogFeaturedSlider({ posts = [] }) {
               key={i}
               type="button"
               onClick={() => setIndex(i)}
-              className="h-1.5 rounded-full transition-all duration-300"
-              style={{
-                width: i === index ? 22 : 6,
-                backgroundColor: i === index ? BLOG_COLORS.blue : "rgba(255,255,255,0.12)",
-              }}
+              className="flex h-6 items-center px-1"
               aria-label={`Featured story ${i + 1} of ${slides.length}`}
               aria-current={i === index ? "true" : undefined}
-            />
+            >
+              <span
+                className="block h-1.5 rounded-full transition-all duration-300"
+                style={{
+                  width: i === index ? 22 : 6,
+                  backgroundColor: i === index ? BLOG_COLORS.blue : "rgba(255,255,255,0.12)",
+                }}
+              />
+            </button>
           ))}
         </div>
       )}

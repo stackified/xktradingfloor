@@ -323,7 +323,7 @@ function BlogPost() {
 
   if (!post) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center px-4" style={{ backgroundColor: BLOG_COLORS.bg }}>
+      <div className="flex min-h-screen items-center justify-center px-4" style={{ backgroundColor: BLOG_COLORS.bg }}>
         <Seo title="Article not found" path={`/blog/${routeParam}`} noindex />
         <div className="max-w-md text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#3B82F6]">404</p>

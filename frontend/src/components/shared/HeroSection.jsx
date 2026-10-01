@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m as motion } from 'framer-motion';
 
 export default function HeroSection({ title, subtitle, background = 'default', buttonText, scrollTo }) {
   function onClick() {

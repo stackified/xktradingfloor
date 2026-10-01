@@ -1,0 +1,28 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "XK Trading Floor",
+    "documentationUrl": "https://xktradingfloor.com/llms.txt",
+    "logoUrl": "https://xktradingfloor.com/assets/logo.png"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:xktradingfloor.com:skills:site-guide",
+      "displayName": "XK Trading Floor site guide",
+      "type": "text/markdown; profile=\"urn:air:agent-skills\"",
+      "url": "https://xktradingfloor.com/skills/xktradingfloor/SKILL.md",
+      "description": "How an AI agent can find broker, prop firm and crypto platform reviews, verified traders, live spreads, prop firm payouts, trading events and articles on xktradingfloor.com, and which pages are private.",
+      "tags": ["forex", "prop firms", "brokers", "crypto", "reviews", "trading events"],
+      "capabilities": ["CompanyReviews", "VerifiedTraders", "LiveSpreads", "PayoutTracker", "TradingEvents", "TradingArticles"],
+      "representativeQueries": [
+        "Find trader reviews of a forex broker or prop firm",
+        "Which prop firms have recorded payouts",
+        "Compare live spreads between forex brokers",
+        "Upcoming trading expos and conferences",
+        "Verified forex traders with a checked track record"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-10-02T00:00:00Z"
+    }
+  ]
+}

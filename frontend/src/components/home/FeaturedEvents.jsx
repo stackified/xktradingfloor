@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m as motion } from 'framer-motion';
 import { getAllEvents } from '../../controllers/eventsController.js';
 import { Link, useNavigate } from 'react-router-dom';
 import EventImage from '../shared/EventImage.jsx';

@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import {
   LineChart,
@@ -37,7 +37,7 @@ import {
   deleteReview,
 } from "../controllers/reviewsController.js";
 import { getAllBlogs } from "../controllers/blogsController.js";
-import { updateMockMode } from "../redux/slices/mockSlice.js";
+import { fetchMockMode, updateMockMode } from "../redux/slices/mockSlice.js";
 import { fetchAllBlogs } from "../redux/slices/blogsSlice.js";
 import ConfirmModal from "../components/shared/ConfirmModal.jsx";
 import { Trash2, Flag } from "lucide-react";
@@ -98,6 +98,12 @@ function AdminDashboard() {
     isOpen: false,
     reviewId: null,
   });
+
+  // The mock-mode flag only matters here (the toggle below); public pages
+  // always use real data, so the app no longer polls it on every page.
+  React.useEffect(() => {
+    dispatch(fetchMockMode());
+  }, [dispatch]);
 
   React.useEffect(() => {
     loadStats();

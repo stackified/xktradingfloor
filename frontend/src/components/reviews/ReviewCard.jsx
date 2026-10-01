@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m as motion } from 'framer-motion';
 import StarRating from './StarRating.jsx';
 
 function ReviewCard({ review }) {

@@ -9,13 +9,20 @@ import { getAllProducts } from '../controllers/productsController.js';
 
 function Merch() {
   const [all, setAll] = React.useState([]);
+  const [loaded, setLoaded] = React.useState(false);
   const [category, setCategory] = React.useState('All');
   const [sort, setSort] = React.useState('popular');
   const [cartOpen, setCartOpen] = React.useState(false);
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    (async () => setAll(await getAllProducts()))();
+    (async () => {
+      try {
+        setAll(await getAllProducts());
+      } finally {
+        setLoaded(true);
+      }
+    })();
   }, []);
 
   const categories = Array.from(new Set(all.map(p => p.category)));
@@ -33,7 +40,9 @@ function Merch() {
         path="/merch"
       />
       <MerchHero />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Hold the space until products arrive, so the footer does not show
+          and then get pushed down (a 0.7 layout shift). */}
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ${loaded ? "" : "min-h-screen"}`}>
         <ProductFilter categories={categories} activeCategory={category} onCategory={setCategory} sort={sort} onSort={setSort} />
         <ProductGrid products={filtered} onOpen={(p)=>navigate(`/merch/${p.id}`)} />
       </div>

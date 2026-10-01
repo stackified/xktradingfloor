@@ -15,7 +15,7 @@ function NotFound() {
     { to: "/blog", label: "Blog", icon: BookOpen },
   ];
   return (
-    <div className="flex min-h-[70vh] items-center justify-center px-4 py-16">
+    <div className="flex min-h-screen items-center justify-center px-4 py-16">
       <Seo title="Page not found" description="This page doesn't exist on XK Trading Floor." path={pathname} noindex />
       <div className="max-w-lg text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.12em] text-blue-400">404</p>

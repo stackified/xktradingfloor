@@ -60,3 +60,17 @@
 <IfModule mod_brotli.c>
   AddOutputFilterByType BROTLI_COMPRESS text/html text/css text/plain text/xml application/javascript text/javascript application/json image/svg+xml application/manifest+json
 </IfModule>
+
+# Agent discovery files (robots.txt Agentmap -> /.well-known/ai-catalog.json,
+# which points at the skill guide). Readable from any origin so browser-based
+# agents can fetch them.
+<IfModule mod_mime.c>
+  AddType application/json .json
+  AddType "text/markdown; charset=utf-8" .md
+</IfModule>
+<IfModule mod_headers.c>
+  <FilesMatch "^(ai-catalog\.json|SKILL\.md)$">
+    Header set Access-Control-Allow-Origin "*"
+    Header set Cache-Control "public, max-age=3600"
+  </FilesMatch>
+</IfModule>

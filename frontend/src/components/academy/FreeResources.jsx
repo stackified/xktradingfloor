@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m as motion } from 'framer-motion';
 import { getAllFreebies } from '../../controllers/freebiesController.js';
 import { FileText, Video, Download } from 'lucide-react';
 

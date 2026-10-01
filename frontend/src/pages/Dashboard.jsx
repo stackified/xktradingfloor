@@ -9,7 +9,7 @@ import PieChartWidget from '../components/dashboard/PieChartWidget.jsx';
 import RecentActivity from '../components/dashboard/RecentActivity.jsx';
 import QuickActions from '../components/dashboard/QuickActions.jsx';
 import { Users, CalendarDays, Star, ShoppingCart } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { m as motion } from 'framer-motion';
 import { getUserCookie } from '../utils/cookies.js';
 
 export default function Dashboard() {
