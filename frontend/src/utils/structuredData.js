@@ -1,31 +1,28 @@
+import siteJsonLd from "./siteJsonLd.json";
+
 const SITE_URL = "https://xktradingfloor.com";
 const SITE_NAME = "XK Trading Floor";
 
-export const organizationJsonLd = () => ({
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: SITE_NAME,
-  url: SITE_URL,
-  logo: `${SITE_URL}/assets/logo.png`,
-  sameAs: [
-    "https://www.youtube.com/@xk_trading_floor",
-    "https://www.instagram.com/xktradingfloor/",
-    "https://www.linkedin.com/company/xk-trading-floor",
-    "https://x.com/XK_Capital",
-  ],
-});
+// Plain text for JSON-LD "description" fields. Company descriptions can be a
+// whole designed HTML page (with <style>); structured data wants a short,
+// readable summary, never markup or CSS.
+export function plainText(html, max = 300) {
+  const text = String(html || "")
+    .replace(/<(style|script)[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&[a-z#0-9]+;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
+}
 
-export const websiteJsonLd = () => ({
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: SITE_NAME,
-  url: SITE_URL,
-  potentialAction: {
-    "@type": "SearchAction",
-    target: `${SITE_URL}/reviews?q={search_term_string}`,
-    "query-input": "required name=search_term_string",
-  },
-});
+// Site-wide Organization and WebSite data live in one JSON file, because the
+// build-time homepage prerender (scripts/prerender.mjs) writes the same data
+// straight into the homepage snapshot.
+export const organizationJsonLd = () => siteJsonLd.organization;
+export const websiteJsonLd = () => siteJsonLd.website;
 
 export const breadcrumbJsonLd = (items) => ({
   "@context": "https://schema.org",
@@ -46,7 +43,9 @@ export const brokerJsonLd = (company) => {
     name: company.name,
     url: company.website || `${SITE_URL}/reviews/${company._id}`,
     ...(company.logo ? { logo: company.logo } : {}),
-    ...(company.description ? { description: company.description } : {}),
+    ...(company.details || company.description
+      ? { description: plainText(company.details || company.description) }
+      : {}),
   };
   if (company.ratingsAggregate && company.totalReviews) {
     base.aggregateRating = {

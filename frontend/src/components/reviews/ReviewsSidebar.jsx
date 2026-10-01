@@ -39,7 +39,7 @@ function SidebarSection({ title, viewAllLink, children }) {
   return (
     <div className="bg-gray-900/40 border border-gray-800/60 rounded-xl overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800/60">
-        <h3 className="text-sm font-semibold text-white">{title}</h3>
+        <h2 className="text-sm font-semibold text-white">{title}</h2>
         {viewAllLink && (
           <Link
             to={viewAllLink}
@@ -118,7 +118,7 @@ function LatestReviewItem({ review }) {
         <div className="text-sm font-medium text-white group-hover:text-blue-300 transition-colors line-clamp-1">
           {review.title || companyName}
         </div>
-        <div className="text-xs text-gray-500 mt-0.5">
+        <div className="text-xs text-gray-400 mt-0.5">
           {review.userName || "Trader"} •{" "}
           {review.createdAt
             ? new Date(review.createdAt).toLocaleDateString()
@@ -148,7 +148,7 @@ function ReviewsSidebar({ brokers = [], propFirms = [], latestReviews = [] }) {
                 </div>
                 <div>
                   <div className="text-sm font-medium text-white">{item.title}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">{item.subtitle}</div>
+                  <div className="text-xs text-gray-400 mt-0.5">{item.subtitle}</div>
                 </div>
               </div>
             );
@@ -169,7 +169,7 @@ function ReviewsSidebar({ brokers = [], propFirms = [], latestReviews = [] }) {
               />
             ))
           ) : (
-            <p className="text-xs text-gray-500 py-2">No brokers available yet.</p>
+            <p className="text-xs text-gray-400 py-2">No brokers available yet.</p>
           )}
         </div>
       </SidebarSection>
@@ -187,7 +187,7 @@ function ReviewsSidebar({ brokers = [], propFirms = [], latestReviews = [] }) {
               />
             ))
           ) : (
-            <p className="text-xs text-gray-500 py-2">No prop firms available yet.</p>
+            <p className="text-xs text-gray-400 py-2">No prop firms available yet.</p>
           )}
         </div>
       </SidebarSection>
@@ -200,7 +200,7 @@ function ReviewsSidebar({ brokers = [], propFirms = [], latestReviews = [] }) {
               <LatestReviewItem key={review.id || review._id} review={review} />
             ))
           ) : (
-            <p className="text-xs text-gray-500 py-2">No reviews yet.</p>
+            <p className="text-xs text-gray-400 py-2">No reviews yet.</p>
           )}
         </div>
       </SidebarSection>

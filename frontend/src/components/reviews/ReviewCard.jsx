@@ -17,7 +17,7 @@ function ReviewCard({ review }) {
         </div>
         <StarRating value={review.rating} size={16} />
         <p className="text-gray-200 mt-2">{review.text}</p>
-        <div className="text-xs text-gray-500 mt-2">{new Date(review.date).toLocaleDateString()}</div>
+        <div className="text-xs text-gray-400 mt-2">{new Date(review.date).toLocaleDateString()}</div>
       </div>
     </motion.div>
   );

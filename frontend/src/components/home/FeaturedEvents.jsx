@@ -3,6 +3,25 @@ import { motion } from 'framer-motion';
 import { getAllEvents } from '../../controllers/eventsController.js';
 import { Link, useNavigate } from 'react-router-dom';
 import EventImage from '../shared/EventImage.jsx';
+import EventBadges from '../shared/EventBadges.jsx';
+
+function eventTime(evt) {
+  const t = new Date(evt?.dateTime || evt?.date || 0).getTime();
+  return Number.isNaN(t) ? 0 : t;
+}
+
+// Upcoming events, soonest first. If nothing is upcoming, the most recent past
+// events instead (and the heading says so), so the section never shows an
+// event that is already over as if it were still to come.
+export function pickHomeEvents(events, now = Date.now(), limit = 4) {
+  const list = Array.isArray(events) ? events : [];
+  const upcoming = list
+    .filter((e) => eventTime(e) >= now)
+    .sort((a, b) => eventTime(a) - eventTime(b));
+  if (upcoming.length) return { mode: 'upcoming', items: upcoming.slice(0, limit) };
+  const past = list.filter((e) => eventTime(e) > 0).sort((a, b) => eventTime(b) - eventTime(a));
+  return { mode: 'recent', items: past.slice(0, limit) };
+}
 
 function EventCard({ evt, onClick }) {
   // Normalize image src - convert empty strings to null for proper text-based fallback
@@ -22,8 +41,9 @@ function EventCard({ evt, onClick }) {
     <motion.div whileHover={{ y: -4 }} className="card overflow-hidden cursor-pointer" onClick={onClick}>
       <EventImage src={imageSrc} alt={evt.title} />
       <div className="card-body">
+        <EventBadges evt={evt} showRegion={false} className="mb-2" />
         <div className="text-xs sm:text-sm text-gray-400 mb-2">{formatDate(evt.dateTime || evt.date)}</div>
-        <div className="font-display font-semibold text-base sm:text-lg tracking-tight mb-2">{evt.title}</div>
+        <h3 className="font-display font-semibold text-base sm:text-lg tracking-tight mb-2">{evt.title}</h3>
         <div className="text-sm sm:text-base text-gray-300 line-clamp-2">{evt.excerpt || evt.description || ''}</div>
       </div>
     </motion.div>
@@ -55,7 +75,7 @@ function FeaturedEvents() {
     let cancelled = false;
     (async () => {
       try {
-        const response = await getAllEvents();
+        const response = await getAllEvents({ size: 50 });
         if (!cancelled) setEvents(response.data || []);
       } catch (err) {
         // Homepage must still render if the backend is cold or down.
@@ -69,13 +89,13 @@ function FeaturedEvents() {
     };
   }, []);
 
+  // Chosen once data is in. While loading (and in the prerendered snapshot)
+  // the heading reads "Upcoming", matching the first client render.
+  const { mode, items } = React.useMemo(() => pickHomeEvents(events), [events]);
+  const recent = !loading && mode === 'recent';
+
   return (
     <section className="py-20 bg-black relative overflow-hidden">
-      {/* Background decoration */}
-      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
-      </div> */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -91,16 +111,19 @@ function FeaturedEvents() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight mb-6 leading-tight"
           >
-            Upcoming <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Events & Webinars</span>
+            {recent ? 'Recent' : 'Upcoming'} <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Events & Webinars</span>
           </motion.h2>
         </motion.div>
         <div className="flex items-center justify-between mb-4">
-          <Link to="/events" className="text-sm text-blue-400 hover:text-blue-300 hover:underline ml-auto">View All</Link>
+          {recent && (
+            <p className="text-sm text-gray-400">No upcoming events are listed right now.</p>
+          )}
+          <Link to="/events" className="text-sm text-blue-400 hover:text-blue-300 hover:underline ml-auto">View all events</Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {loading
             ? Array.from({ length: 4 }).map((_, i) => <EventCardSkeleton key={i} />)
-            : events.slice(0, 4).map((evt) => (
+            : items.map((evt) => (
               <EventCard
                 key={evt.id}
                 evt={evt}
@@ -114,5 +137,3 @@ function FeaturedEvents() {
 }
 
 export default FeaturedEvents;
-
-

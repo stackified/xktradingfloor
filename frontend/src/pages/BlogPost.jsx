@@ -2,6 +2,7 @@ import React from 'react';
 import Seo from '../components/shared/Seo.jsx';
 import { articleJsonLd, breadcrumbJsonLd } from '../utils/structuredData.js';
 import { prepareArticle, readingMinutes } from '../utils/richText.js';
+import { extractFaqs, faqJsonLd } from '../utils/faq.js';
 import DesignedHtml from '../components/shared/DesignedHtml.jsx';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -300,6 +301,9 @@ function BlogPost() {
     [post?.content, post?.title]
   );
 
+  // FAQ section of the article, published as FAQPage structured data.
+  const faqs = React.useMemo(() => extractFaqs(post?.content || ''), [post?.content]);
+
   // Same category or a shared tag first, then the newest other posts, so the
   // section is never empty.
   const related = React.useMemo(() => {
@@ -320,6 +324,7 @@ function BlogPost() {
   if (!post) {
     return (
       <div className="flex min-h-[70vh] items-center justify-center px-4" style={{ backgroundColor: BLOG_COLORS.bg }}>
+        <Seo title="Article not found" path={`/blog/${routeParam}`} noindex />
         <div className="max-w-md text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#3B82F6]">404</p>
           <h1 className="mt-3 font-display text-3xl font-bold text-white">Article not found</h1>
@@ -364,6 +369,7 @@ function BlogPost() {
             { name: 'Blog', url: '/blog' },
             { name: post.title, url: `/blog/${post.slug || post._id}` },
           ]),
+          faqJsonLd(faqs),
         ].filter(Boolean) : null}
       />
       <ReadingProgress targetRef={articleRef} />

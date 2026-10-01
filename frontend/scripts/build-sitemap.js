@@ -8,7 +8,7 @@
 // exit 0 so the deploy keeps going — the site just misses the dynamic URLs
 // until the next build. Errors are logged clearly for CI diagnosis.
 
-import { writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { writeFileSync, mkdirSync, existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, resolve } from "node:path";
 
@@ -18,8 +18,20 @@ const PUBLIC_DIR = resolve(__dirname, "..", "public");
 const SITE_URL = process.env.VITE_SITE_URL || "https://xktradingfloor.com";
 // Prefer VITE_API_BASE_URL (matches frontend runtime var); strip trailing "/api"
 // so we can append our own path prefixes below without doubling up.
+// Fall back to .env.production, which the production build reads anyway:
+// the deploy workflow doesn't export VITE_API_BASE_URL, so without this the
+// live sitemap only ever had the static pages.
+function envProductionApi() {
+  try {
+    const env = readFileSync(resolve(__dirname, "..", ".env.production"), "utf8");
+    const m = env.match(/^VITE_API_BASE_URL=(.+)$/m);
+    return m ? m[1].trim() : "";
+  } catch {
+    return "";
+  }
+}
 const RAW_API =
-  process.env.VITE_API_URL || process.env.VITE_API_BASE_URL || "";
+  process.env.VITE_API_URL || process.env.VITE_API_BASE_URL || envProductionApi();
 const API_URL = RAW_API.replace(/\/api\/?$/, "").replace(/\/$/, "");
 
 const STATIC_ROUTES = [
@@ -66,8 +78,8 @@ function extractDocs(payload) {
 async function safeFetch(url, { method = "GET", body } = {}) {
   try {
     const init = {
-      method,
-      signal: AbortSignal.timeout(8000),
+      method: method === "WARM" ? "GET" : method,
+      signal: AbortSignal.timeout(method === "WARM" ? 90000 : 30000),
       headers: body ? { "Content-Type": "application/json" } : undefined,
       body: body ? JSON.stringify(body) : undefined,
     };
@@ -83,6 +95,8 @@ async function safeFetch(url, { method = "GET", body } = {}) {
   }
 }
 
+const LLMS = { companies: [], blogs: [], events: [] };
+
 async function loadDynamic() {
   if (!API_URL) {
     console.log(
@@ -91,6 +105,8 @@ async function loadDynamic() {
     return [];
   }
   console.log(`[sitemap] Fetching dynamic content from ${API_URL}`);
+  // Wake the free-tier backend before the real requests.
+  await safeFetch(`${API_URL}/api/settings/mock-mode`, { method: "WARM" });
   const out = [];
 
   // Companies — POST /api/companies/getallcompanies (public: approved only)
@@ -102,6 +118,7 @@ async function loadDynamic() {
   companyList.forEach((c) => {
     const id = c?._id || c?.id;
     if (!id) return;
+    LLMS.companies.push({ name: String(c.name || "").trim(), category: c.category, path: `/reviews/${id}` });
     out.push({
       path: `/reviews/${id}`,
       lastmod: iso(c.updatedAt || c.createdAt),
@@ -119,6 +136,7 @@ async function loadDynamic() {
   blogList.forEach((b) => {
     const key = b?.slug || b?._id || b?.id;
     if (!key) return;
+    LLMS.blogs.push({ title: String(b.title || "").trim(), excerpt: b.excerpt, path: `/blog/${key}` });
     out.push({
       path: `/blog/${key}`,
       lastmod: iso(b.updatedAt || b.publishedAt || b.createdAt),
@@ -135,6 +153,7 @@ async function loadDynamic() {
   eventList.forEach((e) => {
     const id = e?._id || e?.id;
     if (!id) return;
+    LLMS.events.push({ title: String(e.title || "").trim(), date: e.dateTime, path: `/events/${id}` });
     out.push({
       path: `/events/${id}`,
       lastmod: iso(e.updatedAt || e.createdAt),
@@ -208,6 +227,57 @@ async function main() {
     console.error("[sitemap] loadDynamic failed, continuing with static routes only:", err);
   }
   writeSitemap([...STATIC_ROUTES, ...dynamic]);
+  writeLlmsTxt();
+}
+
+// llms.txt (https://llmstxt.org): a plain-Markdown guide to the site for AI
+// assistants and answer engines. It doesn't replace crawlable HTML (the pages
+// are prerendered for that); it gives an AI a short, accurate summary and the
+// canonical links to cite.
+function writeLlmsTxt() {
+  const line = (title, p, note) => `- [${String(title).replace(/[[\]]/g, "")}](${SITE_URL}${p})${note ? `: ${note}` : ""}`;
+  const clip = (t, n = 160) => {
+    const s = String(t || "").replace(/\s+/g, " ").trim();
+    return s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s;
+  };
+  const byCat = (cat) => LLMS.companies.filter((c) => String(c.category || "").toLowerCase() === cat);
+  const parts = [
+    "# XK Trading Floor",
+    "",
+    "> XK Trading Floor (xktradingfloor.com) is a trading community and review platform. It helps traders compare forex brokers, prop firms and crypto platforms, read reviews from real traders, find verified traders, follow live spreads and prop-firm payouts, and discover trading events worldwide.",
+    "",
+    "Key facts:",
+    "- Reviews are written by traders who use the companies; anyone can add one after signing in.",
+    "- Verified Trader badges are awarded after an application, document check and a call with the XK team.",
+    "- Trading education happens in the XK Discord community rather than a separate academy.",
+    "- Content is for information only and is not financial advice.",
+    "",
+    "## Main pages",
+    line("Home", "/", "overview, top-rated brokers and prop firms, upcoming events"),
+    line("Company reviews", "/reviews", "all reviewed brokers, prop firms and crypto platforms"),
+    line("Broker reviews", "/reviews/broker"),
+    line("Prop firm reviews", "/reviews/propfirm"),
+    line("Crypto platform reviews", "/reviews/crypto"),
+    line("Verified traders", "/reviews/traders", "traders whose track record XK has verified"),
+    line("Live spreads", "/live-spreads", "broker spread comparison"),
+    line("Prop firm payout tracker", "/payouts"),
+    line("Trading events", "/events", "expos, conferences, webinars and meetups"),
+    line("Blog", "/blog", "market analysis, broker and prop firm news, trading guides"),
+    line("For brands", "/services", "listing and partnership options for brokers and prop firms"),
+    line("About", "/about"),
+    line("Contact", "/contact"),
+  ];
+  const brokers = byCat("broker"), props = byCat("propfirm"), crypto = byCat("crypto");
+  const otherCos = LLMS.companies.filter((c) => !brokers.includes(c) && !props.includes(c) && !crypto.includes(c));
+  if (brokers.length) parts.push("", "## Broker reviews", ...brokers.map((c) => line(`${c.name} review`, c.path)));
+  if (props.length) parts.push("", "## Prop firm reviews", ...props.map((c) => line(`${c.name} review`, c.path)));
+  if (crypto.length) parts.push("", "## Crypto platform reviews", ...crypto.map((c) => line(`${c.name} review`, c.path)));
+  if (otherCos.length) parts.push("", "## Other company reviews", ...otherCos.map((c) => line(`${c.name} review`, c.path)));
+  if (LLMS.blogs.length) parts.push("", "## Articles", ...LLMS.blogs.map((b) => line(b.title, b.path, clip(b.excerpt))));
+  if (LLMS.events.length) parts.push("", "## Events", ...LLMS.events.map((e) => line(e.title, e.path, e.date ? iso(e.date) : "")));
+  parts.push("", "## Optional", line("Privacy policy", "/privacy-policy"), line("Terms", "/terms"), "");
+  writeFileSync(join(PUBLIC_DIR, "llms.txt"), parts.join("\n"), "utf8");
+  console.log(`[sitemap] Wrote public/llms.txt (${LLMS.companies.length} companies, ${LLMS.blogs.length} articles, ${LLMS.events.length} events)`);
 }
 
 main().catch((err) => {
