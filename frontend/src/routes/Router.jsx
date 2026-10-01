@@ -22,6 +22,7 @@ const Reviews = React.lazy(() => import("../pages/Reviews.jsx"));
 const CompanyDetails = React.lazy(() => import("../pages/CompanyDetails.jsx"));
 const Merch = React.lazy(() => import("../pages/Merch.jsx"));
 const ProductDetails = React.lazy(() => import("../pages/ProductDetails.jsx"));
+const NotFound = React.lazy(() => import("../pages/NotFound.jsx"));
 const Signup = React.lazy(() => import("../pages/Signup.jsx"));
 const Login = React.lazy(() => import("../pages/Login.jsx"));
 const ForgotPassword = React.lazy(() => import("../pages/ForgotPassword.jsx"));
@@ -368,7 +369,7 @@ export default function AppRouter() {
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
     </Layout>

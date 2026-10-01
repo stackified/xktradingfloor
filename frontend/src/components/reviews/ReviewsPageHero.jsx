@@ -67,7 +67,7 @@ function ReviewsPageHero({ searchValue, onSearchChange, onSearchSubmit }) {
             </p>
 
             <form onSubmit={handleSubmit} className="relative max-w-lg mx-auto lg:mx-0">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search broker, prop firm or trader..."
@@ -77,14 +77,14 @@ function ReviewsPageHero({ searchValue, onSearchChange, onSearchSubmit }) {
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
               >
                 Search
               </button>
             </form>
 
             <div className="mt-4 flex flex-wrap items-center justify-center lg:justify-start gap-2">
-              <span className="text-xs text-gray-500 mr-1">Trending:</span>
+              <span className="text-xs text-gray-400 mr-1">Trending:</span>
               {trendingSearches.map((term) => (
                 <button
                   key={term}

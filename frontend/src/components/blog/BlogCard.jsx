@@ -51,7 +51,7 @@ function BlogCard({ post, href, onClick, isLocked = false, onLockClick }) {
             <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-[#94A3B8]">{post.excerpt}</p>
           )
         )}
-        <div className="mt-auto flex items-center gap-2 pt-4 text-xs text-[#64748B]">
+        <div className="mt-auto flex items-center gap-2 pt-4 text-xs text-[#94A3B8]">
           <span className="truncate">{post.date}</span>
           {post.readTime && (
             <>

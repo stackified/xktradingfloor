@@ -1,6 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { MessageCircle } from 'lucide-react';
 import { getAssetPath } from '../utils/assets.js';
+import DiscordAuthGate from './shared/DiscordAuthGate.jsx';
+
+const DISCORD_URL = 'https://discord.gg/c2rtKXU56s';
 
 function Footer() {
   return (
@@ -19,7 +23,7 @@ function Footer() {
           <p className="text-sm text-gray-400">Learn, trade, and grow with a modern trading community.</p>
         </div>
         <div>
-          <h4 className="font-semibold mb-3">Links</h4>
+          <h2 className="font-semibold text-base mb-3">Links</h2>
           <ul className="space-y-2 text-sm text-gray-300">
             <li><Link to="/events" className="hover:text-white">Events</Link></li>
             <li><Link to="/blog" className="hover:text-white">Blog</Link></li>
@@ -30,7 +34,7 @@ function Footer() {
           </ul>
         </div>
         <div>
-          <h4 className="font-semibold mb-3">Company</h4>
+          <h2 className="font-semibold text-base mb-3">Company</h2>
           <ul className="space-y-2 text-sm text-gray-300">
             <li><Link to="/about" className="hover:text-white">About</Link></li>
             <li><Link to="/contact" className="hover:text-white">Contact</Link></li>
@@ -40,11 +44,19 @@ function Footer() {
           </ul>
         </div>
         <div>
-          <h4 className="font-semibold mb-3">Stay updated</h4>
-          <form className="flex gap-2">
-            <input className="input" placeholder="Email address" type="email" />
-            <button className="btn btn-primary" type="button">Subscribe</button>
-          </form>
+          <h2 className="font-semibold text-base mb-3">Stay updated</h2>
+          {/* The client chose Discord over an email newsletter: updates,
+              events and trading discussion all happen there. */}
+          <p className="mb-3 text-sm text-gray-300">
+            Get updates, event news and trading discussion in our Discord community.
+          </p>
+          <DiscordAuthGate
+            discordUrl={DISCORD_URL}
+            className="btn btn-primary inline-flex items-center gap-2"
+          >
+            <MessageCircle className="h-4 w-4" aria-hidden="true" />
+            Join our Discord
+          </DiscordAuthGate>
         </div>
       </div>
       {/* One template string, not `© {year} XK…`: that JSX yields three adjacent text

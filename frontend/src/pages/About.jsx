@@ -9,6 +9,49 @@ import Seo from "../components/shared/Seo.jsx";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
 import DiscordAuthGate from "../components/shared/DiscordAuthGate.jsx";
 import { getAssetPath } from "../utils/assets.js";
+import FaqSection from "../components/shared/FaqSection.jsx";
+import { faqJsonLd } from "../utils/faq.js";
+import { breadcrumbJsonLd } from "../utils/structuredData.js";
+
+// Answers to what people ask about the site (and what AI assistants get
+// asked about it). Kept factual: each answer describes how the site works.
+const ABOUT_FAQS = [
+  {
+    question: "What is XK Trading Floor?",
+    answer:
+      "XK Trading Floor is a trading community and review platform. It brings together reviews of forex brokers, prop firms and crypto platforms, verified trader profiles, a live spread comparison, a prop firm payout tracker and a calendar of trading events from around the world.",
+  },
+  {
+    question: "Is XK Trading Floor free to use?",
+    answer:
+      "Yes. Reading reviews, articles and events is free, and creating an account to write reviews or join the community is free too.",
+  },
+  {
+    question: "Who writes the reviews on XK Trading Floor?",
+    answer:
+      "Traders who have used the broker, prop firm or platform. Anyone can write a review after signing in, so you see real experiences from the trading community.",
+  },
+  {
+    question: "How do I get a Verified Trader badge?",
+    answer:
+      "Apply from your profile and upload proof of your trading, such as broker statements or payout proofs. The XK team reviews your documents, schedules a short call with you, and then approves or declines the application.",
+  },
+  {
+    question: "Can my broker or prop firm be listed on XK Trading Floor?",
+    answer:
+      "Yes. You can request a company listing from the reviews section, and brands can see listing and partnership options on the For Brands page or contact the team directly.",
+  },
+  {
+    question: "Where can I learn trading with XK Trading Floor?",
+    answer:
+      "Learning happens in the XK Trading Floor Discord community, where traders share ideas, setups and resources and talk about the markets.",
+  },
+  {
+    question: "Is the content on XK Trading Floor financial advice?",
+    answer:
+      "No. Everything on the site is for information and education only. Always do your own research before choosing a broker or prop firm or making a trade.",
+  },
+];
 
 // Simple image component without loader for fast loading
 function SimpleImage({ src, fallback, alt, className }) {
@@ -80,6 +123,13 @@ function About() {
         title="About"
         description="Learn about XK Trading Floor's mission to empower traders through education, data, and community."
         path="/about"
+        jsonLd={[
+          breadcrumbJsonLd([
+            { name: "Home", url: "/" },
+            { name: "About", url: "/about" },
+          ]),
+          faqJsonLd(ABOUT_FAQS),
+        ].filter(Boolean)}
       />
 
       <HeroSection
@@ -432,6 +482,8 @@ function About() {
           </motion.div>
         </div>
       </section>
+
+      <FaqSection faqs={ABOUT_FAQS} />
 
       {/* CTA Section */}
       <section className="py-20 bg-black relative overflow-hidden">

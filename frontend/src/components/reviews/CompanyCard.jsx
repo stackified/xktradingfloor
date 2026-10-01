@@ -85,12 +85,12 @@ function CompanyCard({ company, user }) {
                     </span>
                   )}
                   {company.country && (
-                    <span className="text-[11px] text-gray-500">
+                    <span className="text-[11px] text-gray-400">
                       · {company.country}
                     </span>
                   )}
                   {company.yearsActive && (
-                    <span className="text-[11px] text-gray-500">
+                    <span className="text-[11px] text-gray-400">
                       · {company.yearsActive}
                     </span>
                   )}
@@ -100,7 +100,7 @@ function CompanyCard({ company, user }) {
                   <span className="text-sm font-medium text-white">
                     {rating.toFixed(1)}
                   </span>
-                  <span className="text-xs text-gray-500 whitespace-nowrap">
+                  <span className="text-xs text-gray-400 whitespace-nowrap">
                     ({reviewCount}{" "}
                     {reviewCount === 1 ? "review" : "reviews"})
                   </span>
@@ -163,7 +163,7 @@ function CompanyCard({ company, user }) {
               size="sm"
             />
           </div>
-          <div className="hidden sm:block text-xs text-gray-500">
+          <div className="hidden sm:block text-xs text-gray-400">
             {reviewCount > 0
               ? `Based on ${reviewCount} verified ${
                   reviewCount === 1 ? "review" : "reviews"
@@ -183,7 +183,7 @@ function CompanyCard({ company, user }) {
                 href={company.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
               >
                 Visit Website
                 <ExternalLink className="h-3.5 w-3.5" />

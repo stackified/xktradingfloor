@@ -78,7 +78,7 @@ function HeroSection() {
           <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
             <Link
               to="/reviews"
-              className="btn rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 px-6 py-3"
+              className="btn rounded-full bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 px-6 py-3"
             >
               Explore Companies
             </Link>
@@ -168,7 +168,7 @@ function HeroSection() {
                       {badge.value}
                     </div>
                     {badge.sub && (
-                      <div className="text-[10px] text-gray-500 leading-none mt-0.5">
+                      <div className="text-[10px] text-gray-400 leading-none mt-0.5">
                         {badge.sub}
                       </div>
                     )}

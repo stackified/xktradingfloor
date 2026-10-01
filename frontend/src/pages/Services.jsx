@@ -270,7 +270,7 @@ function Services() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="btn w-full inline-flex items-center justify-center gap-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-[1.01] transition-all shadow-lg shadow-blue-500/20 px-6 py-3 text-sm sm:text-base font-medium disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="btn w-full inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-[1.01] transition-all shadow-lg shadow-blue-500/20 px-6 py-3 text-sm sm:text-base font-medium disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <Send className="h-4 w-4" />
                   <span>Send enquiry</span>

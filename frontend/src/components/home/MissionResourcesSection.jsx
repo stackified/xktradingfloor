@@ -246,7 +246,7 @@ function MissionResourcesSection() {
               </p>
               <Link
                 to="/events"
-                className="btn inline-flex items-center justify-center gap-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 mb-4 px-5 py-2.5 text-sm"
+                className="btn inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 mb-4 px-5 py-2.5 text-sm"
               >
                 <GraduationCap className="h-4 w-4" />
                 <span>Events</span>
@@ -301,7 +301,7 @@ function MissionResourcesSection() {
               </p>
               <Link
                 to="/contact"
-                className="btn inline-flex items-center justify-center gap-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 mb-4 px-5 py-2.5 text-sm"
+                className="btn inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 mb-4 px-5 py-2.5 text-sm"
               >
                 <User className="h-4 w-4" />
                 <span>Contact us</span>

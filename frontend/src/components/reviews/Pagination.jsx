@@ -74,7 +74,7 @@ function Pagination({ currentPage, totalPages, onPageChange, itemsPerPage, onIte
           {getPageNumbers().map((page, index) => {
             if (page === '...') {
               return (
-                <span key={`ellipsis-${index}`} className="px-2 text-gray-500">
+                <span key={`ellipsis-${index}`} className="px-2 text-gray-400">
                   ...
                 </span>
               );

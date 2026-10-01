@@ -171,7 +171,7 @@ function CompanyReviewForm({ companyId, existingReview, onSuccess, onCancel }) {
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-red-400">Failed to load image</p>
-                      <p className="text-xs text-gray-500">The image could not be displayed. Please upload a new one.</p>
+                      <p className="text-xs text-gray-400">The image could not be displayed. Please upload a new one.</p>
                     </div>
                     <button
                       type="button"

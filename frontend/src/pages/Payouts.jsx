@@ -135,8 +135,8 @@ function Payouts() {
             </span>
           </h1>
           <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">
-            Real payouts from prop trading firms, reported by traders and firm
-            partners.
+            Prop firm payouts reported by traders and firm partners. The figures
+            below are sample data until firms start sharing their payouts with us.
           </p>
         </div>
       </section>

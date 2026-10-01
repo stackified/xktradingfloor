@@ -175,6 +175,16 @@
         if (path !== base) {
           var root = document.getElementById("root");
           if (root) root.textContent = "";
+          // The fallback canonical and og:url in <head> point at the
+          // homepage. Every page sets its own through Helmet, so leaving the
+          // fallback gave crawlers two conflicting canonicals ("/" and the
+          // page). Helmet-managed tags carry data-rh and are kept.
+          // The homepage's own Organization/WebSite JSON-LD (data-xk-static-ld)
+          // goes too; App.jsx adds it back through Helmet on these pages.
+          // The same goes for the homepage's description, Open Graph and Twitter
+          // fallbacks: each page's Seo component sets its own.
+          var stale = document.querySelectorAll('link[rel="canonical"]:not([data-rh]), meta[name="description"]:not([data-rh]), meta[property^="og:"]:not([data-rh]), meta[name^="twitter:"]:not([data-rh]), script[data-xk-static-ld]');
+          for (var i = 0; i < stale.length; i++) stale[i].parentNode.removeChild(stale[i]);
         }
       } catch (e) {}
     })();

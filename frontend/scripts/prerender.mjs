@@ -206,6 +206,22 @@ try {
     }
   });
 
+  // Site-wide structured data (Organization + WebSite). Helmet can't write it
+  // during the snapshot because it flushes <head> on requestAnimationFrame,
+  // which is frozen above, so it's written here. Marked data-xk-static-ld:
+  // App.jsx then skips its own copy on the homepage, and the inline script in
+  // index.html removes this one on every other route.
+  const siteLd = JSON.parse(await readFile(path.resolve(__dirname, "../src/utils/siteJsonLd.json"), "utf8"));
+  await page.evaluate((blocks) => {
+    for (const data of blocks) {
+      const s = document.createElement("script");
+      s.type = "application/ld+json";
+      s.setAttribute("data-xk-static-ld", "");
+      s.textContent = JSON.stringify(data);
+      document.head.appendChild(s);
+    }
+  }, [siteLd.organization, siteLd.website]);
+
   const html = await page.content();
   if (!/id="root">\s*<[^>]/.test(html) && !html.includes("A Transparent")) {
     throw new Error("prerender: hero content not found in snapshot");

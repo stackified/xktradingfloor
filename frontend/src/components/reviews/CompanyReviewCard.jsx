@@ -107,7 +107,7 @@ function CompanyReviewCard({ review, currentUserId, onUpdate, onDelete }) {
                   day: "numeric",
                 })}
                 {review.updatedAt !== review.createdAt && (
-                  <span className="ml-2 text-gray-500">(edited)</span>
+                  <span className="ml-2 text-gray-400">(edited)</span>
                 )}
               </div>
             </div>
