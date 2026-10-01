@@ -45,12 +45,12 @@ function PayoutSummary({ firmId, firmName }) {
     <div className="card overflow-hidden">
       <div className="card-body p-0">
         <div className="p-4 sm:p-5 border-b border-gray-800">
-          <h3 className="font-display font-bold text-base sm:text-lg mb-1">
+          <h2 className="font-display font-bold text-base sm:text-lg mb-1">
             <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
               Recent Payouts
             </span>
             {firmName ? ` — ${firmName}` : ""}
-          </h3>
+          </h2>
           <p className="text-xs text-amber-300/90">
             Sample data. Real payouts will appear here once traders and the firm share them with us.
           </p>

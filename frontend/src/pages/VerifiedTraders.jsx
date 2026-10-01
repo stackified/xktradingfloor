@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { CheckCircle2, Sparkles } from "lucide-react";
 import Seo from "../components/shared/Seo.jsx";
 import ReviewsTabs from "../components/reviews/ReviewsTabs.jsx";
@@ -99,9 +99,9 @@ function VerifiedTraders() {
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h3 className="font-display font-bold text-white text-base sm:text-lg">
+                          <h2 className="font-display font-bold text-white text-base sm:text-lg">
                             {trader.fullName}
-                          </h3>
+                          </h2>
                           <CheckCircle2 className="h-4 w-4 text-blue-400 flex-shrink-0" />
                         </div>
                         <p className="text-xs text-gray-400 mt-0.5">

@@ -1,6 +1,6 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { Mail, FileText, History, AlertCircle } from "lucide-react";
 import { useToast } from "../../contexts/ToastContext.jsx";
 import EmailComposer from "../../components/admin/email/EmailComposer.jsx";
@@ -140,9 +140,9 @@ function EmailCampaigns() {
                     {tab.label}
                   </div>
                   {isActive && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400"
+                    <span
+                      aria-hidden="true"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400 nav-active-indicator"
                     />
                   )}
                 </button>

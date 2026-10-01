@@ -6,6 +6,7 @@ import App from "./App.jsx";
 import store from "./redux/store.js";
 import "./index.css";
 import { HelmetProvider } from "react-helmet-async";
+import { LazyMotion, domAnimation } from "framer-motion";
 import { ToastProvider } from "./contexts/ToastContext.jsx";
 
 // Microsoft Clarity is loaded by the GTM container (GTM-PB4G7KLK), which
@@ -59,23 +60,29 @@ if (storedPath && storedPath !== window.location.pathname) {
 
 const container = document.getElementById("root");
 
+// Components use framer-motion's slim `m` components (imported as `motion`)
+// with only the domAnimation feature set: no layout projection or drag, which
+// nothing on the site uses. That keeps ~40 KiB out of the main bundle, and the
+// projection code forced a reflow on every page load.
 const app = (
   <React.StrictMode>
-    <Provider store={store}>
-      <HelmetProvider>
-        <BrowserRouter
-          basename={basePath}
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true,
-          }}
-        >
-          <ToastProvider>
-            <App />
-          </ToastProvider>
-        </BrowserRouter>
-      </HelmetProvider>
-    </Provider>
+    <LazyMotion features={domAnimation}>
+      <Provider store={store}>
+        <HelmetProvider>
+          <BrowserRouter
+            basename={basePath}
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true,
+            }}
+          >
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+          </BrowserRouter>
+        </HelmetProvider>
+      </Provider>
+    </LazyMotion>
   </React.StrictMode>
 );
 

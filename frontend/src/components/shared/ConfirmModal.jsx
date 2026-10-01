@@ -1,6 +1,6 @@
 import React from "react";
 import { X, AlertTriangle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m as motion, AnimatePresence } from "framer-motion";
 
 function ConfirmModal({ isOpen, onClose, onConfirm, title, message, confirmText = "Confirm", cancelText = "Cancel", variant = "default" }) {
   if (!isOpen) return null;

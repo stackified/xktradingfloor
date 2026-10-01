@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { ArrowRight, Copy, CheckCircle2, LineChart, ShieldCheck, Camera } from "lucide-react";
 import { getAssetPath } from "../../utils/assets.js";
 

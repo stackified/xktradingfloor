@@ -1,5 +1,5 @@
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m as motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { requestCompanyAddition } from "../../controllers/companiesController.js";
 import CustomSelect from "../shared/CustomSelect.jsx";

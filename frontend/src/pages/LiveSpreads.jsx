@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { Search, ArrowDown, ArrowUp, Minus, ExternalLink, Info } from "lucide-react";
 import Seo from "../components/shared/Seo.jsx";
 import CardLoader from "../components/shared/CardLoader.jsx";
@@ -267,7 +267,7 @@ function LiveSpreads() {
                               <ExternalLink className="h-3 w-3 text-gray-500 group-hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </Link>
                             {broker.country && (
-                              <div className="text-xs text-gray-500 mt-0.5">
+                              <div className="text-xs text-gray-400 mt-0.5">
                                 {broker.country}
                               </div>
                             )}
@@ -290,7 +290,7 @@ function LiveSpreads() {
                 </table>
               </div>
               <div className="p-3 sm:p-4 border-t border-gray-800 text-center">
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-400">
                   {usingMock ? (
                     "Illustrative sample figures · Click a pair to sort · Not live market data"
                   ) : (

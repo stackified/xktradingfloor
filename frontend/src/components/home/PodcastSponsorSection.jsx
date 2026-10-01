@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { User, Mic, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
 import ImageWithFallback from "../shared/ImageWithFallback.jsx";

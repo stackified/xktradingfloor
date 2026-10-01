@@ -88,7 +88,6 @@ function BlogInterestCategories({ active, onSelect }) {
                 type="button"
                 onClick={() => onSelect(isActive ? "All" : item.filter)}
                 aria-pressed={isActive}
-                aria-label={`Filter by ${item.title}`}
                 className={`group relative flex flex-row items-center gap-4 sm:flex-col sm:items-start sm:gap-0 w-full sm:h-[210px] p-4 sm:p-6 rounded-[18px] border text-left bg-[#0B1120] transition-all duration-300 ease-out hover:-translate-y-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6] ${
                   isActive
                     ? "border-[#3B82F6] shadow-[0_8px_32px_rgba(59,130,246,0.15)]"

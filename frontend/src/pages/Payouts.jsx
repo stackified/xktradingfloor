@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { DollarSign, TrendingUp, Calendar, Trophy, User, Filter } from "lucide-react";
 import Seo from "../components/shared/Seo.jsx";
 import CardLoader from "../components/shared/CardLoader.jsx";
@@ -156,7 +156,7 @@ function Payouts() {
             <div className="text-2xl sm:text-3xl font-bold text-white">
               {formatMoney(totalThisMonth)}
             </div>
-            <div className="text-xs text-gray-500 mt-1">total paid out</div>
+            <div className="text-xs text-gray-400 mt-1">total paid out</div>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -171,7 +171,7 @@ function Payouts() {
             <div className="text-2xl sm:text-3xl font-bold text-white">
               {formatMoney(totalAllTime)}
             </div>
-            <div className="text-xs text-gray-500 mt-1">across {firms.length} firms</div>
+            <div className="text-xs text-gray-400 mt-1">across {firms.length} firms</div>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -186,7 +186,7 @@ function Payouts() {
             <div className="text-2xl sm:text-3xl font-bold text-white">
               {payouts.length.toLocaleString()}
             </div>
-            <div className="text-xs text-gray-500 mt-1">since launch</div>
+            <div className="text-xs text-gray-400 mt-1">since launch</div>
           </motion.div>
         </div>
 
@@ -200,6 +200,7 @@ function Payouts() {
                     <div className="inline-flex items-center gap-2">
                       <Filter className="h-3.5 w-3.5 text-gray-500" />
                       <select
+                        aria-label="Filter payouts by firm"
                         value={firmFilter}
                         onChange={(e) => setFirmFilter(e.target.value)}
                         className="text-xs rounded-full bg-gray-800 border border-gray-700 focus:border-blue-500 focus:outline-none px-3 py-1.5 text-white"
@@ -213,6 +214,7 @@ function Payouts() {
                       </select>
                     </div>
                     <select
+                      aria-label="Filter payouts by month"
                       value={monthFilter}
                       onChange={(e) => setMonthFilter(e.target.value)}
                       className="text-xs rounded-full bg-gray-800 border border-gray-700 focus:border-blue-500 focus:outline-none px-3 py-1.5 text-white"
@@ -282,7 +284,7 @@ function Payouts() {
                 )}
 
                 <div className="mt-6 pt-4 border-t border-gray-800 text-center">
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-400">
                     Sample data · Real payouts populate here once firms share
                     data with us.
                   </p>
@@ -317,7 +319,7 @@ function Payouts() {
                           <div className="text-sm text-white group-hover:text-blue-400 transition-colors truncate">
                             {f.firmName}
                           </div>
-                          <div className="text-xs text-gray-500 mt-0.5">
+                          <div className="text-xs text-gray-400 mt-0.5">
                             {formatMoney(f.total)} paid
                           </div>
                         </div>

@@ -37,7 +37,7 @@ function EventDetails() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-10">
+      <div className="max-w-5xl mx-auto px-4 py-10 min-h-screen">
         <div className="text-center text-gray-400">Loading event...</div>
       </div>
     );
