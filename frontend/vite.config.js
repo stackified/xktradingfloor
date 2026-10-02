@@ -21,6 +21,36 @@ const rocketLoaderOptOut = () => ({
   },
 });
 
+// Start the bundle after the first paint, not before it.
+//
+// The homepage (and every prerendered page) ships its content in the HTML, so
+// the first paint needs no JavaScript. But Vite's entry is a deferred
+// <script type="module">, and Chrome runs deferred scripts as soon as parsing
+// ends, before it has painted anything: evaluating the 465 KiB bundle took
+// ~500 ms on a laptop and ~2 s on the mobile Lighthouse profile, and First
+// Contentful Paint waited for all of it. Replacing the tag with a modulepreload
+// (so the download still starts immediately) plus a tiny loader that waits for
+// one animation frame lets the browser paint the prerendered page first and
+// then hydrate it. The prerender sets window.__xkPrerender because it freezes
+// requestAnimationFrame; a timer covers background tabs, where rAF is paused.
+const deferEntryUntilFirstPaint = () => ({
+  name: "defer-entry-until-first-paint",
+  transformIndexHtml: {
+    order: "post",
+    handler: (html) =>
+      html.replace(
+        /<script type="module" crossorigin src="([^"]+)"><\/script>/,
+        (_, src) =>
+          `<link rel="modulepreload" crossorigin href="${src}">` +
+          `<script>(function(){var s=${JSON.stringify(src)},d=false;` +
+          `function start(){if(d)return;d=true;var e=document.createElement("script");` +
+          `e.type="module";e.crossOrigin="anonymous";e.src=s;document.head.appendChild(e);}` +
+          `if(window.__xkPrerender){start();return;}` +
+          `requestAnimationFrame(function(){setTimeout(start,0);});setTimeout(start,1500);})();</script>`
+      ),
+  },
+});
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Read base path from environment variable, default to "/" for localhost
@@ -30,7 +60,9 @@ export default defineConfig(({ mode }) => {
   const normalizedBasePath = basePath.endsWith("/") ? basePath : `${basePath}/`;
 
   return {
-    plugins: [react(), rocketLoaderOptOut()],
+    // deferEntryUntilFirstPaint runs before rocketLoaderOptOut so the loader
+    // it writes gets the data-cfasync opt-out too.
+    plugins: [react(), deferEntryUntilFirstPaint(), rocketLoaderOptOut()],
     server: {
       port: 5173,
       open: true,
