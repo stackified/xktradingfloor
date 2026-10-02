@@ -6,8 +6,8 @@ import ImageWithFallback from '../shared/ImageWithFallback.jsx';
 import DiscordLink from '../shared/DiscordLink.jsx';
 
 // Homepage "Learn Trading" section. XK has no academy: learning happens in the
-// Discord community (copy agreed with the client, 2 Oct 2026), with the Learn
-// page collecting the blog's learning articles.
+// Discord community (copy agreed with the client, 2 Oct 2026), with the blog's
+// Learn Trading category collecting the learning articles.
 function CommunitySection() {
   return (
     <section id="learn" className="py-20 bg-black relative overflow-hidden scroll-mt-20">
@@ -53,7 +53,7 @@ function CommunitySection() {
                 Join Our Discord
               </DiscordLink>
               <Link
-                to="/learn"
+                to="/blog/category/learn-trading"
                 className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors"
               >
                 Start learning →

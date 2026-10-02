@@ -44,7 +44,7 @@ const ABOUT_FAQS = [
   {
     question: "Where can I learn trading with XK Trading Floor?",
     answer:
-      "Learning happens in the XK Trading Floor Discord community, where traders share ideas, setups and resources and talk about the markets. The Learn page (xktradingfloor.com/learn) links to the Discord and to our trading guides; joining needs no XK account.",
+      "Learning happens in the XK Trading Floor Discord community, where traders share ideas, setups and resources and talk about the markets. Our trading guides are in the blog's Learn Trading section (xktradingfloor.com/blog/category/learn-trading); joining the Discord needs no XK account.",
   },
   {
     question: "Is the content on XK Trading Floor financial advice?",

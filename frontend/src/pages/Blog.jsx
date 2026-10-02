@@ -15,6 +15,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { BLOG_CATEGORIES, blogCategoryOf, categoryBySlug, categoryPath } from "../utils/blogCategories.js";
 import NotFound from "./NotFound.jsx";
+import DiscordLink from "../components/shared/DiscordLink.jsx";
 import { BLOG_CONTAINER, BLOG_SECTION_HEADING, BLOG_COLORS } from "../components/blog/blogLayout.js";
 
 const PAGE_BTN =
@@ -199,6 +200,29 @@ function Blog() {
       )}
 
       <BlogHero searchValue={query} onSearchChange={(val) => { setQuery(val); setPage(1); }} />
+
+      {/* Learning happens in the Discord community; the Learn Trading
+          category is where the site points people to it (client, 2 Oct 2026). */}
+      {activeCategory?.slug === "learn-trading" && (
+        <section className={`${BLOG_CONTAINER} pt-10`} aria-labelledby="learn-community-heading">
+          <div className="flex flex-col gap-5 rounded-[18px] border border-[#3B82F6]/30 bg-[#0B1120] p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+            <div>
+              <h2 id="learn-community-heading" className="font-display text-2xl font-bold text-white sm:text-3xl">
+                Learn Trading.{" "}
+                <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">
+                  Grow With The Community.
+                </span>
+              </h2>
+              <p className="mt-2 max-w-2xl text-[15px] text-[#94A3B8]">
+                Join our Discord community to learn, discuss markets, share ideas and connect with other traders.
+              </p>
+            </div>
+            <DiscordLink className="btn inline-flex shrink-0 items-center justify-center gap-2 rounded-full border-2 border-white bg-white px-6 py-3 font-medium text-gray-900 transition-all hover:scale-105 hover:bg-gray-100">
+              Join Our Discord
+            </DiscordLink>
+          </div>
+        </section>
+      )}
 
       <BlogInterestCategories active={category} />
 

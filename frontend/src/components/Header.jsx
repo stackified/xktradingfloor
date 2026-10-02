@@ -14,8 +14,15 @@ import { useToast } from "../contexts/ToastContext.jsx";
 const navItems = [
   { to: "/", label: "Home" },
   { to: "/events", label: "Events" },
-  { to: "/blog", label: "Blog" },
-  { to: "/learn", label: "Learn" },
+  {
+    to: "/blog",
+    label: "Blog",
+    // Learning lives in the blog (client, 2 Oct 2026): no separate page.
+    subItems: [
+      { to: "/blog", label: "All articles" },
+      { to: "/blog/category/learn-trading", label: "Learn Trading" },
+    ],
+  },
   // { to: "/merch", label: "Merch" }, // Hidden - uncomment to re-enable
   {
     to: "/reviews",
@@ -79,7 +86,8 @@ function Header() {
   const user =
     reduxUser || (typeof window !== "undefined" ? getUserCookie() : null);
   const [menuOpen, setMenuOpen] = React.useState(false);
-  const [reviewsDropdownOpen, setReviewsDropdownOpen] = React.useState(false);
+  // Which desktop dropdown (Blog, Reviews) is open, by its path.
+  const [openDropdown, setOpenDropdown] = React.useState(null);
   const [mobileSubmenus, setMobileSubmenus] = React.useState({});
 
   // Sync user from cookie on mount and when storage changes (cross-tab sync)
@@ -179,8 +187,8 @@ function Header() {
                 <div
                   key={n.to}
                   className="relative"
-                  onMouseEnter={() => setReviewsDropdownOpen(true)}
-                  onMouseLeave={() => setReviewsDropdownOpen(false)}
+                  onMouseEnter={() => setOpenDropdown(n.to)}
+                  onMouseLeave={() => setOpenDropdown(null)}
                 >
                   <NavLink
                     to={n.to}
@@ -197,7 +205,7 @@ function Header() {
                     </span>
                     <ChevronDown
                       className={`h-3 w-3 transition-transform ${
-                        reviewsDropdownOpen ? "rotate-180" : ""
+                        openDropdown === n.to ? "rotate-180" : ""
                       }`}
                     />
                     {isActive && (
@@ -210,13 +218,13 @@ function Header() {
 
                   {/* Dropdown Menu */}
                   <AnimatePresence>
-                    {reviewsDropdownOpen && (
+                    {openDropdown === n.to && (
                       <motion.div
                         initial={{ opacity: 0, y: -10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute top-full left-0 mt-1 w-40 border border-gray-800 bg-gray-900/95 backdrop-blur-xl rounded-lg shadow-2xl overflow-hidden z-50"
+                        className="absolute top-full left-0 mt-1 w-44 border border-gray-800 bg-gray-900/95 backdrop-blur-xl rounded-lg shadow-2xl overflow-hidden z-50"
                       >
                         {n.subItems.map((subItem) => {
                           const isSubActive = location.pathname === subItem.to;
@@ -229,7 +237,7 @@ function Header() {
                                   ? "text-white bg-blue-500/10 border-l-2 border-blue-500"
                                   : "text-gray-300 hover:text-white hover:bg-gray-800/50"
                               }`}
-                              onClick={() => setReviewsDropdownOpen(false)}
+                              onClick={() => setOpenDropdown(null)}
                             >
                               {subItem.label}
                             </Link>
