@@ -26,7 +26,7 @@ function Footer() {
           <ul className="space-y-2 text-sm text-gray-300">
             <li><Link to="/events" className="hover:text-white">Events</Link></li>
             <li><Link to="/blog" className="hover:text-white">Blog</Link></li>
-            <li><Link to="/learn" className="hover:text-white">Learn</Link></li>
+            <li><Link to="/blog/category/learn-trading" className="hover:text-white">Learn Trading</Link></li>
             <li><Link to="/reviews" className="hover:text-white">Reviews</Link></li>
             <li><Link to="/live-spreads" className="hover:text-white">Live Spreads</Link></li>
             <li><Link to="/payouts" className="hover:text-white">Payout Tracker</Link></li>
