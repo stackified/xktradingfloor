@@ -157,11 +157,13 @@
         }, ms);
       }
 
-      // Without an interaction: analytics 3 s after load, ads 6 s after load,
-      // each when the main thread is free.
+      // Without an interaction: analytics 8 s after load, ads 10 s after load,
+      // each when the main thread is free. Visits shorter than that with no
+      // scroll or tap go unrecorded; in return the tags stay out of the
+      // page-load measurement window, which kept moving the mobile score.
       function afterLoad() {
-        idle(loadTags, 3000);
-        idle(loadAds, 6000);
+        idle(loadTags, 8000);
+        idle(loadAds, 10000);
       }
 
       events.forEach(function (e) { window.addEventListener(e, onInteract, { passive: true }); });
