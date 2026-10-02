@@ -33,7 +33,9 @@ const navItems = [
       { to: "/reviews/crypto", label: "Crypto" },
     ],
   },
-  { to: "/live-spreads", label: "Live Spreads" },
+  // Not "Live" until the spread feed is public (backend B7); the page shows
+  // a Live badge itself when real data loads.
+  { to: "/live-spreads", label: "Spreads" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];

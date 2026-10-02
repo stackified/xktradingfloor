@@ -23,7 +23,7 @@ function Home() {
     <div className="overflow-hidden">
       <Seo
         title=""
-        description="Compare brokers and prop firms, explore verified trader profiles, track live spreads and payouts, and make confident trading decisions."
+        description="Compare brokers and prop firms, explore verified trader profiles, compare spreads and payouts, and make confident trading decisions."
         path="/"
       />
       <HeroSection />

@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { repairStoredHtml } from "../../utils/richText.js";
 import { isDesignedHtml } from "../../utils/designedHtml.js";
 import { m as motion } from "framer-motion";
@@ -92,6 +93,9 @@ function CompanyProfileHeader({ company }) {
                 ({company.totalReviews || 0}{" "}
                 {company.totalReviews === 1 ? "review" : "reviews"})
               </span>
+              <Link to="/how-we-rate#trustscore" className="text-xs text-blue-400 hover:text-blue-300">
+                How ratings work
+              </Link>
             </div>
           </div>
         </div>

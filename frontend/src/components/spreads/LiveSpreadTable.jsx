@@ -64,7 +64,7 @@ function LiveSpreadTable({ brokerId, brokerName }) {
           <div>
             <h3 className="font-display font-bold text-base sm:text-lg">
               <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
-                Live Spreads
+                {usingMock ? "Spreads" : "Live Spreads"}
               </span>
               {brokerName ? ` — ${brokerName}` : ""}
             </h3>
@@ -115,7 +115,7 @@ function LiveSpreadTable({ brokerId, brokerName }) {
         </div>
 
         <div className="p-3 sm:p-4 border-t border-gray-800 text-center">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-400">
             {usingMock ? (
               "Illustrative sample figures — not live market data."
             ) : (

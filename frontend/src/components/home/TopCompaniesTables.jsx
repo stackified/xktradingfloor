@@ -196,8 +196,12 @@ function TopCompaniesTables() {
             </span>
           </h2>
           <p className="text-sm text-gray-400 max-w-2xl mx-auto">
-            The highest-rated brokers and prop firms on XK, ranked by trader
-            reviews.
+            Ranked by trader reviews (TrustScore). Companies with no reviews
+            yet are listed after the rated ones; see{" "}
+            <Link to="/how-we-rate" className="text-blue-400 hover:text-blue-300">
+              how ratings work
+            </Link>
+            .
           </p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
