@@ -1,12 +1,16 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { m as motion } from 'framer-motion';
 import { MessageCircle } from 'lucide-react';
 import ImageWithFallback from '../shared/ImageWithFallback.jsx';
-import DiscordAuthGate from '../shared/DiscordAuthGate.jsx';
+import DiscordLink from '../shared/DiscordLink.jsx';
 
+// Homepage "Learn Trading" section. XK has no academy: learning happens in the
+// Discord community (copy agreed with the client, 2 Oct 2026), with the Learn
+// page collecting the blog's learning articles.
 function CommunitySection() {
   return (
-    <section className="py-20 bg-black relative overflow-hidden">
+    <section id="learn" className="py-20 bg-black relative overflow-hidden scroll-mt-20">
       {/* Background decoration */}
       {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 right-0 w-96 h-96 bg-green-500/5 rounded-full blur-3xl"></div>
@@ -28,7 +32,7 @@ function CommunitySection() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight mb-6 leading-tight"
             >
-              Trade, Learn & Grow — <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Together.</span>
+              Learn Trading. <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Grow With The Community.</span>
             </motion.h2>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -38,21 +42,23 @@ function CommunitySection() {
               className="text-sm sm:text-base text-gray-300 mb-8 space-y-4 leading-relaxed"
             >
               <p>
-                Looking for a community that helps you master trading — not just technicals, but mindset and strategy too?
-              </p>
-              <p>
-                At XK Trading Floor, we've built a supportive, non-toxic space where traders share insights, discuss markets, and grow collectively.
-              </p>
-              <p>
-                Whether you're new or experienced, you'll find a team ready to help you reach the next level.
+                Join our Discord community to learn, discuss markets, share ideas and connect with other traders.
               </p>
             </motion.div>
-            <DiscordAuthGate
-              discordUrl="https://discord.gg/c2rtKXU56s"
-              className="btn inline-flex items-center justify-center rounded-full bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3 font-medium"
-            >
-              Join the Community
-            </DiscordAuthGate>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <DiscordLink
+                className="btn inline-flex items-center justify-center gap-2 rounded-full bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3 font-medium"
+              >
+                <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                Join Our Discord
+              </DiscordLink>
+              <Link
+                to="/learn"
+                className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                Start learning →
+              </Link>
+            </div>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, x: 30, scale: 0.95 }}

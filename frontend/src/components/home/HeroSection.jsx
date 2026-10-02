@@ -1,17 +1,18 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { TrendingUp, ShieldCheck, Star } from "lucide-react";
+import { TrendingUp, Building2, Users } from "lucide-react";
 import { getAssetPath } from "../../utils/assets.js";
 
 const trustPoints = [
-  "Trusted reviews",
+  "Trader reviews",
   "Verified traders",
   "Live spreads",
-  "Real payouts",
+  "Payout tracker",
 ];
 
-// Floating trust badges positioned around the hero logo. Content and stats
-// mirror the marketing figures shown in StatsSection so the two never disagree.
+// Floating badges around the hero logo. The figures mirror StatsSection so the
+// two never disagree; no review or payout totals until there is real verified
+// data (client, 2 Oct 2026).
 const heroBadges = [
   {
     id: "spreads",
@@ -19,32 +20,32 @@ const heroBadges = [
     iconTint: "text-blue-400",
     iconBg: "bg-blue-500/15",
     label: "Live Spreads",
-    value: "EUR/USD 0.1",
+    value: "Compare brokers",
     // Top-right of the logo
     position: "top-2 right-0 md:-right-6 lg:-right-10",
     delay: 0,
     withPulse: true,
   },
   {
-    id: "payouts",
-    icon: ShieldCheck,
+    id: "companies",
+    icon: Building2,
     iconTint: "text-green-400",
     iconBg: "bg-green-500/15",
-    label: "Verified Payouts",
-    value: "$23.7M+",
-    sub: "This month",
+    label: "Brokers & Prop Firms",
+    value: "70+",
+    sub: "Listed and reviewed",
     // Bottom-right of the logo
     position: "bottom-8 right-0 md:-right-8 lg:-right-14",
     delay: 0.4,
   },
   {
-    id: "reviews",
-    icon: Star,
+    id: "community",
+    icon: Users,
     iconTint: "text-yellow-400",
     iconBg: "bg-yellow-500/15",
-    label: "Trusted Reviews",
-    value: "24,369+",
-    sub: "From verified traders",
+    label: "Community",
+    value: "1,000+",
+    sub: "Traders",
     // Top-left of the logo
     position: "top-4 left-0 md:-left-6 lg:-left-10",
     delay: 0.8,

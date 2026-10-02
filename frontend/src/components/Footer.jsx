@@ -2,9 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
 import { getAssetPath } from '../utils/assets.js';
-import DiscordAuthGate from './shared/DiscordAuthGate.jsx';
+import DiscordLink from './shared/DiscordLink.jsx';
 
-const DISCORD_URL = 'https://discord.gg/c2rtKXU56s';
 
 function Footer() {
   return (
@@ -27,6 +26,7 @@ function Footer() {
           <ul className="space-y-2 text-sm text-gray-300">
             <li><Link to="/events" className="hover:text-white">Events</Link></li>
             <li><Link to="/blog" className="hover:text-white">Blog</Link></li>
+            <li><Link to="/learn" className="hover:text-white">Learn</Link></li>
             <li><Link to="/reviews" className="hover:text-white">Reviews</Link></li>
             <li><Link to="/live-spreads" className="hover:text-white">Live Spreads</Link></li>
             <li><Link to="/payouts" className="hover:text-white">Payout Tracker</Link></li>
@@ -50,13 +50,12 @@ function Footer() {
           <p className="mb-3 text-sm text-gray-300">
             Get updates, event news and trading discussion in our Discord community.
           </p>
-          <DiscordAuthGate
-            discordUrl={DISCORD_URL}
+          <DiscordLink
             className="btn btn-primary inline-flex items-center gap-2"
           >
             <MessageCircle className="h-4 w-4" aria-hidden="true" />
             Join our Discord
-          </DiscordAuthGate>
+          </DiscordLink>
         </div>
       </div>
       {/* One template string, not `© {year} XK…`: that JSX yields three adjacent text

@@ -52,7 +52,7 @@ function PayoutSummary({ firmId, firmName }) {
             {firmName ? ` — ${firmName}` : ""}
           </h2>
           <p className="text-xs text-amber-300/90">
-            Sample data. Real payouts will appear here once traders and the firm share them with us.
+            Sample Data — Real verified payout data will be added as our database grows.
           </p>
         </div>
 
@@ -115,7 +115,7 @@ function PayoutSummary({ firmId, firmName }) {
 
         <div className="p-3 sm:p-4 border-t border-gray-800 text-center">
           <p className="text-xs text-gray-400">
-            Sample data · Real payouts will appear here once the firm shares data with us.
+            Sample Data — Real verified payout data will be added as our database grows.
           </p>
         </div>
       </div>

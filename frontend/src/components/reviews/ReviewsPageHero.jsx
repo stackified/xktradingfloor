@@ -10,7 +10,7 @@ const badges = [
     delay: 0,
   },
   {
-    label: "Real Payout",
+    label: "Payout Tracker",
     icon: DollarSign,
     position: "top-4 -right-4 lg:-right-8",
     delay: 0.2,
@@ -22,7 +22,7 @@ const badges = [
     delay: 0.4,
   },
   {
-    label: "Verified Data",
+    label: "Live Spreads",
     icon: ShieldCheck,
     position: "bottom-8 -right-4 lg:-right-12",
     delay: 0.6,
@@ -62,7 +62,7 @@ function ReviewsPageHero({ searchValue, onSearchChange, onSearchSubmit }) {
 
             <p className="text-sm sm:text-base text-gray-400 mb-6 max-w-lg mx-auto lg:mx-0 leading-relaxed">
               Compare brokers, prop firms and verified traders. Read real reviews,
-              track live spreads and verified payouts before choosing where to trade.
+              track live spreads and payouts before choosing where to trade.
             </p>
 
             <form onSubmit={handleSubmit} className="relative max-w-lg mx-auto lg:mx-0">

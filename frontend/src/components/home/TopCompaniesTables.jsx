@@ -196,7 +196,7 @@ function TopCompaniesTables() {
             </span>
           </h2>
           <p className="text-sm text-gray-400 max-w-2xl mx-auto">
-            The highest-rated brokers and prop firms on XK, ranked by verified
+            The highest-rated brokers and prop firms on XK, ranked by trader
             reviews.
           </p>
         </div>

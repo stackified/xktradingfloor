@@ -7,7 +7,7 @@ import { Rocket, ShieldCheck, Users } from "lucide-react";
 import { m as motion } from "framer-motion";
 import Seo from "../components/shared/Seo.jsx";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
-import DiscordAuthGate from "../components/shared/DiscordAuthGate.jsx";
+import DiscordLink from '../components/shared/DiscordLink.jsx';
 import { getAssetPath } from "../utils/assets.js";
 import FaqSection from "../components/shared/FaqSection.jsx";
 import { faqJsonLd } from "../utils/faq.js";
@@ -44,7 +44,7 @@ const ABOUT_FAQS = [
   {
     question: "Where can I learn trading with XK Trading Floor?",
     answer:
-      "Learning happens in the XK Trading Floor Discord community, where traders share ideas, setups and resources and talk about the markets.",
+      "Learning happens in the XK Trading Floor Discord community, where traders share ideas, setups and resources and talk about the markets. The Learn page (xktradingfloor.com/learn) links to the Discord and to our trading guides; joining needs no XK account.",
   },
   {
     question: "Is the content on XK Trading Floor financial advice?",
@@ -504,12 +504,11 @@ function About() {
                   Become part of a growing, supportive trading community.
                 </p>
               </div>
-              <DiscordAuthGate
-                discordUrl="https://discord.gg/c2rtKXU56s"
+              <DiscordLink
                 className="btn inline-flex items-center justify-center rounded-full bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3 font-medium whitespace-nowrap"
               >
                 Get Started
-              </DiscordAuthGate>
+              </DiscordLink>
             </div>
           </motion.div>
         </div>

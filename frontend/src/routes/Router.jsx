@@ -26,6 +26,7 @@ const ForgotPassword = React.lazy(() => import("../pages/ForgotPassword.jsx"));
 const ResetPassword = React.lazy(() => import("../pages/ResetPassword.jsx"));
 const About = React.lazy(() => import("../pages/About.jsx"));
 const Contact = React.lazy(() => import("../pages/Contact.jsx"));
+const Learn = React.lazy(() => import("../pages/Learn.jsx"));
 const Services = React.lazy(() => import("../pages/Services.jsx"));
 const VerifiedTraders = React.lazy(() => import("../pages/VerifiedTraders.jsx"));
 const UserProfile = React.lazy(() => import("../pages/UserProfile.jsx"));
@@ -43,6 +44,7 @@ const AdminCompanies = React.lazy(() => import("../pages/admin/AdminCompanies.js
 const AdminCompanyDetails = React.lazy(() => import("../pages/admin/AdminCompanyDetails.jsx"));
 const AdminCompanyForm = React.lazy(() => import("../components/admin/companies/CompanyForm.jsx"));
 const AdminEvents = React.lazy(() => import("../pages/admin/AdminEvents.jsx"));
+const AdminEventRegistrations = React.lazy(() => import("../pages/admin/AdminEventRegistrations.jsx"));
 const AboutEditor = React.lazy(() => import("../pages/admin/AboutEditor.jsx"));
 const AdminSettings = React.lazy(() => import("../pages/admin/AdminSettings.jsx"));
 const AdminVerifiedTraders = React.lazy(() => import("../pages/admin/AdminVerifiedTraders.jsx"));
@@ -118,6 +120,7 @@ export default function AppRouter() {
           <Route path="/academy" element={<Navigate to="/events" replace />} />
           <Route path="/events/:eventId" element={<EventDetails />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/category/:categorySlug" element={<Blog />} />
           {/* URLs are slug-based. Legacy Mongo-ObjectId URLs still resolve —
               BlogPost detects the shape and redirects to the canonical slug. */}
           <Route path="/blog/:slug" element={<BlogPost />} />
@@ -159,6 +162,7 @@ export default function AppRouter() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/about" element={<About />} />
+          <Route path="/learn" element={<Learn />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/services" element={<Services />} />
           <Route path="/live-spreads" element={<LiveSpreads />} />
@@ -290,6 +294,14 @@ export default function AppRouter() {
             element={
               <ProtectedRoute role="admin">
                 <AdminEvents />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/event-registrations"
+            element={
+              <ProtectedRoute role="admin-only">
+                <AdminEventRegistrations />
               </ProtectedRoute>
             }
           />

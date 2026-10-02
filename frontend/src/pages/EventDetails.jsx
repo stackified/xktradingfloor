@@ -4,10 +4,12 @@ import { eventJsonLd, breadcrumbJsonLd } from "../utils/structuredData.js";
 import { useParams, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ExternalLink } from "lucide-react";
-import { getEventById } from "../controllers/eventsController.js";
+import { getEventById, EVENT_LEADS_LIVE } from "../controllers/eventsController.js";
 import EventImage from "../components/shared/EventImage.jsx";
 import EventBadges from "../components/shared/EventBadges.jsx";
 import RegisterModal from "../components/academy/RegisterModal.jsx";
+import EventRegisterModal from "../components/academy/EventRegisterModal.jsx";
+import { formatEventWhen, formatEventPlace } from "../utils/eventTime.js";
 import { getUserCookie } from "../utils/cookies.js";
 
 function EventDetails() {
@@ -96,11 +98,12 @@ function EventDetails() {
             </div>
             <EventBadges evt={event} size="md" className="mb-3" />
             <div className="text-xs sm:text-sm text-gray-300 mb-2">
-              {event.dateTime
-                ? new Date(event.dateTime).toLocaleString()
-                : event.date}{" "}
-              {event.location ? `• ${event.location}` : ""}
+              {formatEventWhen(event)}{" "}
+              {formatEventPlace(event) ? `• ${formatEventPlace(event)}` : ""}
             </div>
+            {event.city && event.location && (
+              <div className="text-xs sm:text-sm text-gray-400 mb-2">Venue: {event.location}</div>
+            )}
             {event.organizerName && (
               <div className="text-xs sm:text-sm text-gray-400 mb-4">
                 Organized by{" "}
@@ -159,9 +162,19 @@ function EventDetails() {
                     )}
                   </div>
 
-                  {/* External registration always wins if set — the event is
-                      hosted elsewhere (e.g. Eventbrite, partner site). */}
-                  {externalUrl ? (
+                  {/* With lead capture on, everyone registers with XK first
+                      (no account needed); the organiser's own link is shown
+                      after the form is sent. Without it, the old flow: the
+                      external link wins, else logged-in registration. */}
+                  {EVENT_LEADS_LIVE ? (
+                    <button
+                      type="button"
+                      className="btn btn-primary w-full"
+                      onClick={() => setModalOpen(true)}
+                    >
+                      Register
+                    </button>
+                  ) : externalUrl ? (
                     <a
                       href={externalUrl}
                       target="_blank"
@@ -185,7 +198,9 @@ function EventDetails() {
                   )}
 
                   <div className="text-xs text-gray-400 mt-3 text-center">
-                    {externalUrl
+                    {EVENT_LEADS_LIVE
+                      ? "No account needed."
+                      : externalUrl
                       ? "Registration is handled on the organizer's site."
                       : isPaid
                         ? "Registration is required to attend."
@@ -197,11 +212,19 @@ function EventDetails() {
           </div>
         </div>
       </div>
-      <RegisterModal 
-        isOpen={modalOpen} 
-        onClose={() => setModalOpen(false)} 
-        selectedEvent={event} 
-      />
+      {EVENT_LEADS_LIVE ? (
+        <EventRegisterModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          event={event}
+        />
+      ) : (
+        <RegisterModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          selectedEvent={event}
+        />
+      )}
     </div>
   );
 }

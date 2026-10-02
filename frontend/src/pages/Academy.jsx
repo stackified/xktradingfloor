@@ -7,6 +7,8 @@ import EventsGrid from '../components/academy/EventsGrid.jsx';
 import FreeResources from '../components/academy/FreeResources.jsx';
 import PodcastSection from '../components/academy/PodcastSection.jsx';
 import RegisterModal from '../components/academy/RegisterModal.jsx';
+import EventRegisterModal from '../components/academy/EventRegisterModal.jsx';
+import { EVENT_LEADS_LIVE } from '../controllers/eventsController.js';
 import { getUserCookie } from '../utils/cookies.js';
 
 function Academy() {
@@ -53,7 +55,11 @@ function Academy() {
         <FreeResources />
         <PodcastSection />
       </div>
-      <RegisterModal isOpen={modalOpen} onClose={() => setModalOpen(false)} selectedEvent={selectedEvent} />
+      {EVENT_LEADS_LIVE ? (
+        <EventRegisterModal isOpen={modalOpen} onClose={() => setModalOpen(false)} event={selectedEvent} />
+      ) : (
+        <RegisterModal isOpen={modalOpen} onClose={() => setModalOpen(false)} selectedEvent={selectedEvent} />
+      )}
     </div>
   );
 }

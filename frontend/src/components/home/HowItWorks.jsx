@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ImageWithFallback from "../shared/ImageWithFallback.jsx";
-import DiscordAuthGate from "../shared/DiscordAuthGate.jsx";
+import DiscordLink from '../shared/DiscordLink.jsx';
 
 const steps = [
   {
@@ -120,12 +120,12 @@ function StepCard({ step, index, isInView }) {
           </div>
 
           {step.isDiscord ? (
-            <DiscordAuthGate
-              discordUrl={step.ctaLink}
+            <DiscordLink
+              href={step.ctaLink}
               className={`${colors.button} text-white px-6 py-3 rounded-full font-medium w-fit transition-all hover:scale-105 shadow-lg`}
             >
               {step.ctaText}
-            </DiscordAuthGate>
+            </DiscordLink>
           ) : step.isExternal ? (
             <a
               href={step.ctaLink}

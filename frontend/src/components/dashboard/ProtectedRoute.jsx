@@ -16,6 +16,9 @@ export default function ProtectedRoute({ children, role }) {
     // Map common role variations
     const roleMap = {
       'admin': ['admin', 'subadmin', 'supervisor'],
+      // Main admin account only (e.g. event registration leads, which hold
+      // visitors' personal details).
+      'admin-only': ['admin'],
       'operator': ['operator', 'subadmin'],
       'user': ['user'],
     };

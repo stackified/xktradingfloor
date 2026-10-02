@@ -13,6 +13,11 @@
   RewriteCond %{HTTPS} !=on
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+  # Routes never end in a slash: /blog/category/markets/ -> /blog/category/markets
+  # (one URL per page for search engines).
+  RewriteCond %{REQUEST_URI} ^/(.+)/$
+  RewriteRule ^ /%1 [R=301,L]
+
   # Serve real files as-is (ads.txt, verification file, assets, etc.).
   # Directories are deliberately NOT served: blog/ holds the prerendered
   # posts, and /blog itself must still reach the app, not the folder.

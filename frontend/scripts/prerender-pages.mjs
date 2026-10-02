@@ -26,6 +26,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer-core";
+import { BLOG_CATEGORIES } from "../src/utils/blogCategories.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DOCS = path.resolve(__dirname, "../docs");
@@ -42,6 +43,8 @@ export const STATIC_PAGES = [
   "services",
   "events",
   "blog",
+  ...BLOG_CATEGORIES.map((c) => `blog/category/${c.slug}`),
+  "learn",
   "merch",
   "reviews",
   "reviews/broker",

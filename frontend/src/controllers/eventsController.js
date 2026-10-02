@@ -345,3 +345,68 @@ export async function deleteEvent(eventId) {
     message: "Event deleted successfully!",
   };
 }
+
+// ---------------------------------------------------------------------------
+// Event registration leads (client, 2 Oct 2026; backend task B16)
+//
+// Anyone can register without an XK account: full name and email required,
+// phone optional, country, optional company, and an unticked consent box. The
+// event is attached on the server. Leads are listed and exported in the admin
+// panel (Admin only). Switched on with the build flag VITE_EVENT_LEADS=on once
+// the backend endpoints exist; until then the site keeps the old Register
+// behaviour, so nothing calls these.
+export const EVENT_LEADS_LIVE = import.meta.env.VITE_EVENT_LEADS === "on";
+
+// POST /api/events/:eventId/register
+// Body: { fullName, email, phone?, country, company?, consent, website }
+// "website" is a honeypot: always empty from real visitors.
+// Returns { registrationId, externalUrl }.
+export async function registerEventLead(eventId, lead) {
+  if (!eventId) throw new Error("Event ID is required");
+  try {
+    const response = await api.post(`/events/${eventId}/register`, {
+      fullName: lead.fullName.trim(),
+      email: lead.email.trim(),
+      phone: lead.phone?.trim() || "",
+      country: lead.country,
+      company: lead.company?.trim() || "",
+      consent: Boolean(lead.consent),
+      website: lead.website || "",
+    });
+    if (response.data?.success) return response.data.data || {};
+    throw new Error(response.data?.message || "Registration failed. Please try again.");
+  } catch (error) {
+    const status = error.response?.status;
+    if (status === 429) throw new Error("Too many attempts. Please wait a few minutes and try again.");
+    throw new Error(error.response?.data?.message || error.message || "Registration failed. Please try again.");
+  }
+}
+
+// GET /api/admin/event-registrations?eventId=&search=&page=&size=
+export async function getEventRegistrations({ eventId, search, page = 1, size = 25 } = {}) {
+  const params = { page, size };
+  if (eventId) params.eventId = eventId;
+  if (search) params.search = search;
+  const response = await api.get("/admin/event-registrations", { params });
+  return {
+    data: Array.isArray(response.data?.data) ? response.data.data : [],
+    pagination: response.data?.pagination || { totalItems: 0, totalPages: 1, currentPage: page },
+  };
+}
+
+// GET /api/admin/event-registrations/export.csv?eventId=
+// Downloads through the API client so the admin's token is sent.
+export async function downloadEventRegistrationsCsv({ eventId } = {}) {
+  const response = await api.get("/admin/event-registrations/export.csv", {
+    params: eventId ? { eventId } : {},
+    responseType: "blob",
+  });
+  const url = URL.createObjectURL(response.data);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `event-registrations-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
