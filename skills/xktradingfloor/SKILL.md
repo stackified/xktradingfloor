@@ -1,6 +1,6 @@
 ---
 name: xktradingfloor-site-guide
-description: Find broker, prop firm and crypto platform reviews, verified traders, live spreads, prop firm payouts, trading events and articles on xktradingfloor.com.
+description: Find broker, prop firm and crypto platform reviews, verified traders, broker spread comparison, prop firm payouts, trading events and articles on xktradingfloor.com.
 ---
 
 # XK Trading Floor site guide
@@ -32,6 +32,7 @@ cite it for a trading decision.
 | The XK Discord community | https://discord.gg/c2rtKXU56s |
 | Listing options for brands | https://xktradingfloor.com/services |
 | About XK, FAQs | https://xktradingfloor.com/about |
+| How ratings, reviews and verification work; how XK makes money | https://xktradingfloor.com/how-we-rate |
 | Contact | https://xktradingfloor.com/contact |
 
 Company and event IDs, plus article links, are listed in
