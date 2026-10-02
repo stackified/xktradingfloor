@@ -18,6 +18,9 @@
   RewriteCond %{REQUEST_URI} ^/(.+)/$
   RewriteRule ^ /%1 [R=301,L]
 
+  # The Learn page became the blog's Learn Trading category (2 Oct 2026).
+  RewriteRule ^learn$ /blog/category/learn-trading [R=301,L]
+
   # Serve real files as-is (ads.txt, verification file, assets, etc.).
   # Directories are deliberately NOT served: blog/ holds the prerendered
   # posts, and /blog itself must still reach the app, not the folder.
