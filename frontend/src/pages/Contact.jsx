@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Seo from "../components/shared/Seo.jsx";
 import CustomSelect from "../components/shared/CustomSelect.jsx";
+import DiscordLink from "../components/shared/DiscordLink.jsx";
 
 function Contact() {
   const [ok, setOk] = React.useState(false);
@@ -180,7 +181,9 @@ function Contact() {
                       className="text-blue-400 h-5 w-5"
                       aria-hidden="true"
                     />
-                    <span>Live chat (coming soon)</span>
+                    <DiscordLink className="hover:text-white transition-colors">
+                      Discord community and support
+                    </DiscordLink>
                   </li>
                 </ul>
               </motion.div>

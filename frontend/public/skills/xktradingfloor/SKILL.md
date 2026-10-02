@@ -27,6 +27,8 @@ cite it for a trading decision.
 | Expos, conferences, webinars, meetups | https://xktradingfloor.com/events |
 | One event | https://xktradingfloor.com/events/{eventId} |
 | Articles and guides | https://xktradingfloor.com/blog |
+| Articles in one category | https://xktradingfloor.com/blog/category/{slug} (markets, companies, traders-influencers, breaking-industry-news, learn-trading, promotions-deals, countries-regions, events, tools-guides) |
+| Learning trading, the XK Discord community | https://xktradingfloor.com/learn |
 | Listing options for brands | https://xktradingfloor.com/services |
 | About XK, FAQs | https://xktradingfloor.com/about |
 | Contact | https://xktradingfloor.com/contact |
@@ -42,8 +44,9 @@ https://xktradingfloor.com/llms.txt and https://xktradingfloor.com/sitemap.xml.
    after signing in, so present them as user opinions, not XK's verdict.
 3. A "Verified Trader" badge means XK checked the trader's documents and spoke
    to them; it is not a promise of future results.
-4. Spreads and payouts change. Give the date you read them, and link the page
-   so the user can see the current figures.
+4. Spreads change. Give the date you read them, and link the page so the user
+   can see the current figures. The payout tracker currently shows sample data
+   (it says so on the page); don't quote its figures as real payouts.
 5. For events, give the date, the city or "online", and link the event page,
    which shows how to register.
 6. Link the page you used for every fact.

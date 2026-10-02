@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { getPublishedBlogs } from '../../controllers/blogsController.js';
 import BlogCard from '../blog/BlogCard.jsx';
+import { blogCategoryOf } from '../../utils/blogCategories.js';
 
 // Homepage "Latest articles" strip: up to 3 articles the admin marked as
 // Featured, topped up with the newest posts.
@@ -19,7 +20,7 @@ function toCard(blog) {
     title: blog.title,
     excerpt: blog.excerpt,
     image: blog.coverImage || blog.featuredImage || blog.image,
-    category: Array.isArray(blog.categories) ? blog.categories[0] : blog.categories || blog.category || '',
+    category: blogCategoryOf(blog),
     date: published
       ? new Date(published).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
       : '',

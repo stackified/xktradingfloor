@@ -15,6 +15,7 @@ import BlogShare from '../components/blog/BlogShare.jsx';
 import BlogComments from '../components/blog/BlogComments.jsx';
 import ImageWithFallback from '../components/shared/ImageWithFallback.jsx';
 import { BLOG_IMAGE_BOX, BLOG_IMAGE, BLOG_COLORS } from '../components/blog/blogLayout.js';
+import { blogCategoryOf, categoryPath } from '../utils/blogCategories.js';
 
 // 24-hex-char Mongo ObjectId. Anything else is treated as a slug.
 const OBJECT_ID_RE = /^[a-f0-9]{24}$/i;
@@ -26,7 +27,7 @@ function formatDate(value) {
 }
 
 function firstCategory(blog) {
-  return Array.isArray(blog.categories) ? blog.categories[0] : blog.categories || blog.category || '';
+  return blogCategoryOf(blog);
 }
 
 function authorName(author) {
@@ -367,6 +368,7 @@ function BlogPost() {
           breadcrumbJsonLd([
             { name: 'Home', url: '/' },
             { name: 'Blog', url: '/blog' },
+            ...(post.category ? [{ name: post.category, url: categoryPath(post.category) }] : []),
             { name: post.title, url: `/blog/${post.slug || post._id}` },
           ]),
           faqJsonLd(faqs),
@@ -389,7 +391,9 @@ function BlogPost() {
             {post.category && (
               <>
                 <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#475569]" />
-                <span className="truncate font-medium text-[#93C5FD]">{post.category}</span>
+                <Link to={categoryPath(post.category)} className="truncate font-medium text-[#93C5FD] transition-colors hover:text-white">
+                  {post.category}
+                </Link>
               </>
             )}
           </nav>

@@ -7,6 +7,7 @@ import EventBadges, { CATEGORY_ICON, EVENT_CATEGORIES } from "../shared/EventBad
 import EventImage from "../shared/EventImage.jsx";
 import EventWorldMap from "./EventWorldMap.jsx";
 import EventFeaturedSlider from "./EventFeaturedSlider.jsx";
+import { formatEventDate, formatEventTimeShort, formatEventPlace } from "../../utils/eventTime.js";
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -165,33 +166,6 @@ function EventCard({ evt, onRegister }) {
   // Normalize image src - convert empty strings to null for proper text-based fallback
   const imageSrc = (evt.featuredImage || evt.image || "").trim() || null;
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-    } catch {
-      return dateString;
-    }
-  };
-
-  const formatTime = (dateString) => {
-    if (!dateString) return "";
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return "";
-    }
-  };
-
   const handleCardClick = (e) => {
     // Don't navigate if clicking on the register button
     if (e.target.closest("button")) {
@@ -216,18 +190,18 @@ function EventCard({ evt, onRegister }) {
           {evt.dateTime && (
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3 flex-shrink-0" />
-              <span>{formatDate(evt.dateTime)}</span>
-              {formatTime(evt.dateTime) && (
-                <span className="text-gray-500">
-                  • {formatTime(evt.dateTime)}
+              <span>{formatEventDate(evt)}</span>
+              {formatEventTimeShort(evt) && (
+                <span className="text-gray-400">
+                  • {formatEventTimeShort(evt)}
                 </span>
               )}
             </div>
           )}
-          {evt.location && (
+          {formatEventPlace(evt) && (
             <div className="flex items-center gap-1">
               <MapPin className="h-3 w-3 flex-shrink-0" />
-              <span className="line-clamp-1">{evt.location}</span>
+              <span className="line-clamp-1">{formatEventPlace(evt)}</span>
             </div>
           )}
           {(evt.instructor || evt.organizerName) && (

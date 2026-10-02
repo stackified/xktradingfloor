@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import {
   User,
   BarChart3,
@@ -7,57 +8,35 @@ import {
   CalendarDays,
   ChevronRight,
   ArrowRight,
+  Newspaper,
+  GraduationCap,
+  BadgePercent,
+  Wrench,
 } from "lucide-react";
 import {
   BLOG_CONTAINER,
   BLOG_SECTION_HEADING,
   BLOG_LINK,
 } from "./blogLayout.js";
+import { BLOG_CATEGORIES } from "../../utils/blogCategories.js";
 
-const interests = [
-  {
-    title: "Traders & Influencers",
-    description: "Interviews, trading journeys, lifestyle & more",
-    filter: "Trading",
-    icon: User,
-    iconBg: "bg-purple-500/15",
-    iconColor: "text-purple-400",
-  },
-  {
-    title: "Markets",
-    description: "Gold, Silver, Forex, Crypto, Stocks, Commodities & more",
-    filter: "Forex",
-    icon: BarChart3,
-    iconBg: "bg-blue-500/15",
-    iconColor: "text-blue-400",
-  },
-  {
-    title: "Companies",
-    description: "Broker & Prop Firm reviews, comparisons, platforms & tools",
-    filter: "Companies",
-    icon: Building2,
-    iconBg: "bg-green-500/15",
-    iconColor: "text-green-400",
-  },
-  {
-    title: "Countries",
-    description: "Market outlooks, economic updates & country guides",
-    filter: "Countries",
-    icon: Globe,
-    iconBg: "bg-yellow-500/15",
-    iconColor: "text-yellow-400",
-  },
-  {
-    title: "Events",
-    description: "Expos, webinars, meetups & trading events worldwide",
-    filter: "Events",
-    icon: CalendarDays,
-    iconBg: "bg-red-500/15",
-    iconColor: "text-red-400",
-  },
-];
+// Icon and colour per category; names, slugs and descriptions come from
+// utils/blogCategories.js.
+const STYLE = {
+  markets: { icon: BarChart3, iconBg: "bg-blue-500/15", iconColor: "text-blue-400" },
+  companies: { icon: Building2, iconBg: "bg-green-500/15", iconColor: "text-green-400" },
+  "traders-influencers": { icon: User, iconBg: "bg-purple-500/15", iconColor: "text-purple-400" },
+  "breaking-industry-news": { icon: Newspaper, iconBg: "bg-red-500/15", iconColor: "text-red-400" },
+  "learn-trading": { icon: GraduationCap, iconBg: "bg-cyan-500/15", iconColor: "text-cyan-400" },
+  "promotions-deals": { icon: BadgePercent, iconBg: "bg-pink-500/15", iconColor: "text-pink-400" },
+  "countries-regions": { icon: Globe, iconBg: "bg-yellow-500/15", iconColor: "text-yellow-400" },
+  events: { icon: CalendarDays, iconBg: "bg-orange-500/15", iconColor: "text-orange-400" },
+  "tools-guides": { icon: Wrench, iconBg: "bg-teal-500/15", iconColor: "text-teal-400" },
+};
 
-function BlogInterestCategories({ active, onSelect }) {
+const interests = BLOG_CATEGORIES.map((c) => ({ ...c, ...STYLE[c.slug] }));
+
+function BlogInterestCategories({ active }) {
   return (
     <section
       className={`${BLOG_CONTAINER} pt-[60px] pb-0`}
@@ -67,27 +46,25 @@ function BlogInterestCategories({ active, onSelect }) {
         <h2 id="blog-interests-heading" className={BLOG_SECTION_HEADING}>
           What are you interested in?
         </h2>
-        <button
-          type="button"
-          onClick={() => onSelect("All")}
+        <Link
+          to="/blog"
           className={`${BLOG_LINK} group inline-flex items-center gap-1.5`}
         >
-          View all categories
+          All articles
           <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-        </button>
+        </Link>
       </div>
 
-      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-6 list-none p-0 m-0">
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 list-none p-0 m-0">
         {interests.map((item) => {
           const Icon = item.icon;
-          const isActive = active === item.filter;
+          const isActive = active === item.name;
 
           return (
-            <li key={item.title}>
-              <button
-                type="button"
-                onClick={() => onSelect(isActive ? "All" : item.filter)}
-                aria-pressed={isActive}
+            <li key={item.slug}>
+              <Link
+                to={isActive ? "/blog" : `/blog/category/${item.slug}`}
+                aria-current={isActive ? "page" : undefined}
                 className={`group relative flex flex-row items-center gap-4 sm:flex-col sm:items-start sm:gap-0 w-full sm:h-[210px] p-4 sm:p-6 rounded-[18px] border text-left bg-[#0B1120] transition-all duration-300 ease-out hover:-translate-y-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6] ${
                   isActive
                     ? "border-[#3B82F6] shadow-[0_8px_32px_rgba(59,130,246,0.15)]"
@@ -103,7 +80,7 @@ function BlogInterestCategories({ active, onSelect }) {
 
                 <div className="min-w-0 sm:contents">
                   <h3 className="sm:mt-4 text-[17px] sm:text-[20px] font-bold text-white leading-[1.2] pr-2">
-                    {item.title}
+                    {item.name}
                   </h3>
 
                   <p className="mt-1 sm:mt-2 text-[13.5px] sm:text-[15px] leading-[1.5] sm:leading-[1.6] line-clamp-2 sm:pr-10 text-[#94A3B8]">
@@ -117,7 +94,7 @@ function BlogInterestCategories({ active, onSelect }) {
                 >
                   <ChevronRight className="h-4 w-4 text-[#94A3B8] transition-colors duration-300 group-hover:text-white" />
                 </span>
-              </button>
+              </Link>
             </li>
           );
         })}
