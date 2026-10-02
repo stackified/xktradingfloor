@@ -5,6 +5,7 @@ import { getAllEvents } from "../../controllers/eventsController.js";
 import EventImage from "../shared/EventImage.jsx";
 import EventBadges from "../shared/EventBadges.jsx";
 import { formatEventDate, formatEventPlace } from "../../utils/eventTime.js";
+import { eventSummary } from "../../utils/eventDescription.js";
 
 const SLIDES = 3;
 const AUTO_ADVANCE_MS = 7000;
@@ -135,9 +136,9 @@ function EventFeaturedSlider({ category = "" }) {
               {current.title}
             </Link>
           </h4>
-          {(current.excerpt || current.description) && (
+          {eventSummary(current) && (
             <p className="mb-5 line-clamp-3 text-sm leading-relaxed text-gray-300 sm:text-base">
-              {current.excerpt || current.description}
+              {eventSummary(current)}
             </p>
           )}
           <Link

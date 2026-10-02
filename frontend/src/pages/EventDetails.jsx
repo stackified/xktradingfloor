@@ -11,12 +11,19 @@ import RegisterModal from "../components/academy/RegisterModal.jsx";
 import EventRegisterModal from "../components/academy/EventRegisterModal.jsx";
 import { formatEventWhen, formatEventPlace } from "../utils/eventTime.js";
 import { getUserCookie } from "../utils/cookies.js";
+import DesignedHtml from "../components/shared/DesignedHtml.jsx";
+import { eventDescriptionView, eventSummary } from "../utils/eventDescription.js";
 
 function EventDetails() {
   const { eventId } = useParams();
   const [event, setEvent] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [modalOpen, setModalOpen] = React.useState(false);
+  // Plain text, rich text or a designed HTML page (utils/eventDescription.js).
+  const descriptionView = React.useMemo(
+    () => eventDescriptionView(event?.description, { pageTitle: event?.title }),
+    [event?.description, event?.title]
+  );
 
   React.useEffect(() => {
     async function loadEvent() {
@@ -67,7 +74,7 @@ function EventDetails() {
     <div className="max-w-5xl mx-auto px-4 py-10">
       <Seo
         title={event.title}
-        description={event.excerpt || event.description?.slice(0, 160) || "View event details and register for XK Trading Floor workshops and webinars."}
+        description={eventSummary(event, 160) || "View event details and register for XK Trading Floor workshops and webinars."}
         path={`/events/${event._id}`}
         image={event.featuredImage || event.image}
         type="event"
@@ -119,10 +126,19 @@ function EventDetails() {
                     {event.excerpt}
                   </p>
                 )}
-                {event.description && (
+                {descriptionView.kind === "text" && (
                   <div className="text-sm sm:text-base text-gray-300 whitespace-pre-line">
-                    {event.description}
+                    {descriptionView.text}
                   </div>
+                )}
+                {descriptionView.kind === "html" && (
+                  <div
+                    className="article-content text-sm sm:text-base"
+                    dangerouslySetInnerHTML={{ __html: descriptionView.html }}
+                  />
+                )}
+                {descriptionView.kind === "designed" && (
+                  <DesignedHtml rendered={descriptionView.designed} className="rounded-2xl overflow-hidden" />
                 )}
               </div>
             )}

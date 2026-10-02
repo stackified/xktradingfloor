@@ -21,6 +21,8 @@ import EventImage from "../../shared/EventImage.jsx";
 import { processEventImage } from "../../../utils/imageProcessing.js";
 import { EVENT_TIME_ZONES, zonedLocalToIso, isoToZonedLocal } from "../../../utils/eventTime.js";
 import { countryOptions } from "../../../utils/countries.js";
+import RichTextEditor from "../../shared/RichTextEditor.jsx";
+import { descriptionForEditor } from "../../../utils/eventDescription.js";
 
 const EVENT_TYPES = ["online", "campus"];
 
@@ -77,7 +79,8 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
           if (event) {
             setFormState({
               title: event.title || "",
-              description: event.description || "",
+              // Older plain-text descriptions open as paragraphs in the editor.
+              description: descriptionForEditor(event.description),
               excerpt: event.excerpt || "",
               type: event.type || "online",
               // Shown in the event's own time zone (or this browser's for
@@ -332,14 +335,17 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
             <label className="block text-sm font-medium mb-2">
               Description
             </label>
-            <textarea
-              name="description"
+            {/* Same editor as blog posts: formatted text, or "Designed HTML"
+                to paste a full styled page (e.g. made with ChatGPT). */}
+            <RichTextEditor
               value={formState.description}
-              onChange={handleChange}
-              rows={6}
-              className="w-full px-4 py-2.5 rounded-lg bg-gray-900/70 border border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all resize-none"
+              onChange={(html) => setFormState((prev) => ({ ...prev, description: html }))}
               placeholder="Full event description (optional)"
+              allowDesign
             />
+            <p className="mt-1 text-xs text-gray-400">
+              Event cards use the Excerpt above; fill it in when the description is a designed page.
+            </p>
           </div>
 
           {/* Type and DateTime */}
