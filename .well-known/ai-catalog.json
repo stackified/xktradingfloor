@@ -16,7 +16,7 @@
       "capabilities": ["CompanyReviews", "VerifiedTraders", "LiveSpreads", "PayoutTracker", "TradingEvents", "TradingArticles"],
       "representativeQueries": [
         "Find trader reviews of a forex broker or prop firm",
-        "Which prop firms have recorded payouts",
+        "Compare prop firm rules and payout policies",
         "Compare live spreads between forex brokers",
         "Upcoming trading expos and conferences",
         "Verified forex traders with a checked track record"

@@ -5,7 +5,8 @@
 Key facts:
 - Reviews are written by traders who use the companies; anyone can add one after signing in.
 - Verified Trader badges are awarded after an application, document check and a call with the XK team.
-- Trading education happens in the XK Discord community rather than a separate academy.
+- Trading education happens in the XK Discord community rather than a separate academy (see /learn).
+- The prop firm payout tracker currently shows sample data, labelled as such, until real verified payouts are recorded.
 - Content is for information only and is not financial advice.
 
 ## Main pages
@@ -19,6 +20,7 @@ Key facts:
 - [Prop firm payout tracker](https://stackified.github.io/xktradingfloor/payouts)
 - [Trading events](https://stackified.github.io/xktradingfloor/events): expos, conferences, webinars and meetups
 - [Blog](https://stackified.github.io/xktradingfloor/blog): market analysis, broker and prop firm news, trading guides
+- [Learn trading](https://stackified.github.io/xktradingfloor/learn): join the XK Discord community, plus the blog's trading guides
 - [For brands](https://stackified.github.io/xktradingfloor/services): listing and partnership options for brokers and prop firms
 - [About](https://stackified.github.io/xktradingfloor/about)
 - [Contact](https://stackified.github.io/xktradingfloor/contact)
@@ -50,6 +52,17 @@ Key facts:
 - [Prop Firm Consistency Rule Explained (30% & 35%) – How to Pass Safely](https://stackified.github.io/xktradingfloor/blog/69563760cad1afd481f1e7ff): Most traders fail prop firm challenges because of the consistency rule. This guide explains how 30% and 35% consistency rules work, common mistakes traders mak…
 - [Best Prop Firms for Indian Traders in 2025 (Fast Guide)](https://stackified.github.io/xktradingfloor/blog/69389119e154bbf817bc1836): A quick and honest overview of the top prop firms available to Indian traders in 2025 — rules, payouts, and which firms are actually worth trying.
 - [FTMO Is Returning to India: The OG Prop Firm Is Back](https://stackified.github.io/xktradingfloor/blog/6938293ff3a1f5a840a23abb): FTMO, the original pioneer of modern prop trading, is officially returning to India after a period of restrictions. Here’s why this comeback matters for every…
+
+## Blog categories
+- [Markets](https://stackified.github.io/xktradingfloor/blog/category/markets): gold, silver, forex, crypto, stocks, commodities and what moves them
+- [Companies](https://stackified.github.io/xktradingfloor/blog/category/companies): broker and prop firm reviews, comparisons, platforms and tools
+- [Traders & Influencers](https://stackified.github.io/xktradingfloor/blog/category/traders-influencers): interviews, trading journeys and the people behind the trades
+- [Breaking & Industry News](https://stackified.github.io/xktradingfloor/blog/category/breaking-industry-news): prop firm and broker news, regulation and industry changes
+- [Learn Trading](https://stackified.github.io/xktradingfloor/blog/category/learn-trading): guides, rules explained and lessons for every level
+- [Promotions & Deals](https://stackified.github.io/xktradingfloor/blog/category/promotions-deals): discounts, challenge offers and broker promotions
+- [Countries & Regions](https://stackified.github.io/xktradingfloor/blog/category/countries-regions): trading by country: brokers, prop firms, rules and outlooks
+- [Events](https://stackified.github.io/xktradingfloor/blog/category/events): expos, conferences, webinars and meetups worldwide
+- [Tools & Guides](https://stackified.github.io/xktradingfloor/blog/category/tools-guides): calculators, checklists and how-to guides
 
 ## Events
 - [Money Expo India 2026 – Mumbai](https://stackified.github.io/xktradingfloor/events/6a79a9936c0cf1ab7f1c7da7): 2026-08-28
