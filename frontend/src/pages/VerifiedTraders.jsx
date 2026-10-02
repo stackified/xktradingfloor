@@ -6,6 +6,7 @@ import Seo from "../components/shared/Seo.jsx";
 import ReviewsTabs from "../components/reviews/ReviewsTabs.jsx";
 import CardLoader from "../components/shared/CardLoader.jsx";
 import { getVerifiedTraders } from "../controllers/userProfileController.js";
+import { isStaffAccount } from "../utils/authors.js";
 
 function formatMoney(n) {
   if (n == null) return "—";
@@ -22,7 +23,9 @@ function VerifiedTraders() {
       setLoading(true);
       try {
         const { data } = await getVerifiedTraders();
-        setTraders(data || []);
+        // Staff/test accounts (e.g. "Administrator") are never shown as
+        // verified traders to the public.
+        setTraders((data || []).filter((t) => !isStaffAccount(t.fullName)));
       } catch (_) {
         setTraders([]);
       } finally {
@@ -36,7 +39,7 @@ function VerifiedTraders() {
     <div className="bg-black text-white min-h-screen">
       <Seo
         title="Verified Traders"
-        description="Browse verified profitable traders on XK Trading Floor. See PNL, trading style, and recent activity."
+        description="Traders whose results XK Trading Floor has checked: documents reviewed and a call with the team. See their trading style, markets and record."
         path="/reviews/traders"
       />
 

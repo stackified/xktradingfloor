@@ -19,7 +19,7 @@ const ABOUT_FAQS = [
   {
     question: "What is XK Trading Floor?",
     answer:
-      "XK Trading Floor is a trading community and review platform. It brings together reviews of forex brokers, prop firms and crypto platforms, verified trader profiles, a live spread comparison, a prop firm payout tracker and a calendar of trading events from around the world.",
+      "XK Trading Floor is a trading community and review platform. It brings together reviews of forex brokers, prop firms and crypto platforms, verified trader profiles, a broker spread comparison, a prop firm payout tracker and a calendar of trading events from around the world.",
   },
   {
     question: "Is XK Trading Floor free to use?",

@@ -16,6 +16,7 @@ import BlogComments from '../components/blog/BlogComments.jsx';
 import ImageWithFallback from '../components/shared/ImageWithFallback.jsx';
 import { BLOG_IMAGE_BOX, BLOG_IMAGE, BLOG_COLORS } from '../components/blog/blogLayout.js';
 import { blogCategoryOf, categoryPath } from '../utils/blogCategories.js';
+import { authorDisplayName } from '../utils/authors.js';
 
 // 24-hex-char Mongo ObjectId. Anything else is treated as a slug.
 const OBJECT_ID_RE = /^[a-f0-9]{24}$/i;
@@ -31,9 +32,7 @@ function firstCategory(blog) {
 }
 
 function authorName(author) {
-  if (!author) return 'XK Trading Floor';
-  if (typeof author === 'string') return author;
-  return author.fullName || author.name || 'XK Trading Floor';
+  return authorDisplayName(author);
 }
 
 // Thin bar at the top of the viewport that fills as the article is read.

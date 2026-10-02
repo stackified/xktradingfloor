@@ -2,6 +2,8 @@ import React from "react";
 import Seo from "../components/shared/Seo.jsx";
 import { brokerJsonLd, breadcrumbJsonLd } from "../utils/structuredData.js";
 import { extractFaqs, faqJsonLd } from "../utils/faq.js";
+import { companyFaqs } from "../utils/companyFaqs.js";
+import FaqSection from "../components/shared/FaqSection.jsx";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { m as motion } from "framer-motion";
@@ -201,6 +203,13 @@ function CompanyDetails() {
   const featuredPromos = validPromoCodes.filter((p) => p.featured);
   const regularPromos = validPromoCodes.filter((p) => !p.featured);
 
+  // Direct answers built from the company's own data (utils/companyFaqs.js),
+  // shown on the page and merged with any FAQ written into the review.
+  const dataFaqs = companyFaqs(company);
+  const reviewFaqs = extractFaqs(company.description);
+  const seenQuestions = new Set(reviewFaqs.map((f) => f.question.toLowerCase()));
+  const allFaqs = [...reviewFaqs, ...dataFaqs.filter((f) => !seenQuestions.has(f.question.toLowerCase()))];
+
   return (
     <div className="bg-black text-white min-h-screen">
       {/* Built-in SEO title from the broker's name, aimed at what traders
@@ -221,7 +230,7 @@ function CompanyDetails() {
             { name: "Reviews", url: "/reviews" },
             { name: company.name, url: `/reviews/${company._id}` },
           ]),
-          faqJsonLd(extractFaqs(company.description)),
+          faqJsonLd(allFaqs),
         ].filter(Boolean)}
       />
 
@@ -517,6 +526,12 @@ function CompanyDetails() {
           </div>
         </div>
       </div>
+
+      <FaqSection
+        id="company-faq"
+        title={`${String(company.name).trim()}: frequently asked questions`}
+        faqs={dataFaqs}
+      />
 
       <ConfirmModal
         isOpen={showConfirmModal}

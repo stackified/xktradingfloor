@@ -6,7 +6,7 @@ import { getAssetPath } from "../../utils/assets.js";
 const trustPoints = [
   "Trader reviews",
   "Verified traders",
-  "Live spreads",
+  "Spread comparison",
   "Payout tracker",
 ];
 
@@ -19,7 +19,7 @@ const heroBadges = [
     icon: TrendingUp,
     iconTint: "text-blue-400",
     iconBg: "bg-blue-500/15",
-    label: "Live Spreads",
+    label: "Spreads",
     value: "Compare brokers",
     // Top-right of the logo
     position: "top-2 right-0 md:-right-6 lg:-right-10",
@@ -71,7 +71,7 @@ function HeroSection() {
 
           <p className="text-base sm:text-lg text-gray-300 mb-8 leading-relaxed max-w-2xl">
             Compare brokers and prop firms, explore verified trader profiles,
-            track live spreads and payouts, and make confident trading
+            compare spreads and payouts, and make confident trading
             decisions-all in one place.
           </p>
 

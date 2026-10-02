@@ -17,6 +17,7 @@ import { BLOG_CATEGORIES, blogCategoryOf, categoryBySlug, categoryPath } from ".
 import NotFound from "./NotFound.jsx";
 import DiscordLink from "../components/shared/DiscordLink.jsx";
 import { BLOG_CONTAINER, BLOG_SECTION_HEADING, BLOG_COLORS } from "../components/blog/blogLayout.js";
+import { authorDisplayName } from "../utils/authors.js";
 
 const PAGE_BTN =
   "inline-flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-[#0B1120] px-3 " +
@@ -36,7 +37,7 @@ function transformBlog(blog) {
     excerpt: blog.excerpt,
     category: blogCategoryOf(blog),
     tags: blog.tags || [],
-    author: blog.author?.fullName || blog.author || "Unknown",
+    author: authorDisplayName(blog.author),
     image: blog.coverImage || blog.featuredImage || blog.image,
     date: new Date(blog.publishedAt || blog.createdAt).toLocaleDateString("en-US", {
       year: "numeric",

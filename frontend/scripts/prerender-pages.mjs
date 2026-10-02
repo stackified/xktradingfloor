@@ -39,6 +39,7 @@ const MAX_DYNAMIC = Number(process.env.PRERENDER_PAGES_MAX || 400);
 // scripts/build-sitemap.js (minus "/", which prerender.mjs handles).
 export const STATIC_PAGES = [
   "about",
+  "how-we-rate",
   "contact",
   "services",
   "events",

@@ -38,6 +38,7 @@ const API_URL = RAW_API.replace(/\/api\/?$/, "").replace(/\/$/, "");
 const STATIC_ROUTES = [
   { path: "/", priority: "1.0", changefreq: "daily" },
   { path: "/about", priority: "0.6", changefreq: "monthly" },
+  { path: "/how-we-rate", priority: "0.6", changefreq: "monthly" },
   { path: "/contact", priority: "0.6", changefreq: "monthly" },
   { path: "/services", priority: "0.7", changefreq: "monthly" },
   { path: "/events", priority: "0.8", changefreq: "weekly" },
@@ -246,7 +247,7 @@ function writeLlmsTxt() {
   const parts = [
     "# XK Trading Floor",
     "",
-    "> XK Trading Floor (xktradingfloor.com) is a trading community and review platform. It helps traders compare forex brokers, prop firms and crypto platforms, read reviews from real traders, find verified traders, follow live spreads and prop-firm payouts, and discover trading events worldwide.",
+    "> XK Trading Floor (xktradingfloor.com) is a trading community and review platform. It helps traders compare forex brokers, prop firms and crypto platforms, read reviews from real traders, find verified traders, compare broker spreads and prop-firm payouts, and discover trading events worldwide.",
     "",
     "Key facts:",
     "- Reviews are written by traders who use the companies; anyone can add one after signing in.",
@@ -262,12 +263,13 @@ function writeLlmsTxt() {
     line("Prop firm reviews", "/reviews/propfirm"),
     line("Crypto platform reviews", "/reviews/crypto"),
     line("Verified traders", "/reviews/traders", "traders whose track record XK has verified"),
-    line("Live spreads", "/live-spreads", "broker spread comparison"),
+    line("Broker spread comparison", "/live-spreads", "typical spreads by broker; sample figures until the live feed is public"),
     line("Prop firm payout tracker", "/payouts"),
     line("Trading events", "/events", "expos, conferences, webinars and meetups"),
     line("Blog", "/blog", "market analysis, broker and prop firm news, trading guides"),
     line("For brands", "/services", "listing and partnership options for brokers and prop firms"),
     line("About", "/about"),
+    line("How we rate", "/how-we-rate", "TrustScore formula, review rules, Verified Trader process, data sources and how XK makes money"),
     line("Contact", "/contact"),
   ];
   const brokers = byCat("broker"), props = byCat("propfirm"), crypto = byCat("crypto");

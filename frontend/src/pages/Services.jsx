@@ -47,7 +47,7 @@ function Services() {
     {
       icon: TrendingUp,
       title: "Broker & prop-firm partnerships",
-      body: "Featured placement across reviews, live spreads, payout tracker, and event pages — with clear disclosure and audience-first standards.",
+      body: "Featured placement across reviews, spread comparison, payout tracker, and event pages — with clear disclosure and audience-first standards.",
     },
     {
       icon: Sparkles,

@@ -161,7 +161,7 @@ function CompanyReviewForm({ companyId, existingReview, onSuccess, onCancel }) {
             />
           </div>
           <div>
-            <label className="text-sm text-gray-400 mb-2 block">Screenshot (optional)</label>
+            <label className="text-sm text-gray-400 mb-2 block">Proof of trading (optional)</label>
             {screenshotPreview ? (
               <div className="relative">
                 {imageLoadError ? (
@@ -220,7 +220,8 @@ function CompanyReviewForm({ companyId, existingReview, onSuccess, onCancel }) {
             ) : (
               <label className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-white/20 bg-gray-900/50 p-4 text-center text-gray-400 hover:border-indigo-400/40 transition-colors">
                 <Upload className="h-5 w-5" />
-                <span className="text-sm">Upload screenshot</span>
+                <span className="text-sm">Upload proof (optional)</span>
+                <span className="text-xs text-gray-400">A screenshot of your account, challenge dashboard or payout. Hide account numbers and personal details.</span>
                 <input
                   type="file"
                   accept="image/*"

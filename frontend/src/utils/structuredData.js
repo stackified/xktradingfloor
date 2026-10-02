@@ -1,4 +1,5 @@
 import siteJsonLd from "./siteJsonLd.json";
+import { authorDisplayName, isStaffAccount } from "./authors.js";
 
 const SITE_URL = "https://xktradingfloor.com";
 const SITE_NAME = "XK Trading Floor";
@@ -93,11 +94,14 @@ export const articleJsonLd = (blog) => {
     image: blog.coverImage || blog.image,
     datePublished: blog.publishedAt || blog.createdAt,
     dateModified: blog.updatedAt,
-    author: {
-      "@type": "Person",
-      name: blog.author?.fullName || blog.author || SITE_NAME,
-    },
+    // Staff posts are credited to the organisation itself (same @id as the
+    // site-wide Organization), named authors as people.
+    author:
+      !blog.author || isStaffAccount(blog.author?.fullName || blog.author)
+        ? { "@id": `${SITE_URL}/#organization`, "@type": "Organization", name: SITE_NAME, url: SITE_URL }
+        : { "@type": "Person", name: authorDisplayName(blog.author) },
     publisher: {
+      "@id": `${SITE_URL}/#organization`,
       "@type": "Organization",
       name: SITE_NAME,
       logo: { "@type": "ImageObject", url: `${SITE_URL}/assets/logo.png` },
