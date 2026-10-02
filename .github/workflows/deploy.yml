@@ -60,6 +60,13 @@ jobs:
       # served until the TTL runs out. Hashed assets are immutable, so purging
       # everything is cheap. No-op until CLOUDFLARE_ZONE_ID and
       # CLOUDFLARE_API_TOKEN (Zone > Cache Purge permission) are added as secrets.
+      # Tell Bing and the other IndexNow engines about every sitemap URL, so new
+      # and changed pages get crawled within hours instead of weeks. Never
+      # fails the deploy.
+      - name: Submit sitemap URLs to IndexNow
+        working-directory: ./frontend
+        run: node scripts/indexnow.mjs
+
       - name: Purge Cloudflare cache
         # The secrets context is not allowed in a step-level if; the job-level env
         # below mirrors the two secrets so the check can read them from env.*
