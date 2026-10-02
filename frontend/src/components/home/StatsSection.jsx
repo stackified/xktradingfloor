@@ -1,28 +1,21 @@
 import React from "react";
 import { m as motion } from "framer-motion";
-import {
-  Users,
-  Star,
-  ShieldCheck,
-  Briefcase,
-  Building2,
-  CalendarDays,
-} from "lucide-react";
+import { Users, Building2, CalendarDays } from "lucide-react";
 
+// Realistic figures agreed with the client (2 Oct 2026). No review or payout
+// totals and no "verified" claims until there is real verified data behind
+// them; update these as the community and listings grow.
 const stats = [
-  { icon: Users, value: "50,000+", label: "Active Traders" },
-  { icon: Star, value: "24,369+", label: "Verified Reviews" },
-  { icon: ShieldCheck, value: "$23.7M+", label: "Verified Payouts" },
-  { icon: Briefcase, value: "150+", label: "Brokers Reviewed" },
-  { icon: Building2, value: "100+", label: "Prop Firms" },
-  { icon: CalendarDays, value: "300+", label: "Trading Events" },
+  { icon: Users, value: "1,000+", label: "Traders" },
+  { icon: Building2, value: "70+", label: "Brokers & Prop Firms" },
+  { icon: CalendarDays, value: "25+", label: "Trading Events" },
 ];
 
 function StatsSection() {
   return (
     <section className="bg-black border-y border-white/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-6">
+        <div className="grid grid-cols-3 gap-6 lg:gap-6 max-w-3xl mx-auto">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (

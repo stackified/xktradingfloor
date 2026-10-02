@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Star, ArrowRight, CalendarDays } from "lucid
 import { getAllEvents } from "../../controllers/eventsController.js";
 import EventImage from "../shared/EventImage.jsx";
 import EventBadges from "../shared/EventBadges.jsx";
+import { formatEventDate, formatEventPlace } from "../../utils/eventTime.js";
 
 const SLIDES = 3;
 const AUTO_ADVANCE_MS = 7000;
@@ -33,10 +34,11 @@ export function pickFeaturedEvents(events, category = "", now = Date.now(), limi
   return [...featured, ...upcoming, ...past].slice(0, limit);
 }
 
+// In the event's own time zone when it has one (utils/eventTime.js).
 function formatDate(evt) {
-  const t = eventTime(evt);
-  if (!t) return "";
-  return new Date(t).toLocaleDateString("en-US", {
+  if (!eventTime(evt)) return "";
+  if (evt.dateTime) return formatEventDate(evt, { weekday: "short", day: "numeric", month: "long", year: "numeric" });
+  return new Date(eventTime(evt)).toLocaleDateString("en-US", {
     weekday: "short",
     month: "long",
     day: "numeric",
@@ -126,7 +128,7 @@ function EventFeaturedSlider({ category = "" }) {
           <p className="mb-2 flex items-center gap-1.5 text-sm text-gray-400">
             <CalendarDays className="h-4 w-4" aria-hidden="true" />
             {formatDate(current)}
-            {current.location ? ` · ${current.location}` : ""}
+            {formatEventPlace(current) ? ` · ${formatEventPlace(current)}` : ""}
           </p>
           <h4 className="mb-3 font-display text-xl font-bold leading-tight text-white sm:text-2xl lg:text-3xl">
             <Link to={`/events/${current.id}`} className="hover:text-[#93C5FD]">

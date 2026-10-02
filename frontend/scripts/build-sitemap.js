@@ -11,6 +11,7 @@
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, resolve } from "node:path";
+import { BLOG_CATEGORIES } from "../src/utils/blogCategories.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -41,6 +42,8 @@ const STATIC_ROUTES = [
   { path: "/services", priority: "0.7", changefreq: "monthly" },
   { path: "/events", priority: "0.8", changefreq: "weekly" },
   { path: "/blog", priority: "0.9", changefreq: "daily" },
+  ...BLOG_CATEGORIES.map((c) => ({ path: `/blog/category/${c.slug}`, priority: "0.6", changefreq: "weekly" })),
+  { path: "/learn", priority: "0.7", changefreq: "weekly" },
   { path: "/merch", priority: "0.5", changefreq: "monthly" },
   { path: "/reviews", priority: "0.9", changefreq: "weekly" },
   { path: "/reviews/broker", priority: "0.9", changefreq: "weekly" },
@@ -249,7 +252,8 @@ function writeLlmsTxt() {
     "Key facts:",
     "- Reviews are written by traders who use the companies; anyone can add one after signing in.",
     "- Verified Trader badges are awarded after an application, document check and a call with the XK team.",
-    "- Trading education happens in the XK Discord community rather than a separate academy.",
+    "- Trading education happens in the XK Discord community rather than a separate academy (see /learn).",
+    "- The prop firm payout tracker currently shows sample data, labelled as such, until real verified payouts are recorded.",
     "- Content is for information only and is not financial advice.",
     "",
     "## Main pages",
@@ -263,6 +267,7 @@ function writeLlmsTxt() {
     line("Prop firm payout tracker", "/payouts"),
     line("Trading events", "/events", "expos, conferences, webinars and meetups"),
     line("Blog", "/blog", "market analysis, broker and prop firm news, trading guides"),
+    line("Learn trading", "/learn", "join the XK Discord community, plus the blog's trading guides"),
     line("For brands", "/services", "listing and partnership options for brokers and prop firms"),
     line("About", "/about"),
     line("Contact", "/contact"),
@@ -274,6 +279,7 @@ function writeLlmsTxt() {
   if (crypto.length) parts.push("", "## Crypto platform reviews", ...crypto.map((c) => line(`${c.name} review`, c.path)));
   if (otherCos.length) parts.push("", "## Other company reviews", ...otherCos.map((c) => line(`${c.name} review`, c.path)));
   if (LLMS.blogs.length) parts.push("", "## Articles", ...LLMS.blogs.map((b) => line(b.title, b.path, clip(b.excerpt))));
+  parts.push("", "## Blog categories", ...BLOG_CATEGORIES.map((c) => line(c.name, `/blog/category/${c.slug}`, c.description.toLowerCase())));
   if (LLMS.events.length) parts.push("", "## Events", ...LLMS.events.map((e) => line(e.title, e.path, e.date ? iso(e.date) : "")));
   parts.push("", "## Optional", line("Privacy policy", "/privacy-policy"), line("Terms", "/terms"), "");
   writeFileSync(join(PUBLIC_DIR, "llms.txt"), parts.join("\n"), "utf8");

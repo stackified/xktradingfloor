@@ -21,16 +21,10 @@ import ChipInput from "../../shared/ChipInput.jsx";
 import CustomSelect from "../../shared/CustomSelect.jsx";
 import { getUserCookie } from "../../../utils/cookies.js";
 
-const BLOG_CATEGORIES = [
-  "Trading",
-  "Stocks",
-  "Forex",
-  "Crypto",
-  "Options",
-  "Personal Finance",
-  "Technical Analysis",
-  "Market News",
-];
+import { BLOG_CATEGORIES as CATEGORY_LIST, blogCategoryOf } from "../../../utils/blogCategories.js";
+
+// The nine site-wide blog categories (utils/blogCategories.js).
+const BLOG_CATEGORIES = CATEGORY_LIST.map((c) => c.name);
 
 const MIN_SUMMARY_LENGTH = 20;
 
@@ -116,10 +110,9 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
   React.useEffect(() => {
     if (currentBlog && isEditing) {
       // Extract first category if multiple exist, or use first from array
-      const categories = currentBlog.categories || [];
-      const category = Array.isArray(categories)
-        ? categories[0] || ""
-        : categories || "";
+      // Older posts carry pre-October categories ("Forex", "Trading"…);
+      // preselect the new category they map to, so saving the post moves it.
+      const category = blogCategoryOf(currentBlog);
 
       setFormState({
         title: currentBlog.title || "",

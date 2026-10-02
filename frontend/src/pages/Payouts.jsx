@@ -135,8 +135,18 @@ function Payouts() {
             </span>
           </h1>
           <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">
-            Prop firm payouts reported by traders and firm partners. The figures
-            below are sample data until firms start sharing their payouts with us.
+            Prop firm payouts reported by traders and firm partners.
+          </p>
+          {/* Everything on this page is sample data until real verified
+              payouts are recorded (client, 2 Oct 2026). Keep this label
+              impossible to miss. */}
+          <p
+            role="note"
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-sm text-amber-200"
+          >
+            <span className="font-semibold">Sample Data</span>
+            <span aria-hidden="true">—</span>
+            <span>Real verified payout data will be added as our database grows.</span>
           </p>
         </div>
       </section>
@@ -151,7 +161,7 @@ function Payouts() {
           >
             <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-gray-400 mb-2">
               <Calendar className="h-3.5 w-3.5" />
-              <span>This month</span>
+              <span>This month · Sample</span>
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-white">
               {formatMoney(totalThisMonth)}
@@ -166,7 +176,7 @@ function Payouts() {
           >
             <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-gray-400 mb-2">
               <DollarSign className="h-3.5 w-3.5" />
-              <span>All time</span>
+              <span>All time · Sample</span>
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-white">
               {formatMoney(totalAllTime)}
@@ -181,7 +191,7 @@ function Payouts() {
           >
             <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-gray-400 mb-2">
               <TrendingUp className="h-3.5 w-3.5" />
-              <span>Total payouts logged</span>
+              <span>Payouts logged · Sample</span>
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-white">
               {payouts.length.toLocaleString()}
@@ -285,8 +295,8 @@ function Payouts() {
 
                 <div className="mt-6 pt-4 border-t border-gray-800 text-center">
                   <p className="text-xs text-gray-400">
-                    Sample data · Real payouts populate here once firms share
-                    data with us.
+                    Sample Data — Real verified payout data will be added as our
+                    database grows.
                   </p>
                 </div>
               </div>

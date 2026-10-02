@@ -15,6 +15,7 @@ const navItems = [
   { to: "/", label: "Home" },
   { to: "/events", label: "Events" },
   { to: "/blog", label: "Blog" },
+  { to: "/learn", label: "Learn" },
   // { to: "/merch", label: "Merch" }, // Hidden - uncomment to re-enable
   {
     to: "/reviews",

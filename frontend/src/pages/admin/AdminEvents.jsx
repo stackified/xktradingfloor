@@ -1,6 +1,6 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   Plus,
@@ -8,6 +8,7 @@ import {
   Filter,
   Search,
   Loader2,
+  Users,
 } from "lucide-react";
 import { EventList } from "../../components/admin/event/index.js";
 import { getAllEvents, deleteEvent } from "../../controllers/eventsController.js";
@@ -100,6 +101,17 @@ function AdminEventsContent() {
               Create, edit, and manage academy events
             </p>
           </div>
+          <div className="flex flex-wrap items-center gap-3">
+          {/* Leads are for the main admin account only (client, 2 Oct 2026). */}
+          {String(user?.role || "").toLowerCase() === "admin" && (
+            <Link
+              to="/admin/event-registrations"
+              className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2.5 text-sm font-semibold text-gray-200 hover:border-blue-500/60 hover:text-white"
+            >
+              <Users className="h-4 w-4" aria-hidden="true" />
+              Registrations
+            </Link>
+          )}
           <button
             onClick={() => navigate("/admin/events/create")}
             className="group relative inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-lg shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105"
@@ -107,6 +119,7 @@ function AdminEventsContent() {
             <Plus className="h-4 w-4 transition-transform group-hover:rotate-90" />
             <span>Create New Event</span>
           </button>
+          </div>
         </div>
 
         {error && (

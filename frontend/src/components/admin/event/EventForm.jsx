@@ -19,6 +19,8 @@ import ChipInput from "../../shared/ChipInput.jsx";
 import CustomSelect from "../../shared/CustomSelect.jsx";
 import EventImage from "../../shared/EventImage.jsx";
 import { processEventImage } from "../../../utils/imageProcessing.js";
+import { EVENT_TIME_ZONES, zonedLocalToIso, isoToZonedLocal } from "../../../utils/eventTime.js";
+import { countryOptions } from "../../../utils/countries.js";
 
 const EVENT_TYPES = ["online", "campus"];
 
@@ -38,7 +40,11 @@ const defaultState = {
   excerpt: "",
   type: "online",
   dateTime: "",
+  endDateTime: "",
+  timeZone: "",
   location: "",
+  city: "",
+  country: "",
   region: "",
   organizerName: "",
   externalUrl: "",
@@ -74,10 +80,16 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
               description: event.description || "",
               excerpt: event.excerpt || "",
               type: event.type || "online",
-              dateTime: event.dateTime
-                ? new Date(event.dateTime).toISOString().slice(0, 16)
-                : "",
+              // Shown in the event's own time zone (or this browser's for
+              // events without one), the same way it is saved below. The old
+              // code showed UTC but saved local time, so every edit moved
+              // the event by the admin's UTC offset.
+              dateTime: isoToZonedLocal(event.dateTime, event.timeZone),
+              endDateTime: isoToZonedLocal(event.endDateTime, event.timeZone),
+              timeZone: event.timeZone || "",
               location: event.location || "",
+              city: event.city || "",
+              country: event.country || "",
               region: event.region || "",
               organizerName: event.organizerName || "",
               externalUrl: event.externalUrl || "",
@@ -177,13 +189,34 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
       return;
     }
 
+    const startIso = zonedLocalToIso(formState.dateTime, formState.timeZone);
+    const endIso = formState.endDateTime
+      ? zonedLocalToIso(formState.endDateTime, formState.timeZone)
+      : "";
+    if (endIso && new Date(endIso) <= new Date(startIso)) {
+      setLocalError("The end must be after the start.");
+      setLoading(false);
+      return;
+    }
+    if (formState.type === "campus" && !formState.timeZone) {
+      setLocalError("Choose the time zone for an in-person event, so times show in the event's local time.");
+      setLoading(false);
+      return;
+    }
+
     const payload = new FormData();
     payload.append("title", formState.title.trim());
     payload.append("description", formState.description.trim());
     payload.append("excerpt", formState.excerpt.trim());
     payload.append("type", formState.type);
-    payload.append("dateTime", new Date(formState.dateTime).toISOString());
+    payload.append("dateTime", startIso);
+    // End time, time zone, city and country need backend task B17; until
+    // then the API ignores them.
+    payload.append("endDateTime", endIso);
+    payload.append("timeZone", formState.timeZone);
     payload.append("location", formState.location.trim());
+    payload.append("city", formState.city.trim());
+    payload.append("country", formState.country);
     payload.append("region", formState.region.trim());
     payload.append("organizerName", formState.organizerName.trim());
     payload.append("externalUrl", formState.externalUrl.trim());
@@ -345,10 +378,85 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
             </div>
           </div>
 
+          {/* End time and time zone */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="event-end" className="block text-sm font-medium mb-2">
+                End date & time <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <input
+                id="event-end"
+                type="datetime-local"
+                name="endDateTime"
+                value={formState.endDateTime}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 rounded-lg bg-gray-900/70 border border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label htmlFor="event-tz" className="block text-sm font-medium mb-2">
+                Time zone {formState.type === "campus" && <span className="text-red-400">*</span>}
+              </label>
+              <select
+                id="event-tz"
+                name="timeZone"
+                value={formState.timeZone}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 rounded-lg bg-gray-900/70 border border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
+              >
+                <option value="">Not set (online: shown in each visitor's own time)</option>
+                {EVENT_TIME_ZONES.map((z) => (
+                  <option key={z.value} value={z.value}>
+                    {z.label}
+                  </option>
+                ))}
+                {formState.timeZone && !EVENT_TIME_ZONES.some((z) => z.value === formState.timeZone) && (
+                  <option value={formState.timeZone}>{formState.timeZone}</option>
+                )}
+              </select>
+              <p className="mt-1 text-xs text-gray-400">
+                Enter the start and end as the event's local time; the site shows them with the zone, e.g. 10:00 AM – 6:00 PM (GST).
+              </p>
+            </div>
+          </div>
+
+          {/* City and country */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="event-city" className="block text-sm font-medium mb-2">City</label>
+              <input
+                id="event-city"
+                type="text"
+                name="city"
+                value={formState.city}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 rounded-lg bg-gray-900/70 border border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
+                placeholder="e.g., Dubai"
+              />
+            </div>
+            <div>
+              <label htmlFor="event-country" className="block text-sm font-medium mb-2">Country</label>
+              <select
+                id="event-country"
+                name="country"
+                value={formState.country}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 rounded-lg bg-gray-900/70 border border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
+              >
+                <option value="">Not set</option>
+                {countryOptions().map((c) => (
+                  <option key={c.code} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           {/* Location, Price, Seats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Location</label>
+              <label className="block text-sm font-medium mb-2">Venue / location</label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                 <input
@@ -357,7 +465,7 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
                   value={formState.location}
                   onChange={handleChange}
                   className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-900/70 border border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
-                  placeholder="Event location"
+                  placeholder="e.g., Dubai World Trade Centre"
                 />
               </div>
             </div>

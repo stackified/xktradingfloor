@@ -12,6 +12,9 @@ import CardLoader from "../components/shared/CardLoader.jsx";
 import { getPublishedBlogs } from "../controllers/blogsController.js";
 import { fetchPublishedBlogs } from "../redux/slices/blogsSlice.js";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { BLOG_CATEGORIES, blogCategoryOf, categoryBySlug, categoryPath } from "../utils/blogCategories.js";
+import NotFound from "./NotFound.jsx";
 import { BLOG_CONTAINER, BLOG_SECTION_HEADING, BLOG_COLORS } from "../components/blog/blogLayout.js";
 
 const PAGE_BTN =
@@ -30,9 +33,7 @@ function transformBlog(blog) {
     slug: blog.slug,
     title: blog.title,
     excerpt: blog.excerpt,
-    category: Array.isArray(blog.categories)
-      ? blog.categories[0]
-      : blog.categories || blog.category || "",
+    category: blogCategoryOf(blog),
     tags: blog.tags || [],
     author: blog.author?.fullName || blog.author || "Unknown",
     image: blog.coverImage || blog.featuredImage || blog.image,
@@ -53,7 +54,12 @@ function Blog() {
   // currently-active category/tag/search filter.
   const [latestPosts, setLatestPosts] = React.useState([]);
   const [query, setQuery] = React.useState("");
-  const [category, setCategory] = React.useState("All");
+  // The category comes from the URL (/blog/category/<slug>), so each one is
+  // its own indexable page and the back button works.
+  const { categorySlug } = useParams();
+  const navigate = useNavigate();
+  const activeCategory = categorySlug ? categoryBySlug(categorySlug) : null;
+  const category = activeCategory ? activeCategory.name : "All";
   const [selectedTags, setSelectedTags] = React.useState([]);
   const [page, setPage] = React.useState(1);
   const perPage = 6;
@@ -89,11 +95,15 @@ function Blog() {
   React.useEffect(() => {
     const primaryTag = selectedTags.length > 0 ? selectedTags[0] : "";
 
+    // A category view loads every post and filters here: the stored
+    // categories are still the old ones until backend task B18 migrates them
+    // (see utils/blogCategories.js). There are only a handful of posts.
+    const byCategory = category !== "All";
     dispatch(
       fetchPublishedBlogs({
-        page,
-        limit: perPage,
-        category: category !== "All" ? category : "",
+        page: byCategory ? 1 : page,
+        limit: byCategory ? 100 : perPage,
+        category: "",
         tag: primaryTag,
         search: debouncedQuery,
       })
@@ -106,23 +116,25 @@ function Blog() {
     }
   }, [publishedBlogs]);
 
-  const categories = React.useMemo(() => {
-    const defaults = ["Trading", "Forex", "Stocks", "Crypto", "Companies", "Countries", "Events"];
-    const currentCats = new Set(all.map((p) => p.category).filter(Boolean));
-    return Array.from(new Set([...defaults, ...currentCats]));
-  }, [all]);
+  const categories = React.useMemo(() => BLOG_CATEGORIES.map((c) => c.name), []);
 
   // The backend list endpoint only accepts a single `tag` param, so we send
   // the first tag to narrow at the server and then filter the fetched results
   // for the remaining tags client-side. A post must contain ALL selected tags
   // (AND semantics), which is the standard "chip-filter" expectation.
-  const visiblePosts = React.useMemo(() => {
-    if (selectedTags.length <= 1) return all;
-    const extraTags = selectedTags.slice(1);
-    return all.filter((p) =>
-      extraTags.every((t) => (p.tags || []).includes(t))
-    );
-  }, [all, selectedTags]);
+  const filteredPosts = React.useMemo(() => {
+    let posts = category !== "All" ? all.filter((p) => p.category === category) : all;
+    if (selectedTags.length > 1) {
+      const extraTags = selectedTags.slice(1);
+      posts = posts.filter((p) => extraTags.every((t) => (p.tags || []).includes(t)));
+    }
+    return posts;
+  }, [all, category, selectedTags]);
+
+  const visiblePosts = React.useMemo(
+    () => (category !== "All" ? filteredPosts.slice((page - 1) * perPage, page * perPage) : filteredPosts),
+    [filteredPosts, category, page]
+  );
 
   const tags = React.useMemo(() => {
     const counts = {};
@@ -130,12 +142,20 @@ function Blog() {
     return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10).map((x) => x[0]);
   }, [all]);
 
-  const totalPages = pagination?.totalPages || 1;
+  const totalPages =
+    category !== "All"
+      ? Math.max(1, Math.ceil(filteredPosts.length / perPage))
+      : pagination?.totalPages || 1;
 
   const handleCategoryChange = (cat) => {
-    setCategory(cat);
     setPage(1);
+    navigate(cat === "All" ? "/blog" : categoryPath(cat));
   };
+
+  // Back to page 1 whenever the category in the URL changes.
+  React.useEffect(() => {
+    setPage(1);
+  }, [categorySlug]);
 
   // Real multi-select toggle. The old code replaced the array with [tag],
   // making it a single-select disguised as multi-select. Now clicking a tag
@@ -160,17 +180,27 @@ function Blog() {
   const sliderPosts =
     featuredPosts.length > 0 ? featuredPosts : all.length > 0 ? all.slice(0, 5) : [];
 
+  if (categorySlug && !activeCategory) return <NotFound />;
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: BLOG_COLORS.bg }}>
-      <Seo
-        title="Blog"
-        description="Find the insights that matter to your trading journey. Stories, analysis, reviews, and industry updates."
-        path="/blog"
-      />
+      {activeCategory ? (
+        <Seo
+          title={`${activeCategory.name} articles`}
+          description={`${activeCategory.name} on XK Trading Floor: ${activeCategory.description}.`}
+          path={`/blog/category/${activeCategory.slug}`}
+        />
+      ) : (
+        <Seo
+          title="Blog"
+          description="Find the insights that matter to your trading journey. Stories, analysis, reviews, and industry updates."
+          path="/blog"
+        />
+      )}
 
       <BlogHero searchValue={query} onSearchChange={(val) => { setQuery(val); setPage(1); }} />
 
-      <BlogInterestCategories active={category} onSelect={handleCategoryChange} />
+      <BlogInterestCategories active={category} />
 
       <BlogFeaturedSlider posts={sliderPosts} />
 
@@ -242,7 +272,7 @@ function Blog() {
               {(query || category !== "All" || selectedTags.length > 0) && (
                 <button
                   type="button"
-                  onClick={() => { setQuery(""); setCategory("All"); setSelectedTags([]); setPage(1); }}
+                  onClick={() => { setQuery(""); setSelectedTags([]); handleCategoryChange("All"); }}
                   className="mt-5 text-sm font-semibold text-[#3B82F6] hover:text-[#60A5FA]"
                 >
                   Clear all filters
