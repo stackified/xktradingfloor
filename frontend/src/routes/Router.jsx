@@ -26,7 +26,6 @@ const ForgotPassword = React.lazy(() => import("../pages/ForgotPassword.jsx"));
 const ResetPassword = React.lazy(() => import("../pages/ResetPassword.jsx"));
 const About = React.lazy(() => import("../pages/About.jsx"));
 const Contact = React.lazy(() => import("../pages/Contact.jsx"));
-const Learn = React.lazy(() => import("../pages/Learn.jsx"));
 const Services = React.lazy(() => import("../pages/Services.jsx"));
 const VerifiedTraders = React.lazy(() => import("../pages/VerifiedTraders.jsx"));
 const UserProfile = React.lazy(() => import("../pages/UserProfile.jsx"));
@@ -162,7 +161,9 @@ export default function AppRouter() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/about" element={<About />} />
-          <Route path="/learn" element={<Learn />} />
+          {/* The Learn page became the blog's Learn Trading category
+              (client, 2 Oct 2026); old links land there. */}
+          <Route path="/learn" element={<Navigate to="/blog/category/learn-trading" replace />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/services" element={<Services />} />
           <Route path="/live-spreads" element={<LiveSpreads />} />

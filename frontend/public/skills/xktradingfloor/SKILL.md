@@ -28,7 +28,8 @@ cite it for a trading decision.
 | One event | https://xktradingfloor.com/events/{eventId} |
 | Articles and guides | https://xktradingfloor.com/blog |
 | Articles in one category | https://xktradingfloor.com/blog/category/{slug} (markets, companies, traders-influencers, breaking-industry-news, learn-trading, promotions-deals, countries-regions, events, tools-guides) |
-| Learning trading, the XK Discord community | https://xktradingfloor.com/learn |
+| Learning trading: guides | https://xktradingfloor.com/blog/category/learn-trading |
+| The XK Discord community | https://discord.gg/c2rtKXU56s |
 | Listing options for brands | https://xktradingfloor.com/services |
 | About XK, FAQs | https://xktradingfloor.com/about |
 | Contact | https://xktradingfloor.com/contact |

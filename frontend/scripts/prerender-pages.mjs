@@ -44,7 +44,6 @@ export const STATIC_PAGES = [
   "events",
   "blog",
   ...BLOG_CATEGORIES.map((c) => `blog/category/${c.slug}`),
-  "learn",
   "merch",
   "reviews",
   "reviews/broker",
