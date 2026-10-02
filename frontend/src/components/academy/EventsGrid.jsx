@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getAllEvents } from "../../controllers/eventsController.js";
 import { Calendar, User, MapPin, Clock, Globe, Building2, Search, Filter, ChevronLeft, ChevronRight, X } from "lucide-react";

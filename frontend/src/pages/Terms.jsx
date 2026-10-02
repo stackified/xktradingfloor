@@ -1,6 +1,6 @@
 import React from "react";
 import Seo from "../components/shared/Seo.jsx";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { FileText, AlertTriangle, Shield, User, Ban, Copyright, Download, Users, XCircle, RefreshCw, Mail, Globe, ExternalLink } from "lucide-react";
 
 function Terms() {

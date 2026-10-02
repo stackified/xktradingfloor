@@ -2,7 +2,7 @@ import React from "react";
 import HeroSection from "../components/shared/HeroSection.jsx";
 import SectionHeader from "../components/shared/SectionHeader.jsx";
 import AnimatedDivider from "../components/shared/AnimatedDivider.jsx";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import {
   Mail,
   MessageSquare,

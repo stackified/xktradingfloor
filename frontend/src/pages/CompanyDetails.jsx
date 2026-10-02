@@ -4,7 +4,7 @@ import { brokerJsonLd, breadcrumbJsonLd } from "../utils/structuredData.js";
 import { extractFaqs, faqJsonLd } from "../utils/faq.js";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { Lock } from "lucide-react";
 import { getCompanyById } from "../controllers/companiesController.js";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
@@ -146,7 +146,7 @@ function CompanyDetails() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-10">
+      <div className="max-w-5xl mx-auto px-4 py-10 min-h-screen">
         <CardLoader count={1} />
       </div>
     );
@@ -497,7 +497,7 @@ function CompanyDetails() {
             {reviews.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-gray-400 mb-2">No reviews yet.</div>
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-gray-400">
                   Be the first to review this company!
                 </div>
               </div>

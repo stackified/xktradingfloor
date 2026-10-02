@@ -16,7 +16,7 @@ function BlogCategories({ categories, active, onChange }) {
               onClick={() => onChange(c)}
               className={`h-9 shrink-0 rounded-full border px-4 text-[13px] font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6] ${
                 isActive
-                  ? 'border-[#3B82F6] bg-[#3B82F6] text-white shadow-[0_4px_14px_rgba(59,130,246,0.3)]'
+                  ? 'border-[#2563EB] bg-[#2563EB] text-white shadow-[0_4px_14px_rgba(59,130,246,0.3)]'
                   : 'border-white/[0.08] bg-[#0B1120] text-[#94A3B8] hover:border-[#3B82F6]/50 hover:text-white'
               }`}
             >

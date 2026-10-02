@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { Lock, ShieldCheck, ExternalLink } from "lucide-react";
 import StarRating from "./StarRating.jsx";
 import TrustScoreGauge from "./TrustScoreGauge.jsx";

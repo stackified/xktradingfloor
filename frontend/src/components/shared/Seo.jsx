@@ -14,6 +14,19 @@ function absolute(url) {
   return `${SITE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
 }
 
+// index.html ships fallback canonical, description, Open Graph and Twitter
+// tags for crawlers that do not run JavaScript. Once Helmet has written the
+// page's own (marked data-rh), drop the fallbacks so a rendered page never
+// carries two of each. Other routes already lose them in index.html's inline
+// script; this covers the hydrated homepage.
+const FALLBACK_TAGS =
+  'link[rel="canonical"]:not([data-rh]), meta[name="description"]:not([data-rh]), ' +
+  'meta[property^="og:"]:not([data-rh]), meta[name^="twitter:"]:not([data-rh])';
+
+function dropFallbackTags() {
+  document.querySelectorAll(FALLBACK_TAGS).forEach((el) => el.remove());
+}
+
 function Seo({
   title,
   description = DEFAULT_DESCRIPTION,
@@ -38,7 +51,7 @@ function Seo({
   const jsonLdArray = Array.isArray(jsonLd) ? jsonLd : jsonLd ? [jsonLd] : [];
 
   return (
-    <Helmet prioritizeSeoTags>
+    <Helmet prioritizeSeoTags onChangeClientState={dropFallbackTags}>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
       {keywords && <meta name="keywords" content={keywords} />}

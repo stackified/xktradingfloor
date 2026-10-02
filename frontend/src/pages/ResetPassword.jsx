@@ -1,7 +1,7 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { Lock, ArrowRight, ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { resetPassword, validateResetToken } from "../controllers/authController.js";
 import { useToast } from "../contexts/ToastContext.jsx";

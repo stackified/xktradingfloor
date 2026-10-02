@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { m as motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { logout, syncUserFromCookie } from "../redux/slices/authSlice.js";
@@ -200,27 +200,9 @@ function Header() {
                       }`}
                     />
                     {isActive && (
-                      <motion.div
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-600 pointer-events-none"
-                        // framer-motion's layout projection writes opacity into this element's inline
-                        // style, so the prerendered markup can never equal React's own string.
-                        // Suppress that one attribute warning: React 18 only reports the first
-                        // hydration warning per page, and this one was masking real ones.
-                        suppressHydrationWarning
-                        layoutId="activeIndicator"
-                        layout
-                        style={{
-                          position: "absolute",
-                          bottom: 0,
-                        }}
-                        initial={false}
-                        transition={{
-                          layout: {
-                            type: "spring",
-                            stiffness: 500,
-                            damping: 40,
-                          },
-                        }}
+                      <span
+                        aria-hidden="true"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-600 pointer-events-none nav-active-indicator"
                       />
                     )}
                   </NavLink>
@@ -273,27 +255,9 @@ function Header() {
                   {n.label}
                 </span>
                 {isActive && (
-                  <motion.div
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-600 pointer-events-none"
-                    // framer-motion's layout projection writes opacity into this element's inline
-                    // style, so the prerendered markup can never equal React's own string.
-                    // Suppress that one attribute warning: React 18 only reports the first
-                    // hydration warning per page, and this one was masking real ones.
-                    suppressHydrationWarning
-                    layoutId="activeIndicator"
-                    layout
-                    style={{
-                      position: "absolute",
-                      bottom: 0,
-                    }}
-                    initial={false}
-                    transition={{
-                      layout: {
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 40,
-                      },
-                    }}
+                  <span
+                    aria-hidden="true"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-600 pointer-events-none nav-active-indicator"
                   />
                 )}
               </NavLink>
@@ -319,27 +283,9 @@ function Header() {
               >
                 <span className="relative z-10">{n.label}</span>
                 {isActive && (
-                  <motion.div
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-600 pointer-events-none"
-                    // framer-motion's layout projection writes opacity into this element's inline
-                    // style, so the prerendered markup can never equal React's own string.
-                    // Suppress that one attribute warning: React 18 only reports the first
-                    // hydration warning per page, and this one was masking real ones.
-                    suppressHydrationWarning
-                    layoutId="activeIndicatorTablet"
-                    layout
-                    style={{
-                      position: "absolute",
-                      bottom: 0,
-                    }}
-                    initial={false}
-                    transition={{
-                      layout: {
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 40,
-                      },
-                    }}
+                  <span
+                    aria-hidden="true"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-600 pointer-events-none nav-active-indicator"
                   />
                 )}
               </NavLink>

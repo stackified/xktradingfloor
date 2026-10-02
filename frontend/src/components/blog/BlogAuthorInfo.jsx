@@ -21,7 +21,7 @@ function BlogAuthorInfo({ author }) {
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#64748B]">Written by</div>
+        <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#94A3B8]">Written by</div>
         <div className="mt-0.5 font-semibold text-white">{name}</div>
         <p className="mt-1 text-sm leading-relaxed text-[#94A3B8]">{bio}</p>
       </div>

@@ -274,7 +274,7 @@ function Blog() {
                   type="button"
                   onClick={() => handlePageChange(n)}
                   aria-current={n === page ? "page" : undefined}
-                  className={`${PAGE_BTN} ${n === page ? "!border-[#3B82F6] !bg-[#3B82F6] !text-white" : ""}`}
+                  className={`${PAGE_BTN} ${n === page ? "!border-[#2563EB] !bg-[#2563EB] !text-white" : ""}`}
                 >
                   {n}
                 </button>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m as motion } from 'framer-motion';
 import { getAllProducts } from '../../controllers/productsController.js';
 import { Link, useNavigate } from 'react-router-dom';
 

@@ -39,7 +39,7 @@ function BlogSidebar({
                     <div className="line-clamp-2 text-[13.5px] font-medium leading-snug text-[#CBD5E1] transition-colors group-hover:text-white">
                       {p.title}
                     </div>
-                    {p.date && <div className="mt-1 text-[11.5px] text-[#64748B]">{p.date}</div>}
+                    {p.date && <div className="mt-1 text-[11.5px] text-[#94A3B8]">{p.date}</div>}
                   </div>
                 </Link>
               </li>

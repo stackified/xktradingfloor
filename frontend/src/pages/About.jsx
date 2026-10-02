@@ -4,7 +4,7 @@ import SectionHeader from "../components/shared/SectionHeader.jsx";
 import InfoCard from "../components/shared/InfoCard.jsx";
 import AnimatedDivider from "../components/shared/AnimatedDivider.jsx";
 import { Rocket, ShieldCheck, Users } from "lucide-react";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import Seo from "../components/shared/Seo.jsx";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
 import DiscordAuthGate from "../components/shared/DiscordAuthGate.jsx";

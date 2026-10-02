@@ -1,5 +1,4 @@
 import React from "react";
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { TrendingUp, ShieldCheck, Star } from "lucide-react";
 import { getAssetPath } from "../../utils/assets.js";
@@ -106,53 +105,38 @@ function HeroSection() {
 
         <div className="flex items-center justify-center relative">
           <div className="relative h-96 w-96 flex items-center justify-center">
-            <motion.div className="absolute z-30 flex items-center justify-center">
-              <motion.img
+            <div className="absolute z-30 flex items-center justify-center">
+              <img
                 src={getAssetPath("/assets/logo.webp")}
                 alt="XK Trading Floor Logo"
                 width="561"
                 height="445"
-                className="h-64 w-48 md:h-80 md:w-60 lg:h-96 lg:w-72 object-contain drop-shadow-2xl"
+                className="h-64 w-48 md:h-80 md:w-60 lg:h-96 lg:w-72 object-contain drop-shadow-2xl xk-logo-sway"
                 style={{ filter: "brightness(0) invert(1)" }}
-                animate={{ scale: [1, 1.05, 1], rotate: [0, 2, -2, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               />
-            </motion.div>
+            </div>
 
-            <motion.div
-              animate={{ scale: [1, 1.5, 1], opacity: [0.7, 0, 0.7] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute h-64 w-64 border-2 border-blue-400/50 rounded-full"
+            <div
+              className="absolute h-64 w-64 border-2 border-blue-400/50 rounded-full xk-ring"
+              style={{ "--ring-scale": 1.5, "--ring-opacity": 0.7, "--dur": "3s" }}
             />
-            <motion.div
-              animate={{ scale: [1, 1.8, 1], opacity: [0.5, 0, 0.5] }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              className="absolute h-96 w-96 border-2 border-blue-400/40 rounded-full"
+            <div
+              className="absolute h-96 w-96 border-2 border-blue-400/40 rounded-full xk-ring"
+              style={{ "--ring-scale": 1.8, "--ring-opacity": 0.5, "--dur": "3.5s", "--delay": "0.5s" }}
             />
-            <motion.div
-              animate={{ scale: [1, 2.2, 1], opacity: [0.3, 0, 0.3] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute h-[500px] w-[500px] border border-blue-400/30 rounded-full"
+            <div
+              className="absolute h-[500px] w-[500px] border border-blue-400/30 rounded-full xk-ring"
+              style={{ "--ring-scale": 2.2, "--ring-opacity": 0.3, "--dur": "4s", "--delay": "1s" }}
             />
 
             {/* Floating trust badges */}
             {heroBadges.map((badge) => {
               const Icon = badge.icon;
               return (
-                <motion.div
+                <div
                   key={badge.id}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: [0, -6, 0] }}
-                  transition={{
-                    opacity: { duration: 0.5, delay: badge.delay },
-                    y: {
-                      duration: 3.5,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: badge.delay,
-                    },
-                  }}
-                  className={`absolute ${badge.position} z-40 flex items-center gap-2 rounded-xl border border-white/10 bg-gray-900/80 backdrop-blur-md px-3 py-2 shadow-xl shadow-black/40`}
+                  style={{ "--delay": `${badge.delay}s`, "--dur": "3.5s" }}
+                  className={`xk-float-badge absolute ${badge.position} z-40 flex items-center gap-2 rounded-xl border border-white/10 bg-gray-900/80 backdrop-blur-md px-3 py-2 shadow-xl shadow-black/40`}
                 >
                   <div className={`h-8 w-8 rounded-lg ${badge.iconBg} flex items-center justify-center flex-shrink-0 relative`}>
                     <Icon className={`h-4 w-4 ${badge.iconTint}`} />
@@ -173,7 +157,7 @@ function HeroSection() {
                       </div>
                     )}
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>

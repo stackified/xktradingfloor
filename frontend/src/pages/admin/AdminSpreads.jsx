@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { RefreshCw, Save, AlertCircle, CheckCircle2, X } from "lucide-react";
 import { getAllCompanies } from "../../controllers/companiesController.js";
 import {

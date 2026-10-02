@@ -34,6 +34,104 @@ body {
   scroll-behavior: smooth;
 }
 
+/* Header: underline under the active nav item. Plain CSS rather than a
+   framer-motion layoutId, whose layout projection forced a synchronous reflow
+   on every page load. */
+.nav-active-indicator {
+  transform-origin: center;
+  animation: nav-indicator-in 0.25s ease-out;
+}
+
+@keyframes nav-indicator-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-active-indicator {
+    animation: none;
+  }
+}
+
+/* Hero loops (home and reviews heroes): logo sway, pulsing rings and
+   floating badges. CSS on the individual transform properties and opacity
+   rather than framer-motion, which ran these forever on the main thread and
+   recalculated styles every frame; these run on the compositor and start at
+   first paint, before any JavaScript. Per-element values come in through
+   custom properties (--ring-scale, --ring-opacity, --dur, --delay). */
+.xk-logo-sway {
+  animation: xk-logo-sway 4s ease-in-out infinite;
+}
+
+.xk-logo-breathe {
+  animation: xk-logo-breathe 4s ease-in-out infinite;
+}
+
+.xk-ring {
+  animation: xk-ring var(--dur, 3s) ease-in-out var(--delay, 0s) infinite both;
+}
+
+/* Fade in, then bob up and down. */
+.xk-float-badge {
+  animation:
+    xk-fade-in 0.5s ease-out var(--delay, 0s) both,
+    xk-float var(--dur, 3.5s) ease-in-out var(--delay, 0s) infinite;
+}
+
+/* Same, with a small grow on entry. */
+.xk-float-badge-pop {
+  animation:
+    xk-pop-in 0.5s ease-out var(--delay, 0s) both,
+    xk-float-sm var(--dur, 3s) ease-in-out var(--delay, 0s) infinite;
+}
+
+@keyframes xk-logo-sway {
+  0%, 100% { scale: 1; rotate: 0deg; }
+  33% { scale: 1.033; rotate: 2deg; }
+  50% { scale: 1.05; rotate: 0deg; }
+  67% { scale: 1.033; rotate: -2deg; }
+}
+
+@keyframes xk-logo-breathe {
+  0%, 100% { scale: 1; }
+  50% { scale: 1.05; }
+}
+
+@keyframes xk-ring {
+  0%, 100% { scale: 1; opacity: var(--ring-opacity, 0.7); }
+  50% { scale: var(--ring-scale, 1.5); opacity: 0; }
+}
+
+@keyframes xk-fade-in {
+  from { opacity: 0; }
+}
+
+@keyframes xk-pop-in {
+  from { opacity: 0; scale: 0.8; }
+}
+
+@keyframes xk-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -6px; }
+}
+
+@keyframes xk-float-sm {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -4px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xk-logo-sway,
+  .xk-logo-breathe,
+  .xk-ring,
+  .xk-float-badge,
+  .xk-float-badge-pop {
+    animation: none;
+  }
+}
+
 /* Marquee Animation */
 @keyframes marquee {
   0% {

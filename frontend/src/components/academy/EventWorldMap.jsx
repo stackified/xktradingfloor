@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { MapPin, Minus, Plus, RotateCcw, Maximize2 } from "lucide-react";
 import {
   ComposableMap,

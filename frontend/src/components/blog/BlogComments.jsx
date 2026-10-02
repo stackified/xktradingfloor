@@ -158,10 +158,10 @@ function BlogComments({ blogId }) {
             rows={3}
             maxLength={MAX_LENGTH + 200}
             placeholder="Share your thoughts or ask a question..."
-            className="w-full resize-y bg-transparent text-[15px] leading-relaxed text-white placeholder:text-[#64748B] focus:outline-none"
+            className="w-full resize-y bg-transparent text-[15px] leading-relaxed text-white placeholder:text-[#94A3B8] focus:outline-none"
           />
           <div className="mt-3 flex items-center justify-between gap-3">
-            <span className={`text-xs ${remaining < 0 ? "text-red-400" : remaining < 200 ? "text-amber-400" : "text-[#64748B]"}`}>
+            <span className={`text-xs ${remaining < 0 ? "text-red-400" : remaining < 200 ? "text-amber-400" : "text-[#94A3B8]"}`}>
               {remaining < 200 ? `${remaining} characters left` : "Be respectful. Comments are public."}
             </span>
             <button
@@ -230,7 +230,7 @@ function BlogComments({ blogId }) {
                           XK Team
                         </span>
                       )}
-                      <time dateTime={c.createdAt} title={new Date(c.createdAt).toLocaleString()} className="text-xs text-[#64748B]">
+                      <time dateTime={c.createdAt} title={new Date(c.createdAt).toLocaleString()} className="text-xs text-[#94A3B8]">
                         {timeAgo(c.createdAt)}
                       </time>
                       {(mine || isModerator) && (
@@ -238,7 +238,7 @@ function BlogComments({ blogId }) {
                           type="button"
                           onClick={() => remove(c._id)}
                           disabled={deleting === c._id}
-                          className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-lg text-[#64748B] transition-colors hover:bg-red-500/10 hover:text-red-400 disabled:opacity-40"
+                          className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-lg text-[#94A3B8] transition-colors hover:bg-red-500/10 hover:text-red-400 disabled:opacity-40"
                           aria-label="Delete comment"
                           title="Delete comment"
                         >

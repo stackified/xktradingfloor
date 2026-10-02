@@ -1,7 +1,7 @@
 import React from "react";
 import { repairStoredHtml } from "../../utils/richText.js";
 import { isDesignedHtml } from "../../utils/designedHtml.js";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { ExternalLink, ShieldCheck, Wallet, Clock, Globe, Layers, Server, TrendingUp } from "lucide-react";
 import CompanyLogo from "../shared/CompanyLogo.jsx";
 import StarRating from "./StarRating.jsx";

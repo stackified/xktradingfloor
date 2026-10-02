@@ -1,6 +1,6 @@
 import React from "react";
 import { X, Flag } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m as motion, AnimatePresence } from "framer-motion";
 import CustomSelect from "./CustomSelect.jsx";
 
 const FLAG_REASONS = [

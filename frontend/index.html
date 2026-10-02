@@ -67,6 +67,10 @@
   <meta name="description"
     content="Compare brokers and prop firms, explore verified trader profiles, track live spreads and payouts, and make confident trading decisions — all in one place." />
   <link rel="canonical" href="https://xktradingfloor.com/" />
+  <!-- Agent discovery (ARD): catalog of what AI agents can use on this site.
+       robots.txt has no standard directive for it (Lighthouse's robots.txt
+       check rejects "Agentmap:"), so it is advertised here instead. -->
+  <link rel="ai-catalog" href="%BASE_URL%.well-known/ai-catalog.json" type="application/json" />
 
   <meta property="og:site_name" content="XK Trading Floor" />
   <meta property="og:type" content="website" />
@@ -87,8 +91,8 @@
   <meta name="google-adsense-account" content="ca-pub-8956282576298580" />
   <!-- ads.txt entry: google.com, pub-8956282576298580, DIRECT, f08c47fec0942fa0 -->
   <!-- Third-party scripts load off the critical path: on the first user
-       interaction, or once the page has loaded and the browser is idle (2 s
-       cap), whichever comes first. On the mobile Lighthouse profile these were
+       interaction, or a few seconds after the page has loaded (see
+       afterLoad below), whichever comes first. On the mobile Lighthouse profile these were
        costing first paint 683 ms (Clarity, via GTM), 486 ms (GA4) and 499 ms
        (AdSense) of main-thread time. Analytics calls made before the scripts
        arrive queue in dataLayer and flush on load, so page views still count;
@@ -115,35 +119,54 @@
         document.head.appendChild(el);
       }
 
-      var done = false;
+      var tagsDone = false;
+      var adsDone = false;
       var events = ['scroll', 'pointerdown', 'keydown', 'touchstart'];
 
-      function load() {
-        if (done) return;
-        done = true;
-        events.forEach(function (e) { window.removeEventListener(e, load); });
-
-        // GA4 (gtag.js) for G-GYPE81F8N8. The GTM container ships no GA4 tag,
-        // so this is what actually records page views. If a GA4 tag is ever
-        // added inside GTM, remove this line or every hit is counted twice.
-        add('https://www.googletagmanager.com/gtag/js?id=G-GYPE81F8N8');
-        // GTM (GTM-PB4G7KLK) - currently carries Microsoft Clarity.
+      function loadTags() {
+        if (tagsDone) return;
+        tagsDone = true;
+        // GTM (GTM-PB4G7KLK) carries Microsoft Clarity and loads the GA4
+        // Google tag (gtag.js for G-GYPE81F8N8) itself, which then sends the
+        // page views queued in dataLayer above. Loading gtag.js here as well
+        // downloaded the same 195 KiB library twice.
         add('https://www.googletagmanager.com/gtm.js?id=GTM-PB4G7KLK');
-        // AdSense Auto Ads (~249 KiB); the app has no manual ad units.
+      }
+
+      function loadAds() {
+        if (adsDone) return;
+        adsDone = true;
+        // AdSense Auto Ads (~440 KiB with its follow-up scripts); the app has
+        // no manual ad units, so nothing waits for it.
         add('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8956282576298580', {
           crossOrigin: 'anonymous',
           onerror: function () { window.__adsenseBlocked = true; }
         });
       }
 
-      function whenIdle() {
-        if ('requestIdleCallback' in window) requestIdleCallback(load, { timeout: 2000 });
-        else setTimeout(load, 2000);
+      function onInteract() {
+        events.forEach(function (e) { window.removeEventListener(e, onInteract); });
+        loadTags();
+        loadAds();
       }
 
-      events.forEach(function (e) { window.addEventListener(e, load, { passive: true }); });
-      if (document.readyState === 'complete') whenIdle();
-      else window.addEventListener('load', whenIdle);
+      function idle(fn, ms) {
+        setTimeout(function () {
+          if ('requestIdleCallback' in window) requestIdleCallback(fn, { timeout: 1000 });
+          else fn();
+        }, ms);
+      }
+
+      // Without an interaction: analytics 3 s after load, ads 6 s after load,
+      // each when the main thread is free.
+      function afterLoad() {
+        idle(loadTags, 3000);
+        idle(loadAds, 6000);
+      }
+
+      events.forEach(function (e) { window.addEventListener(e, onInteract, { passive: true }); });
+      if (document.readyState === 'complete') afterLoad();
+      else window.addEventListener('load', afterLoad);
     })();
   </script>
 </head>
