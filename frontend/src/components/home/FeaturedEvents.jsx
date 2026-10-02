@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import EventImage from '../shared/EventImage.jsx';
 import EventBadges from '../shared/EventBadges.jsx';
 import { formatEventDate } from '../../utils/eventTime.js';
+import { eventSummary } from '../../utils/eventDescription.js';
 
 function eventTime(evt) {
   const t = new Date(evt?.dateTime || evt?.date || 0).getTime();
@@ -45,7 +46,7 @@ function EventCard({ evt, onClick }) {
         <EventBadges evt={evt} showRegion={false} className="mb-2" />
         <div className="text-xs sm:text-sm text-gray-400 mb-2">{evt.dateTime ? formatEventDate(evt) : formatDate(evt.date)}</div>
         <h3 className="font-display font-semibold text-base sm:text-lg tracking-tight mb-2">{evt.title}</h3>
-        <div className="text-sm sm:text-base text-gray-300 line-clamp-2">{evt.excerpt || evt.description || ''}</div>
+        <div className="text-sm sm:text-base text-gray-300 line-clamp-2">{eventSummary(evt)}</div>
       </div>
     </motion.div>
   );

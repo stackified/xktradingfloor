@@ -8,6 +8,7 @@ import EventImage from "../shared/EventImage.jsx";
 import EventWorldMap from "./EventWorldMap.jsx";
 import EventFeaturedSlider from "./EventFeaturedSlider.jsx";
 import { formatEventDate, formatEventTimeShort, formatEventPlace } from "../../utils/eventTime.js";
+import { eventSummary } from "../../utils/eventDescription.js";
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -214,7 +215,7 @@ function EventCard({ evt, onRegister }) {
           )}
         </div>
         <p className="text-sm text-gray-300 mt-2 line-clamp-2 mb-3">
-          {evt.excerpt || evt.description || ""}
+          {eventSummary(evt)}
         </p>
         <button
           className="btn btn-primary rounded-full w-full opacity-100 visible"
