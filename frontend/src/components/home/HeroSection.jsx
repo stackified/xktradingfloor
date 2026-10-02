@@ -136,7 +136,7 @@ function HeroSection() {
                 <div
                   key={badge.id}
                   style={{ "--delay": `${badge.delay}s`, "--dur": "3.5s" }}
-                  className={`xk-float-badge absolute ${badge.position} z-40 flex items-center gap-2 rounded-xl border border-white/10 bg-gray-900/80 backdrop-blur-md px-3 py-2 shadow-xl shadow-black/40`}
+                  className={`xk-float-badge absolute ${badge.position} z-40 flex items-center gap-2 rounded-xl border border-white/10 bg-gray-900/95 px-3 py-2 shadow-xl shadow-black/40`}
                 >
                   <div className={`h-8 w-8 rounded-lg ${badge.iconBg} flex items-center justify-center flex-shrink-0 relative`}>
                     <Icon className={`h-4 w-4 ${badge.iconTint}`} />

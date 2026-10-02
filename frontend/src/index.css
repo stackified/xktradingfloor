@@ -34,6 +34,15 @@ body {
   scroll-behavior: smooth;
 }
 
+/* Homepage sections below the hero (components/shared/HydrateChunk.jsx):
+   the browser skips their style, layout and paint until they come near the
+   viewport. The 900px estimate (the average section height on a phone) stands
+   in for a section's height until it has been rendered once. */
+.xk-cv {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
 /* Header: underline under the active nav item. Plain CSS rather than a
    framer-motion layoutId, whose layout projection forced a synchronous reflow
    on every page load. */
