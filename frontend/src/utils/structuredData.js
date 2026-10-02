@@ -115,7 +115,8 @@ export const eventJsonLd = (event) => {
     "@context": "https://schema.org",
     "@type": "Event",
     name: event.title,
-    description: event.description || event.excerpt,
+    // Descriptions can be designed HTML; structured data wants plain text.
+    description: plainText(event.description, 300) || event.excerpt,
     startDate: event.dateTime,
     eventAttendanceMode:
       event.type === "online"
