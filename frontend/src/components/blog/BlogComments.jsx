@@ -6,6 +6,7 @@ import { getUserCookie } from "../../utils/cookies.js";
 import { getBlogComments, addBlogComment, deleteBlogComment } from "../../controllers/blogsController.js";
 import { useToast } from "../../contexts/ToastContext.jsx";
 import ImageWithFallback from "../shared/ImageWithFallback.jsx";
+import { authorDisplayName } from "../../utils/authors.js";
 
 const MAX_LENGTH = 2000;
 const PAGE_SIZE = 20;
@@ -224,7 +225,7 @@ function BlogComments({ blogId }) {
                   <Avatar author={c.author} />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="text-sm font-semibold text-white">{c.author?.fullName || "Member"}</span>
+                      <span className="text-sm font-semibold text-white">{authorDisplayName(c.author, "Member")}</span>
                       {staff && (
                         <span className="rounded-full bg-[#3B82F6]/15 px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[#93C5FD]">
                           XK Team

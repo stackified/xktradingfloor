@@ -1,13 +1,14 @@
 import React from 'react';
 import { Linkedin, Twitter } from 'lucide-react';
 import ImageWithFallback from '../shared/ImageWithFallback.jsx';
+import { authorDisplayName } from '../../utils/authors.js';
 
 function BlogAuthorInfo({ author }) {
   if (!author || typeof author !== 'object') return null;
   // The blog API populates author as { fullName, email, profileImage }. Fall
   // back to the older { name, avatar, bio, socials } shape if present. The
   // email is never shown publicly.
-  const name = author.fullName || author.name || 'XK Trading Floor';
+  const name = authorDisplayName(author);
   const avatar = author.profileImage || author.avatar || '';
   const bio = author.bio || 'Market insights, broker reviews and trading education from the XK Trading Floor team.';
   const socials = author.socials || {};

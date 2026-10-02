@@ -28,7 +28,7 @@ function Footer() {
             <li><Link to="/blog" className="hover:text-white">Blog</Link></li>
             <li><Link to="/blog/category/learn-trading" className="hover:text-white">Learn Trading</Link></li>
             <li><Link to="/reviews" className="hover:text-white">Reviews</Link></li>
-            <li><Link to="/live-spreads" className="hover:text-white">Live Spreads</Link></li>
+            <li><Link to="/live-spreads" className="hover:text-white">Spread Comparison</Link></li>
             <li><Link to="/payouts" className="hover:text-white">Payout Tracker</Link></li>
             {/* <li><Link to="/merch" className="hover:text-white">Merch</Link></li> */} {/* Hidden - uncomment to re-enable */}
           </ul>
@@ -37,6 +37,7 @@ function Footer() {
           <h2 className="font-semibold text-base mb-3">Company</h2>
           <ul className="space-y-2 text-sm text-gray-300">
             <li><Link to="/about" className="hover:text-white">About</Link></li>
+            <li><Link to="/how-we-rate" className="hover:text-white">How we rate</Link></li>
             <li><Link to="/contact" className="hover:text-white">Contact</Link></li>
             <li><Link to="/services" className="hover:text-white">For Brands</Link></li>
             <li><Link to="/privacy-policy" className="hover:text-white">Privacy</Link></li>

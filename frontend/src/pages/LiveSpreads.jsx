@@ -144,17 +144,20 @@ function LiveSpreads() {
   return (
     <div className="bg-black text-white min-h-screen">
       <Seo
-        title="Live Broker Spreads"
-        description="Compare forex, gold, silver, crypto, and index spreads across top brokers in one place."
+        title="Forex Broker Spread Comparison"
+        description="Compare typical forex, gold, silver, crypto and index spreads across brokers in one table, with the data source and update time shown."
         path="/live-spreads"
       />
 
       <section className="relative overflow-hidden bg-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-6 text-center">
+          {/* No "Live" in the heading: search engines and AI tools read the
+              prerendered snapshot, which always shows the sample state. The
+              status badge below says "Live" when real data has loaded. */}
           <h1 className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl mb-3">
-            Live{" "}
+            Broker{" "}
             <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
-              Broker Spreads
+              Spread Comparison
             </span>
           </h1>
           <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">
