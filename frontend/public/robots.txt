@@ -3,19 +3,18 @@
 # Public pages are open to search engines and to AI search and answer
 # engines, so the site can be found and cited. Account and admin areas are
 # private for everyone. A plain-text guide for AI assistants: /llms.txt
+# Login, sign-up and password pages are not blocked here on purpose: they
+# carry a noindex tag, and crawlers can only obey it if they may fetch the
+# page (Google had indexed /signup because robots.txt hid that tag).
 
 User-agent: *
 Allow: /
-Disallow: /login
-Disallow: /signup
 Disallow: /dashboard
 Disallow: /profile
 Disallow: /my-blogs
 Disallow: /blogs/
 Disallow: /admin
 Disallow: /operator
-Disallow: /forgot-password
-Disallow: /reset-password
 
 # AI search and answer engines (explicitly welcome; same private areas).
 User-agent: GPTBot
@@ -35,16 +34,12 @@ User-agent: MistralAI-User
 User-agent: Meta-ExternalAgent
 User-agent: Bingbot
 Allow: /
-Disallow: /login
-Disallow: /signup
 Disallow: /dashboard
 Disallow: /profile
 Disallow: /my-blogs
 Disallow: /blogs/
 Disallow: /admin
 Disallow: /operator
-Disallow: /forgot-password
-Disallow: /reset-password
 
 Sitemap: https://xktradingfloor.com/sitemap-index.xml
 Sitemap: https://xktradingfloor.com/sitemap.xml

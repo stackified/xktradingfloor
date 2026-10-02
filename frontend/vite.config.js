@@ -51,6 +51,18 @@ const deferEntryUntilFirstPaint = () => ({
   },
 });
 
+// Staging (GitHub Pages, base /xktradingfloor/) must never compete with the
+// real site in search results: Google had indexed the staging copy. Every
+// page there gets a noindex tag; production (base /) is untouched. GitHub
+// Pages has no robots.txt at the domain root, so the tag is the only lever.
+const noindexOffProduction = (base) => ({
+  name: "noindex-off-production",
+  transformIndexHtml: (html) =>
+    base === "/"
+      ? html
+      : html.replace("<head>", '<head><meta name="robots" content="noindex, nofollow" />'),
+});
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Read base path from environment variable, default to "/" for localhost
@@ -62,7 +74,7 @@ export default defineConfig(({ mode }) => {
   return {
     // deferEntryUntilFirstPaint runs before rocketLoaderOptOut so the loader
     // it writes gets the data-cfasync opt-out too.
-    plugins: [react(), deferEntryUntilFirstPaint(), rocketLoaderOptOut()],
+    plugins: [react(), noindexOffProduction(normalizedBasePath), deferEntryUntilFirstPaint(), rocketLoaderOptOut()],
     server: {
       port: 5173,
       open: true,
