@@ -125,6 +125,10 @@ try {
     let id = 0;
     window.requestAnimationFrame = () => ++id;
     window.cancelAnimationFrame = () => {};
+    // The entry loader in index.html waits for the first frame before it
+    // starts the bundle (see vite.config.js); with rAF frozen it would wait
+    // forever, so tell it to start at once.
+    window.__xkPrerender = true;
   });
   await page.setViewport({ width: 1280, height: 900 });
   page.on("console", (m) => console.log("  [page console]", m.type(), m.text()));
@@ -182,6 +186,13 @@ try {
     if (!main) throw new Error("prerender: <main> not found; cannot place Suspense markers");
     main.insertBefore(document.createComment("$"), main.firstChild);
     main.appendChild(document.createComment("/$"));
+    // Each homepage section below the hero sits in its own boundary
+    // (components/shared/HydrateChunk.jsx) so it hydrates as a separate
+    // task; bracket those the same way.
+    document.querySelectorAll("#root [data-xk-chunk]").forEach((el) => {
+      el.insertBefore(document.createComment("$"), el.firstChild);
+      el.appendChild(document.createComment("/$"));
+    });
   });
 
   // Separate adjacent text nodes the way React's own SSR does.

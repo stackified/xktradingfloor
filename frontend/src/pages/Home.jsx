@@ -16,6 +16,7 @@ import TradingJournalSection from '../components/home/TradingJournalSection.jsx'
 import FeaturedEvents from '../components/home/FeaturedEvents.jsx';
 import LatestBlogs from '../components/home/LatestBlogs.jsx';
 import CTASection from '../components/home/CTASection.jsx';
+import HydrateChunk from '../components/shared/HydrateChunk.jsx';
 
 function Home() {
   return (
@@ -26,23 +27,24 @@ function Home() {
         path="/"
       />
       <HeroSection />
-      <StatsSection />
-      <TopCompaniesTables />
-      <WhatIsXK />
-      <MissionResourcesSection />
-      <CommunitySection />
-      <FeaturesQuadrantSection />
+      {/* Everything below the hero hydrates as its own chunk; see HydrateChunk. */}
+      <HydrateChunk><StatsSection /></HydrateChunk>
+      <HydrateChunk><TopCompaniesTables /></HydrateChunk>
+      <HydrateChunk><WhatIsXK /></HydrateChunk>
+      <HydrateChunk><MissionResourcesSection /></HydrateChunk>
+      <HydrateChunk><CommunitySection /></HydrateChunk>
+      <HydrateChunk><FeaturesQuadrantSection /></HydrateChunk>
       {/* Hidden per client request (revertible) — restore by uncommenting:
       <div id="how-it-works">
         <HowItWorks />
       </div>
       <FreebiesSection />
       */}
-      <PodcastSection />
-      <TradingJournalSection />
-      <FeaturedEvents />
-      <LatestBlogs />
-      <CTASection />
+      <HydrateChunk><PodcastSection /></HydrateChunk>
+      <HydrateChunk><TradingJournalSection /></HydrateChunk>
+      <HydrateChunk><FeaturedEvents /></HydrateChunk>
+      <HydrateChunk><LatestBlogs /></HydrateChunk>
+      <HydrateChunk><CTASection /></HydrateChunk>
     </div>
   );
 }
