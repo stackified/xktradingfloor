@@ -11,11 +11,19 @@ import {
   Youtube,
   Twitter,
   Instagram,
+  Send,
+  Music2,
 } from "lucide-react";
 import Seo from "../components/shared/Seo.jsx";
 import CardLoader from "../components/shared/CardLoader.jsx";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
 import { getPublicUserProfile } from "../controllers/userProfileController.js";
+import { countryOptions } from "../utils/countries.js";
+
+// Profiles store ISO codes ("IN"); show the country name.
+const countryName = (value) => countryOptions().find((c) => c.code === value)?.name || value;
+
+const YEARS_LABEL = { "0-1": "Under 1 year", "1-2": "1–2 years", "2-5": "2–5 years", "5-10": "5–10 years", "10+": "10+ years" };
 
 function formatMoney(n) {
   if (n == null) return "—";
@@ -108,7 +116,7 @@ function UserProfile() {
                 </div>
                 <p className="text-sm text-gray-400 flex items-center gap-1">
                   <Globe className="h-3.5 w-3.5" />
-                  {profile.country}
+                  {countryName(profile.country)}
                   {profile.memberSince && (
                     <span className="ml-2 inline-flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5" />
@@ -142,7 +150,26 @@ function UserProfile() {
                 <div className="text-xs text-gray-500 uppercase mb-1">Style</div>
                 <div className="text-white font-semibold">{primaryStyle}</div>
               </div>
+              {YEARS_LABEL[profile.yearsOfExperience] && (
+                <div className="p-3 rounded-lg bg-gray-900/60 border border-gray-800">
+                  <div className="text-xs text-gray-500 uppercase mb-1">Experience</div>
+                  <div className="text-white font-semibold">{YEARS_LABEL[profile.yearsOfExperience]}</div>
+                </div>
+              )}
             </div>
+
+            {profile.primaryMarkets?.length > 0 && (
+              <div>
+                <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">Markets</div>
+                <div className="flex flex-wrap gap-2">
+                  {profile.primaryMarkets.map((item) => (
+                    <span key={item} className="text-xs px-2.5 py-1 rounded-full bg-white/5 text-gray-200 border border-white/10">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {profile.tradesWith?.length > 0 && (
               <div>
@@ -166,7 +193,9 @@ function UserProfile() {
             {(profile.socialLinks?.website ||
               profile.socialLinks?.youtube ||
               profile.socialLinks?.twitter ||
-              profile.socialLinks?.instagram) && (
+              profile.socialLinks?.instagram ||
+              profile.socialLinks?.telegram ||
+              profile.socialLinks?.tiktok) && (
               <div className="flex flex-wrap items-center gap-2">
                 {profile.socialLinks?.website && (
                   <a
@@ -217,6 +246,30 @@ function UserProfile() {
                   >
                     <Instagram className="h-4 w-4 text-pink-400" />
                     Instagram
+                  </a>
+                )}
+                {profile.socialLinks?.telegram && (
+                  <a
+                    href={profile.socialLinks.telegram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-gray-900/70 px-4 py-2 text-sm text-gray-200 hover:border-sky-500/40 hover:text-white transition-colors"
+                    title="Telegram"
+                  >
+                    <Send className="h-4 w-4 text-sky-400" aria-hidden="true" />
+                    Telegram
+                  </a>
+                )}
+                {profile.socialLinks?.tiktok && (
+                  <a
+                    href={profile.socialLinks.tiktok}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-gray-900/70 px-4 py-2 text-sm text-gray-200 hover:border-white/30 hover:text-white transition-colors"
+                    title="TikTok"
+                  >
+                    <Music2 className="h-4 w-4 text-gray-200" aria-hidden="true" />
+                    TikTok
                   </a>
                 )}
               </div>
