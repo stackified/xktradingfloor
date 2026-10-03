@@ -254,6 +254,7 @@ function writeLlmsTxt() {
     "- Verified Trader badges are awarded after an application, document check and a call with the XK team.",
     "- Trading education happens in the XK Discord community rather than a separate academy; guides are in the blog's Learn Trading category.",
     "- The prop firm payout tracker currently shows sample data, labelled as such, until real verified payouts are recorded.",
+    "- XK earns a commission when visitors open an account or buy a challenge through its links or promo codes; ratings and TrustScores come only from trader reviews and are not affected (see How we rate).",
     "- Content is for information only and is not financial advice.",
     "",
     "## Main pages",

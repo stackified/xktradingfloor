@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { TrendingUp, Building2, Users } from "lucide-react";
 import { getAssetPath } from "../../utils/assets.js";
+import { SITE_STATS } from "../../utils/siteStats.js";
 
 const trustPoints = [
   "Trader reviews",
@@ -10,9 +11,9 @@ const trustPoints = [
   "Payout tracker",
 ];
 
-// Floating badges around the hero logo. The figures mirror StatsSection so the
-// two never disagree; no review or payout totals until there is real verified
-// data (client, 2 Oct 2026).
+// Floating badges around the hero logo. The company count is the real one from
+// the build (same source as StatsSection); no review, payout or member totals
+// until there is real data behind them (client, 2 Oct 2026).
 const heroBadges = [
   {
     id: "spreads",
@@ -32,8 +33,8 @@ const heroBadges = [
     iconTint: "text-green-400",
     iconBg: "bg-green-500/15",
     label: "Brokers & Prop Firms",
-    value: "70+",
-    sub: "Listed and reviewed",
+    value: SITE_STATS ? String(SITE_STATS.companies) : "Reviews",
+    sub: SITE_STATS ? "Listed and reviewed" : "By real traders",
     // Bottom-right of the logo
     position: "bottom-8 right-0 md:-right-8 lg:-right-14",
     delay: 0.4,
@@ -44,8 +45,8 @@ const heroBadges = [
     iconTint: "text-yellow-400",
     iconBg: "bg-yellow-500/15",
     label: "Community",
-    value: "1,000+",
-    sub: "Traders",
+    value: "Discord",
+    sub: "Join the traders",
     // Top-left of the logo
     position: "top-4 left-0 md:-left-6 lg:-left-10",
     delay: 0.8,

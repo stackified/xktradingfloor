@@ -9,6 +9,12 @@
   RewriteEngine On
   RewriteBase /
 
+  # One host: www.xktradingfloor.com served a full duplicate of the site (Bing
+  # flagged duplicate descriptions/canonicals on it, Oct 2026). Send it to the
+  # bare domain in one hop.
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
+
   # Force HTTPS
   RewriteCond %{HTTPS} !=on
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]

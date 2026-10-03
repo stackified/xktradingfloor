@@ -4,6 +4,7 @@ import { repairStoredHtml } from "../../utils/richText.js";
 import { isDesignedHtml } from "../../utils/designedHtml.js";
 import { m as motion } from "framer-motion";
 import { ExternalLink, ShieldCheck, Wallet, Clock, Globe, Layers, Server, TrendingUp } from "lucide-react";
+import { trackEvent } from "../../utils/analytics.js";
 import CompanyLogo from "../shared/CompanyLogo.jsx";
 import StarRating from "./StarRating.jsx";
 
@@ -160,6 +161,7 @@ function CompanyProfileHeader({ company }) {
             href={company.website}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackEvent("visit_company", { company: company.name, category: company.category, location: "company_page" })}
             className="btn btn-primary inline-flex items-center gap-2 w-fit"
           >
             <span>Visit {company.name}</span>

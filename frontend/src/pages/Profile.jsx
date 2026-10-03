@@ -26,6 +26,7 @@ import AvatarCropper from '../components/profile/AvatarCropper.jsx';
 import { updateProfile } from '../redux/slices/authSlice.js';
 import { getUserCookie } from '../utils/cookies.js';
 import { countryOptions } from '../utils/countries.js';
+import { trackEvent } from '../utils/analytics.js';
 import {
   getMyProfile,
   updateMyProfile,
@@ -498,6 +499,7 @@ export default function Profile() {
       saved = true;
       const { data } = await applyForVerifiedTrader({ applicationNote: '', brokerStatements, payoutProofs });
       setVerification(data.verifiedTrader || null);
+      trackEvent('verified_trader_apply', { profile_type: form.profileType });
       setBrokerStatements([]);
       setPayoutProofs([]);
       announce('Application submitted. Our team will review your documents and contact you to schedule a short call.');
