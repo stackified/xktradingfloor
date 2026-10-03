@@ -189,13 +189,13 @@ function Blog() {
       {activeCategory ? (
         <Seo
           title={`${activeCategory.name} articles`}
-          description={`${activeCategory.name} on XK Trading Floor: ${activeCategory.description}.`}
+          description={`Read ${activeCategory.name} articles on XK Trading Floor: ${activeCategory.description}. Written for forex, prop firm and crypto traders.`}
           path={`/blog/category/${activeCategory.slug}`}
         />
       ) : (
         <Seo
           title="Blog"
-          description="Find the insights that matter to your trading journey. Stories, analysis, reviews, and industry updates."
+          description="Trading insights from XK Trading Floor: market analysis, broker and prop firm news, trader interviews, promotions and guides to help you trade with confidence."
           path="/blog"
         />
       )}

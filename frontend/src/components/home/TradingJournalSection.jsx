@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { m as motion } from "framer-motion";
 import { ArrowRight, Copy, CheckCircle2, LineChart, ShieldCheck, Camera } from "lucide-react";
+import { trackEvent } from "../../utils/analytics.js";
 import { getAssetPath } from "../../utils/assets.js";
 
 const LOCKITTRADE_URL =
@@ -11,6 +12,7 @@ function TradingJournalSection() {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
+    trackEvent("coupon_copy", { code: COUPON_CODE, location: "home_journal" });
     try {
       await navigator.clipboard.writeText(COUPON_CODE);
       setCopied(true);

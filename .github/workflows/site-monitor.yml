@@ -1,0 +1,59 @@
+name: Site monitor
+
+# Checks the live site every 30 minutes and fails (GitHub then emails the
+# repo's watchers / the workflow's owner) when a page stops answering 200, the
+# www host stops redirecting, or the certificate is about to expire. Added
+# after the October 2026 SSL 526 outages, which went unnoticed for hours.
+# Run it by hand from the Actions tab with "Run workflow".
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: site-monitor
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Pages answer 200 with the real site
+        run: |
+          fail=0
+          for path in / /reviews /how-we-rate /events /blog /sitemap-index.xml /llms.txt; do
+            url="https://xktradingfloor.com${path}"
+            code=$(curl -s -o body.html -w '%{http_code}' --max-time 30 -A 'Mozilla/5.0 (XK Trading Floor uptime check)' "$url" || echo 000)
+            if [ "$code" != "200" ]; then
+              echo "::error::$url answered $code"
+              fail=1
+            elif ! grep -qi "XK Trading Floor" body.html; then
+              echo "::error::$url answered 200 but without the XK site content"
+              fail=1
+            else
+              echo "ok  $code  $url"
+            fi
+          done
+          exit $fail
+
+      - name: www redirects to the bare domain
+        run: |
+          read -r code location < <(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 30 https://www.xktradingfloor.com/reviews)
+          echo "www -> $code $location"
+          if [ "$code" != "301" ] || [ "$location" != "https://xktradingfloor.com/reviews" ]; then
+            echo "::error::www.xktradingfloor.com should 301 to https://xktradingfloor.com (got $code $location)"
+            exit 1
+          fi
+
+      - name: Certificate valid for 14+ more days
+        run: |
+          end=$(echo | openssl s_client -connect xktradingfloor.com:443 -servername xktradingfloor.com 2>/dev/null | openssl x509 -noout -enddate | cut -d= -f2)
+          echo "certificate expires: $end"
+          if ! echo | openssl s_client -connect xktradingfloor.com:443 -servername xktradingfloor.com 2>/dev/null | openssl x509 -noout -checkend $((14*24*3600)); then
+            echo "::error::The certificate for xktradingfloor.com expires within 14 days ($end)"
+            exit 1
+          fi

@@ -14,6 +14,9 @@ import {
 import Seo from "../components/shared/Seo.jsx";
 import CustomSelect from "../components/shared/CustomSelect.jsx";
 import DiscordLink from "../components/shared/DiscordLink.jsx";
+import { trackEvent } from "../utils/analytics.js";
+
+const CONTACT_EMAIL = "x.tradersz@gmail.com";
 
 function Contact() {
   const [ok, setOk] = React.useState(false);
@@ -23,17 +26,29 @@ function Contact() {
     type: "General Inquiry",
     message: "",
   });
+  // There is no contact endpoint yet (backend deliverable B20), so the form
+  // opens the visitor's email app with the message written out, addressed to
+  // the team. Before this it showed "sent" and the message went nowhere.
   function submit(e) {
     e.preventDefault();
+    const subject = `${form.type}: ${form.name}`.slice(0, 120);
+    const body = `${form.message}
+
+---
+Name: ${form.name}
+Email: ${form.email}
+Topic: ${form.type}
+Sent from xktradingfloor.com/contact`;
+    trackEvent("contact_submit", { topic: form.type });
+    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     setOk(true);
-    setTimeout(() => setOk(false), 1500);
   }
 
   return (
     <div className="bg-black min-h-screen">
       <Seo
         title="Contact"
-        description="Get in touch with XK Trading Floor for support, partnerships, or feedback."
+        description="Contact XK Trading Floor for support, corrections to a company listing, partnerships, podcast guest requests or media enquiries, by email or the contact form."
         path="/contact"
       />
 
@@ -148,6 +163,9 @@ function Contact() {
                   >
                     Send Message
                   </button>
+                  <p className="text-center text-xs text-gray-400">
+                    Opens your email app, addressed to {CONTACT_EMAIL}.
+                  </p>
                 </div>
               </form>
             </div>
@@ -271,8 +289,18 @@ function Contact() {
           exit={{ y: 50, opacity: 0 }}
           className="fixed bottom-6 right-6 bg-gray-900/90 border border-blue-500/50 rounded-lg px-6 py-4 shadow-lg shadow-blue-500/20 z-50"
         >
-          <div className="text-sm font-medium text-white">
-            Thanks! Your message has been sent.
+          <div role="status" className="max-w-xs text-sm text-white">
+            <p className="font-medium">Your email app should open with your message ready to send.</p>
+            <p className="mt-1 text-gray-300">
+              Nothing opened? Email us at{" "}
+              <a href={`mailto:${CONTACT_EMAIL}`} className="text-blue-400 underline">
+                {CONTACT_EMAIL}
+              </a>
+              .
+            </p>
+            <button type="button" onClick={() => setOk(false)} className="mt-2 text-xs text-gray-400 hover:text-white">
+              Close
+            </button>
           </div>
         </motion.div>
       )}

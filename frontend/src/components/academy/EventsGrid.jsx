@@ -5,7 +5,47 @@ import { getAllEvents } from "../../controllers/eventsController.js";
 import { Calendar, User, MapPin, Clock, Globe, Building2, Search, Filter, ChevronLeft, ChevronRight, X } from "lucide-react";
 import EventBadges, { CATEGORY_ICON, EVENT_CATEGORIES } from "../shared/EventBadges.jsx";
 import EventImage from "../shared/EventImage.jsx";
-import EventWorldMap from "./EventWorldMap.jsx";
+// The world map is ~410 KB of SVG paths once drawn, which used to be baked
+// into the prerendered /events HTML (507 KB in total). It is now its own
+// chunk, drawn only when it nears the screen and never in the build-time
+// snapshot; a same-size placeholder keeps the layout from shifting.
+const EventWorldMap = React.lazy(() => import("./EventWorldMap.jsx"));
+
+const MAP_PLACEHOLDER = (
+  <div
+    aria-hidden="true"
+    className="w-full aspect-[4/3] rounded-2xl border border-white/10 bg-gradient-to-b from-gray-900 to-black"
+  />
+);
+
+function MapWhenVisible(props) {
+  const ref = React.useRef(null);
+  const [show, setShow] = React.useState(false);
+  React.useEffect(() => {
+    if (navigator.webdriver) return undefined; // build-time prerender
+    const el = ref.current;
+    if (!el || !("IntersectionObserver" in window)) {
+      setShow(true);
+      return undefined;
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShow(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "300px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <div ref={ref}>
+      {show ? <React.Suspense fallback={MAP_PLACEHOLDER}><EventWorldMap {...props} /></React.Suspense> : MAP_PLACEHOLDER}
+    </div>
+  );
+}
 import EventFeaturedSlider from "./EventFeaturedSlider.jsx";
 import { formatEventDate, formatEventTimeShort, formatEventPlace } from "../../utils/eventTime.js";
 import { eventSummary } from "../../utils/eventDescription.js";
@@ -303,6 +343,10 @@ function EventsGrid({ onOpenRegister }) {
     loadEvents(nextPage, serverFilters);
   };
 
+  const otherFiltersActive = Boolean(
+    query || regionFilter || categoryFilter || monthFilter || (typeFilter && typeFilter !== "all"),
+  );
+
   const clearAllFilters = () => {
     setTypeFilter("all");
     setTimeFilter("all");
@@ -342,7 +386,7 @@ function EventsGrid({ onOpenRegister }) {
         {/* Inline map — full content width (client asked to widen it), with an
             enlarge control that opens the full-screen modal below. */}
         <div className="mb-6 w-full">
-          <EventWorldMap
+          <MapWhenVisible
             events={events}
             activeRegion={regionFilter}
             onSelectRegion={(region) => {
@@ -374,15 +418,17 @@ function EventsGrid({ onOpenRegister }) {
               >
                 <X className="h-4 w-4" />
               </button>
-              <EventWorldMap
-                events={events}
-                activeRegion={regionFilter}
-                onSelectRegion={(region) => {
-                  setRegionFilter(region);
-                  setPage(1);
-                  setMapModalOpen(false);
-                }}
-              />
+              <React.Suspense fallback={MAP_PLACEHOLDER}>
+                <EventWorldMap
+                  events={events}
+                  activeRegion={regionFilter}
+                  onSelectRegion={(region) => {
+                    setRegionFilter(region);
+                    setPage(1);
+                    setMapModalOpen(false);
+                  }}
+                />
+              </React.Suspense>
             </div>
           </div>
         )}
@@ -515,15 +561,33 @@ function EventsGrid({ onOpenRegister }) {
         {filtered.length === 0 && !loading ? (
           <div className="text-center py-12 card">
             <div className="card-body">
-              <div className="text-gray-400 mb-2">
-                No events match your filters.
-              </div>
-              <button
-                onClick={clearAllFilters}
-                className="text-sm text-blue-400 hover:text-blue-300"
-              >
-                Clear filters
-              </button>
+              {timeFilter === "upcoming" && !otherFiltersActive ? (
+                <>
+                  <div className="text-gray-300 mb-1">No upcoming events listed right now.</div>
+                  <div className="text-sm text-gray-500 mb-3">New expos and meetups are added regularly.</div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTimeFilter("past");
+                      setPage(1);
+                    }}
+                    className="text-sm text-blue-400 hover:text-blue-300"
+                  >
+                    See past events
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="text-gray-400 mb-2">No events match your filters.</div>
+                  <button
+                    type="button"
+                    onClick={clearAllFilters}
+                    className="text-sm text-blue-400 hover:text-blue-300"
+                  >
+                    Clear filters
+                  </button>
+                </>
+              )}
             </div>
           </div>
         ) : (

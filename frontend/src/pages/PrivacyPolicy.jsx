@@ -151,7 +151,7 @@ function PrivacyPolicy() {
     <div className="bg-black min-h-screen">
       <Seo
         title="Privacy Policy"
-        description="Privacy Policy for XK Trading Floor. Learn how we collect, use, and protect your personal information."
+        description="How XK Trading Floor collects, uses and protects your personal information, including account details, reviews, cookies and analytics, and how to contact us about your data."
         path="/privacy-policy"
       />
 

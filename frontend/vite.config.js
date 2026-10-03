@@ -1,5 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { readFileSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Cloudflare's Rocket Loader rewrites every <script> it sees — including
 // <script type="module"> — into a placeholder type, then downloads and
@@ -63,15 +68,58 @@ const noindexOffProduction = (base) => ({
       : html.replace("<head>", '<head><meta name="robots" content="noindex, nofollow" />'),
 });
 
+// Real listing counts for the homepage (Sahil, 2 Oct 2026: "let's stick to
+// real count"). Read once per production build and inlined as
+// __XK_SITE_STATS__, so the prerendered HTML and the hydrating bundle show the
+// same numbers. Each deploy refreshes them. null (dev, or API unreachable)
+// hides the figures instead of guessing.
+async function fetchSiteStats() {
+  let api = process.env.VITE_API_BASE_URL || "";
+  if (!api) {
+    try {
+      const env = readFileSync(resolve(__dirname, ".env.production"), "utf8");
+      api = (env.match(/^VITE_API_BASE_URL=(.+)$/m) || [])[1]?.trim() || "";
+    } catch {
+      api = "";
+    }
+  }
+  if (!/^https?:\/\//.test(api)) return null;
+  api = api.replace(/\/$/, "");
+  const total = async (path, init) => {
+    const res = await fetch(`${api}${path}`, { ...init, signal: AbortSignal.timeout(90000) });
+    const body = await res.json();
+    const n = body?.pagination?.totalItems;
+    if (!body?.success || !Number.isFinite(n)) throw new Error(`no total from ${path}`);
+    return n;
+  };
+  try {
+    const [companies, events, articles] = await Promise.all([
+      total("/companies/getallcompanies?size=1", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }),
+      total("/events/getallevents?size=1"),
+      total("/blogs/getpublishedblogs?size=1"),
+    ]);
+    console.log(`[site-stats] companies=${companies} events=${events} articles=${articles}`);
+    return { companies, events, articles };
+  } catch (err) {
+    console.warn(`[site-stats] skipped: ${err.message}`);
+    return null;
+  }
+}
+
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(async ({ mode, command }) => {
   // Read base path from environment variable, default to "/" for localhost
   // VITE_BASE_PATH should be set via environment variable (e.g., /xktradingfloor/ for GitHub Pages)
   // Ensure base path ends with "/" for GitHub Pages compatibility
   const basePath = process.env.VITE_BASE_PATH || "/";
   const normalizedBasePath = basePath.endsWith("/") ? basePath : `${basePath}/`;
 
+  const siteStats = command === "build" ? await fetchSiteStats() : null;
+
   return {
+    define: {
+      __XK_SITE_STATS__: JSON.stringify(siteStats),
+    },
     // deferEntryUntilFirstPaint runs before rocketLoaderOptOut so the loader
     // it writes gets the data-cfasync opt-out too.
     plugins: [react(), noindexOffProduction(normalizedBasePath), deferEntryUntilFirstPaint(), rocketLoaderOptOut()],

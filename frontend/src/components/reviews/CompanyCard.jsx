@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { m as motion } from "framer-motion";
 import { Lock, ShieldCheck, ExternalLink } from "lucide-react";
+import { trackEvent } from "../../utils/analytics.js";
 import StarRating from "./StarRating.jsx";
 import TrustScoreGauge from "./TrustScoreGauge.jsx";
 import CompanyLogo from "../shared/CompanyLogo.jsx";
@@ -183,6 +184,7 @@ function CompanyCard({ company, user }) {
                 href={company.website}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackEvent("visit_company", { company: company.name, category: company.category, location: "list" })}
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
               >
                 Visit Website
@@ -217,6 +219,7 @@ function CompanyCard({ company, user }) {
                 <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-[2px] rounded-lg">
                   <Link
                     to="/login"
+                    onClick={() => trackEvent("promo_login_click", { company: company.name, location: "list" })}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-900/90 border border-gray-700/50 text-xs text-gray-300"
                   >
                     <Lock className="h-3.5 w-3.5 text-blue-400" />

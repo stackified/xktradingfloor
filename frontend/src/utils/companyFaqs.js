@@ -114,3 +114,29 @@ export function companyFaqs(company) {
 
   return faqs;
 }
+
+// Meta description for a company page, built from the same facts as the FAQs
+// (Bing flagged the old "<promo text> <name> on XK Trading Floor." as too
+// short, and it read badly: "…with Vantir Vantir on XK Trading Floor").
+// Facts first, then the current offer if there is room; kept to ~160 chars.
+export function companySeoDescription(company) {
+  if (!company?.name) return "";
+  const name = company.name.trim();
+  const kind = KIND[company.category] || "company";
+  const facts = [];
+  const regulation = list(company.regulation);
+  if (regulation.length) facts.push(`regulated by ${join(regulation.slice(0, 3))}`);
+  if (company.minDeposit && String(company.minDeposit).trim()) facts.push(`minimum deposit ${String(company.minDeposit).trim()}`);
+  if (company.maxAllocation && String(company.maxAllocation).trim()) facts.push(`funding up to ${String(company.maxAllocation).trim()}`);
+  const platforms = list(company.platforms);
+  if (platforms.length) facts.push(join(platforms.slice(0, 3)));
+  const where = company.country ? ` (${String(company.country).trim()})` : "";
+  let text = facts.length
+    ? `${name} ${kind} review${where}: ${facts.join(", ")}, trader reviews and TrustScore on XK Trading Floor.`
+    : `Is ${name} legit? Read trader reviews of this ${kind}${where}, its TrustScore and current promo codes on XK Trading Floor.`;
+  const extra = String(company.details || "").replace(/\s+/g, " ").trim().replace(/[.!\s]+$/, "");
+  if (extra && text.length + extra.length + 2 <= 160) text += ` ${extra}.`;
+  if (text.length <= 160) return text;
+  const cut = text.slice(0, 157);
+  return `${cut.slice(0, cut.lastIndexOf(" "))}…`;
+}

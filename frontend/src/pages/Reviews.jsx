@@ -33,11 +33,11 @@ const categoryLabels = {
 
 const categoryDescriptions = {
   Broker:
-    "Browse and compare forex and stock brokers. Read authentic reviews and find the best deals.",
+    "Compare forex and CFD brokers: regulation, minimum deposit, platforms and real trader reviews with a TrustScore for each, plus current promo codes and offers.",
   PropFirm:
-    "Explore prop trading firms and funding programs. Compare evaluation processes and profit splits.",
+    "Compare prop trading firms and funding programs: funding size, platforms, discount codes and real trader reviews with a TrustScore for each firm.",
   Crypto:
-    "Review crypto exchanges and trading platforms. Find secure platforms with competitive fees.",
+    "Read real trader reviews of crypto exchanges and trading platforms, with a TrustScore for each, platform details and current promo codes.",
 };
 
 function sortCompanies(companies, sortBy) {

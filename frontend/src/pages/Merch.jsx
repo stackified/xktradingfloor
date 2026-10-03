@@ -36,7 +36,7 @@ function Merch() {
     <div>
       <Seo
         title="Merch"
-        description="Official XK Trading Floor merchandise. Wear your confidence. Trade in style."
+        description="Official XK Trading Floor merchandise for the trading community. Browse XK apparel and accessories made for traders. Wear your confidence and trade in style."
         path="/merch"
       />
       <MerchHero />

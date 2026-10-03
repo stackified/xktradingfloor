@@ -1,17 +1,21 @@
 import React from "react";
 import { m as motion } from "framer-motion";
-import { Users, Building2, CalendarDays } from "lucide-react";
+import { Building2, CalendarDays, BookOpen } from "lucide-react";
+import { SITE_STATS } from "../../utils/siteStats.js";
 
-// Realistic figures agreed with the client (2 Oct 2026). No review or payout
-// totals and no "verified" claims until there is real verified data behind
-// them; update these as the community and listings grow.
-const stats = [
-  { icon: Users, value: "1,000+", label: "Traders" },
-  { icon: Building2, value: "70+", label: "Brokers & Prop Firms" },
-  { icon: CalendarDays, value: "25+", label: "Trading Events" },
-];
+// Real counts, refreshed on every deploy (the client asked for real numbers
+// instead of round targets, 2 Oct 2026). Hidden when the build couldn't read
+// them. A community figure returns once there is a real number behind it.
+const stats = SITE_STATS
+  ? [
+      { icon: Building2, value: SITE_STATS.companies, label: SITE_STATS.companies === 1 ? "Broker or Prop Firm" : "Brokers & Prop Firms" },
+      { icon: BookOpen, value: SITE_STATS.articles, label: SITE_STATS.articles === 1 ? "Article" : "Articles" },
+      { icon: CalendarDays, value: SITE_STATS.events, label: SITE_STATS.events === 1 ? "Trading Event" : "Trading Events" },
+    ]
+  : [];
 
 function StatsSection() {
+  if (!stats.length) return null;
   return (
     <section className="bg-black border-y border-white/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
