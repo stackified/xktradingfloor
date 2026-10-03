@@ -31,8 +31,8 @@ jobs:
             if [ "$code" != "200" ]; then
               echo "::error::$url answered $code"
               fail=1
-            elif ! grep -qi "XK Trading Floor" body.html; then
-              echo "::error::$url answered 200 but without the XK site content"
+            elif ! grep -qi "xktradingfloor" body.html; then
+              echo "::error::$url answered 200 but without XK Trading Floor content"
               fail=1
             else
               echo "ok  $code  $url"
