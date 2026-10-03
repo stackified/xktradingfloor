@@ -42,7 +42,9 @@ jobs:
 
       - name: www redirects to the bare domain
         run: |
-          read -r code location < <(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 30 https://www.xktradingfloor.com/reviews)
+          out=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 30 https://www.xktradingfloor.com/reviews || true)
+          code=${out%% *}
+          location=${out#* }
           echo "www -> $code $location"
           if [ "$code" != "301" ] || [ "$location" != "https://xktradingfloor.com/reviews" ]; then
             echo "::error::www.xktradingfloor.com should 301 to https://xktradingfloor.com (got $code $location)"
