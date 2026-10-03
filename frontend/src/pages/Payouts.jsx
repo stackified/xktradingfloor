@@ -122,7 +122,7 @@ function Payouts() {
     <div className="bg-black text-white min-h-screen">
       <Seo
         title="Prop Firm Payout Tracker"
-        description="Track recent payouts from prop trading firms. See which firms are paying and how much."
+        description="The XK Trading Floor prop firm payout tracker. It shows labelled sample data for now; verified payout records from real traders will replace it as they are collected."
         path="/payouts"
       />
 

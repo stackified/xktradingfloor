@@ -30,7 +30,7 @@ function Academy() {
     <div className="bg-black min-h-screen">
       <Seo
         title="Events"
-        description="Discover trading events, expos, meetups, and webinars near you. Filter by region, category, and month."
+        description="Find trading expos, conferences, webinars and meetups worldwide on XK Trading Floor. Filter events by region, category and month, with official links to register."
         path="/events"
       />
       <HeroAcademy />

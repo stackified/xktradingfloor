@@ -2,7 +2,8 @@ import React from "react";
 import Seo from "../components/shared/Seo.jsx";
 import { brokerJsonLd, breadcrumbJsonLd } from "../utils/structuredData.js";
 import { extractFaqs, faqJsonLd } from "../utils/faq.js";
-import { companyFaqs } from "../utils/companyFaqs.js";
+import { companyFaqs, companySeoDescription } from "../utils/companyFaqs.js";
+import { trackEvent } from "../utils/analytics.js";
 import FaqSection from "../components/shared/FaqSection.jsx";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -218,8 +219,7 @@ function CompanyDetails() {
       <Seo
         title={seoTitle(company)}
         description={
-          designedMeta(company.description).description ||
-          `${company.details || "Read reviews and details about"} ${company.name} on XK Trading Floor.`
+          designedMeta(company.description).description || companySeoDescription(company)
         }
         path={`/reviews/${company._id}`}
         image={company.logo}
@@ -317,6 +317,7 @@ function CompanyDetails() {
                         <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-[2px] rounded-lg">
                           <Link
                             to="/login"
+                            onClick={() => trackEvent("promo_login_click", { company: company.name, location: "company_page" })}
                             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900/90 border border-gray-700/50 backdrop-blur-sm hover:bg-gray-800/90 hover:border-gray-600/50 transition-all cursor-pointer"
                           >
                             <Lock className="h-4 w-4 text-blue-400 flex-shrink-0" />
@@ -400,6 +401,7 @@ function CompanyDetails() {
                         <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-[2px] rounded-lg">
                           <Link
                             to="/login"
+                            onClick={() => trackEvent("promo_login_click", { company: company.name, location: "company_page" })}
                             className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-900/90 border border-gray-700/50 backdrop-blur-sm hover:bg-gray-800/90 hover:border-gray-600/50 transition-all cursor-pointer"
                           >
                             <Lock className="h-3.5 w-3.5 text-blue-400 flex-shrink-0" />

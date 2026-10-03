@@ -1,5 +1,6 @@
 import React from "react";
 import { X, ExternalLink, CheckCircle2 } from "lucide-react";
+import { trackEvent } from "../../utils/analytics.js";
 import { registerEventLead } from "../../controllers/eventsController.js";
 import { countryOptions } from "../../utils/countries.js";
 import { formatEventWhen } from "../../utils/eventTime.js";
@@ -92,6 +93,7 @@ function EventRegisterModal({ isOpen, onClose, event }) {
     try {
       const result = await registerEventLead(eventId, form);
       setDone(result || {});
+      trackEvent("event_register", { event: event?.title || "" });
     } catch (err) {
       setSubmitError(err.message);
     } finally {

@@ -35,7 +35,7 @@ const FAQS = [
   {
     question: "Does XK Trading Floor get paid by brokers or prop firms?",
     answer:
-      "XK Trading Floor can earn money from partnerships with brokers and prop firms, such as sponsored content, featured placements and promo-code offers. Partnerships do not change a company's rating or TrustScore, which are calculated only from trader reviews.",
+      "Yes. XK Trading Floor earns a commission when you open an account or buy a challenge through our links or promo codes, and can also earn from sponsored content and featured placements. Commissions and partnerships do not change a company's rating or TrustScore, which are calculated only from trader reviews.",
   },
   {
     question: "What does the Verified Trader badge mean?",
@@ -212,16 +212,20 @@ function HowWeRate() {
 
         <Section icon={HandCoins} id="disclosure" title="How XK Trading Floor makes money">
           <p>
-            XK Trading Floor can earn money from partnerships with brokers and prop firms, such as sponsored content,
-            featured placements and promo-code offers (see{" "}
+            XK Trading Floor earns a <span className="text-white">commission when you sign up through our links</span>
+            : when you open an account with a broker, or buy a prop-firm challenge, using an XK link or promo code, the
+            company pays us a share. It costs you nothing extra, and the promo codes often save you money.
+          </p>
+          <p>
+            We can also earn from sponsored content and featured placements (see{" "}
             <Link to="/services" className="text-blue-400 underline underline-offset-2 hover:text-blue-300">
               For Brands
             </Link>
             ).
           </p>
           <p>
-            Partnerships do not change a company&rsquo;s star rating or TrustScore: those are calculated only from
-            trader reviews, by the formula above.
+            Commissions and partnerships do not change a company&rsquo;s star rating or TrustScore: those are
+            calculated only from trader reviews, by the formula above.
           </p>
           <p>
             Nothing on XK Trading Floor is financial advice. Trading carries a high risk of losing money; do your own

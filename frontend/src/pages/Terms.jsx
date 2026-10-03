@@ -144,7 +144,7 @@ function Terms() {
     <div className="bg-black min-h-screen">
       <Seo
         title="Terms & Conditions"
-        description="Terms & Conditions for XK Trading Floor. Read our terms of service and usage policies."
+        description="Terms & Conditions for XK Trading Floor: the rules for using the site and your account, posting reviews and other content, and the limits of our responsibility."
         path="/terms"
       />
 

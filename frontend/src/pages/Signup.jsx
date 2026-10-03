@@ -3,6 +3,7 @@ import Seo from '../components/shared/Seo.jsx';
 import { Link } from 'react-router-dom';
 import { m as motion } from 'framer-motion';
 import { User, Mail, MapPin, Lock, ArrowRight, UserPlus } from 'lucide-react';
+import { trackEvent } from '../utils/analytics.js';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { signup } from '../controllers/authController.js';
@@ -37,6 +38,7 @@ function Signup() {
         country: form.country,
       });
       dispatch(loginSuccess(res.data));
+      trackEvent('sign_up', { method: 'email' });
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create account. Please try again.');

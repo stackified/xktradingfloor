@@ -121,9 +121,10 @@ function About() {
     <div className="bg-black min-h-screen">
       <Seo
         title="About"
-        description="Learn about XK Trading Floor's mission to empower traders through education, data, and community."
+        description="XK Trading Floor is a community for traders: real reviews of brokers and prop firms, verified trader profiles, trading events, the XK Talks podcast and guides."
         path="/about"
-        jsonLd={[
+        jsonLd={[
+
           breadcrumbJsonLd([
             { name: "Home", url: "/" },
             { name: "About", url: "/about" },
