@@ -32,10 +32,13 @@ export async function updateMyProfile(payload, avatarFile = null) {
   let response;
   if (avatarFile) {
     const formData = new FormData();
+    // Objects (socialLinks) go as JSON, which the backend parses; lists as
+    // comma-separated text, the same as the trading-style fields.
     Object.entries(payload).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formData.append(key, value);
-      }
+      if (value === undefined || value === null) return;
+      if (Array.isArray(value)) formData.append(key, value.join(","));
+      else if (typeof value === "object") formData.append(key, JSON.stringify(value));
+      else formData.append(key, value);
     });
     formData.append("profileImage", avatarFile);
     response = await api.patch("/user/me", formData, {
