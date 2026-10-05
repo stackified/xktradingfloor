@@ -22,12 +22,14 @@ export default function QuickActions() {
   ];
 
   // Add blog management based on role
+  // Roles arrive capitalised ("Admin", "Operator", "User").
+  const role = user?.role?.toLowerCase();
   const blogAction =
-    user?.role === "admin"
+    role === "admin"
       ? { to: "/admin/blogs", label: "Manage Blogs", icon: FileText }
-      : user?.role === "operator"
+      : role === "operator"
         ? { to: "/operator/blogs", label: "My Blogs", icon: FileText }
-        : user?.role === "User" || user?.role === "user"
+        : role === "user"
           ? { to: "/blogs/my-blogs", label: "My Blogs", icon: FileText }
           : null;
 
