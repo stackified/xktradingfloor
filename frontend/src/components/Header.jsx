@@ -412,7 +412,7 @@ function Header() {
                         Settings
                       </Link>
                     )}
-                    {user?.role === "operator" && (
+                    {user?.role?.toLowerCase() === "operator" && (
                       <Link
                         to="/operator/blogs"
                         onClick={() => setMenuOpen(false)}
@@ -634,7 +634,7 @@ function Header() {
                         Settings
                       </Link>
                     )}
-                    {user?.role === "operator" && (
+                    {user?.role?.toLowerCase() === "operator" && (
                       <Link
                         to="/operator/blogs"
                         onClick={() => setOpen(false)}

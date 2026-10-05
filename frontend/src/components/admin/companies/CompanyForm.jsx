@@ -25,6 +25,10 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
   const isEditing = Boolean(companyId);
   const reduxUser = useSelector((state) => state.auth.user);
   const user = reduxUser || getUserCookie();
+  // The backend sends roles capitalised ("Admin"); compare case-insensitively.
+  // A strict `=== "admin"` was never true, so every admin save sent
+  // status "pending" and took an approved company off the site.
+  const isAdmin = user?.role?.toLowerCase() === "admin";
 
   const [form, setForm] = React.useState({
     name: "",
@@ -204,7 +208,7 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
         const updateData = {
           ...finalData,
           // Always set to pending when editing, unless admin explicitly sets it
-          status: user?.role === "admin" ? (finalData.status || "pending") : "pending",
+          status: isAdmin ? (finalData.status || "pending") : "pending",
         };
         await updateCompany(companyId, updateData);
         // Navigate back - the AdminCompanies component will refresh on location change
@@ -213,7 +217,7 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
         // Create company - ensure status is pending by default
         const createData = {
           ...finalData,
-          status: user?.role === "admin" ? (finalData.status || "pending") : "pending",
+          status: isAdmin ? (finalData.status || "pending") : "pending",
         };
         const result = await createCompany(createData);
         // Backend returns: { success: true, message: "...", data: { _id, ... } }
@@ -468,7 +472,7 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                 />
               </div>
 
-              {user?.role === "admin" && (
+              {isAdmin && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-300">
                     Status
