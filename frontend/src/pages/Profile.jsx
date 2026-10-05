@@ -52,6 +52,31 @@ const STATUS_LABELS = {
 const BIO_MAX = 300;
 const FILE_MAX_MB = 10;
 const FILES_MAX = 5; // per document type, the backend's limit
+
+// Proof documents. Excel/CSV were asked for by Sahil (5 Oct 2026); they stay
+// off until the backend's upload filter accepts them (deliverable B26), since
+// it rejects the whole application with "invalid mime type" otherwise. Switch
+// on with the build flag VITE_PROOF_EXCEL=on.
+const EXCEL_PROOFS = import.meta.env.VITE_PROOF_EXCEL === 'on';
+const PROOF_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', ...(EXCEL_PROOFS ? ['xls', 'xlsx', 'csv'] : [])];
+const PROOF_ACCEPT = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  ...(EXCEL_PROOFS
+    ? [
+        '.xls',
+        '.xlsx',
+        '.csv',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/csv',
+      ]
+    : []),
+].join(',');
+const PROOF_TYPES_LABEL = EXCEL_PROOFS ? 'PDF, Excel, CSV, JPG or PNG' : 'PDF, JPG or PNG';
+const isProofTypeAllowed = (file) =>
+  PROOF_EXTENSIONS.includes(String(file.name || '').split('.').pop().toLowerCase());
 const AVATAR_MAX_MB = 20; // before cropping; the cropped file is ~50 KB
 
 const YEARS = [
@@ -245,7 +270,7 @@ function FilePicker({ id, icon: Icon, title, description, optional, files, onAdd
               id={id}
               type="file"
               multiple
-              accept="application/pdf,image/jpeg,image/png"
+              accept={PROOF_ACCEPT}
               className="sr-only"
               aria-labelledby={`${id}-label`}
               aria-describedby={error ? `${id}-error` : `${id}-hint`}
@@ -274,7 +299,7 @@ function FilePicker({ id, icon: Icon, title, description, optional, files, onAdd
             </ul>
           )}
           <p id={`${id}-hint`} className="mt-2 text-[11px] text-gray-500">
-            PDF, JPG or PNG · max {FILE_MAX_MB} MB each · up to {FILES_MAX} files
+            {PROOF_TYPES_LABEL} · max {FILE_MAX_MB} MB each · up to {FILES_MAX} files
           </p>
           {error && (
             <p id={`${id}-error`} className="mt-1 text-xs text-red-400">
@@ -388,12 +413,18 @@ export default function Profile() {
 
   function addFiles(setter, current, key) {
     return (incoming) => {
-      const tooBig = incoming.filter((f) => f.size > FILE_MAX_MB * 1024 * 1024);
-      const ok = incoming.filter((f) => f.size <= FILE_MAX_MB * 1024 * 1024);
+      // The picker's `accept` is only a hint (drag-and-drop and "All files"
+      // bypass it), and one unsupported file makes the backend reject the
+      // whole application, so check the type here too.
+      const wrongType = incoming.filter((f) => !isProofTypeAllowed(f));
+      const typed = incoming.filter(isProofTypeAllowed);
+      const tooBig = typed.filter((f) => f.size > FILE_MAX_MB * 1024 * 1024);
+      const ok = typed.filter((f) => f.size <= FILE_MAX_MB * 1024 * 1024);
       const next = [...current, ...ok].slice(0, FILES_MAX);
       setter(next);
       let msg;
-      if (tooBig.length) msg = `${tooBig.map((f) => f.name).join(', ')} ${tooBig.length > 1 ? 'are' : 'is'} over ${FILE_MAX_MB} MB.`;
+      if (wrongType.length) msg = `${wrongType.map((f) => f.name).join(', ')}: only ${PROOF_TYPES_LABEL} files are accepted.`;
+      else if (tooBig.length) msg = `${tooBig.map((f) => f.name).join(', ')} ${tooBig.length > 1 ? 'are' : 'is'} over ${FILE_MAX_MB} MB.`;
       else if (current.length + ok.length > FILES_MAX) msg = `Up to ${FILES_MAX} files; the extra ones were left out.`;
       setErrors((x) => ({ ...x, [key]: msg }));
     };
