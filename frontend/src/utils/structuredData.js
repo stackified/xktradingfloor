@@ -1,5 +1,6 @@
 import siteJsonLd from "./siteJsonLd.json";
 import { authorDisplayName, isStaffAccount } from "./authors.js";
+import { reviewerName } from "./reviewerName.js";
 
 const SITE_URL = "https://xktradingfloor.com";
 const SITE_NAME = "XK Trading Floor";
@@ -71,7 +72,7 @@ export const reviewJsonLd = (review, company) => {
     },
     author: {
       "@type": "Person",
-      name: review.userName || review.userId?.fullName || "Anonymous",
+      name: reviewerName(review),
     },
     reviewRating: {
       "@type": "Rating",
