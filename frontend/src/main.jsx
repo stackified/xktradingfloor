@@ -69,13 +69,7 @@ const app = (
     <LazyMotion features={domAnimation}>
       <Provider store={store}>
         <HelmetProvider>
-          <BrowserRouter
-            basename={basePath}
-            future={{
-              v7_startTransition: true,
-              v7_relativeSplatPath: true,
-            }}
-          >
+          <BrowserRouter basename={basePath}>
             <ToastProvider>
               <App />
             </ToastProvider>

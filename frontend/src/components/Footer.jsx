@@ -6,6 +6,10 @@ import DiscordLink from './shared/DiscordLink.jsx';
 
 // XK's official profiles, as confirmed by Sahil (6 Oct 2026). Keep in step with
 // `sameAs` in utils/siteJsonLd.json, which tells search engines they're ours.
+// "Website by …" credit in the bottom bar (Sahil asked for an agency link).
+// Hidden until both are filled in.
+const AGENCY = { name: '', url: '' };
+
 const SOCIAL_LINKS = [
   { label: 'YouTube', href: 'https://www.youtube.com/@XKTradingFloor', Icon: Youtube },
   { label: 'Instagram', href: 'https://www.instagram.com/xktradingfloor/', Icon: Instagram },
@@ -87,7 +91,17 @@ function Footer() {
       {/* One template string, not `© {year} XK…`: that JSX yields three adjacent text
           nodes, which the browser merges when parsing the prerendered HTML, so
           hydration saw one node where React expected three and threw #418. */}
-      <div className="border-t border-border/60 py-4 text-center text-xs text-gray-400">{`© ${new Date().getFullYear()} XK Trading Floor`}</div>
+      <div className="border-t border-border/60 py-4 text-center text-xs text-gray-400">
+        <span>{`© ${new Date().getFullYear()} XK Trading Floor`}</span>
+        {AGENCY.name && AGENCY.url && (
+          <>
+            <span aria-hidden="true">{' · '}</span>
+            <a href={AGENCY.url} target="_blank" rel="noopener" className="hover:text-white">
+              {`Website by ${AGENCY.name}`}
+            </a>
+          </>
+        )}
+      </div>
     </footer>
   );
 }
