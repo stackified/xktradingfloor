@@ -20,12 +20,13 @@ import {
   Sparkles,
   BadgeCheck,
   ExternalLink,
+  LineChart,
 } from 'lucide-react';
 import Seo from '../components/shared/Seo.jsx';
 import AvatarCropper from '../components/profile/AvatarCropper.jsx';
 import { updateProfile } from '../redux/slices/authSlice.js';
 import { getUserCookie } from '../utils/cookies.js';
-import { countryOptions } from '../utils/countries.js';
+import { countryOptions, flagEmoji, supportsFlags } from '../utils/countries.js';
 import { trackEvent } from '../utils/analytics.js';
 import {
   getMyProfile,
@@ -93,29 +94,6 @@ const INPUT =
   'w-full rounded-lg border border-white/10 bg-[#0b1220] px-3.5 py-2.5 text-sm text-white placeholder:text-gray-500 ' +
   'focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 aria-[invalid=true]:border-red-500/70';
 
-// Flag emoji only where the system font draws them (Windows shows letters).
-function flagEmoji(code) {
-  return code.toUpperCase().replace(/./g, (c) => String.fromCodePoint(127397 + c.charCodeAt(0)));
-}
-let flagSupport;
-function supportsFlags() {
-  if (flagSupport !== undefined) return flagSupport;
-  try {
-    const ctx = document.createElement('canvas').getContext('2d');
-    ctx.canvas.width = ctx.canvas.height = 16;
-    ctx.font = '14px sans-serif';
-    ctx.fillText(flagEmoji('IN'), 0, 14);
-    const px = ctx.getImageData(0, 0, 16, 16).data;
-    let colour = false;
-    for (let i = 0; i < px.length; i += 4) {
-      if (px[i + 3] && (Math.abs(px[i] - px[i + 1]) > 30 || Math.abs(px[i + 1] - px[i + 2]) > 30)) colour = true;
-    }
-    flagSupport = colour;
-  } catch {
-    flagSupport = false;
-  }
-  return flagSupport;
-}
 
 const normaliseUrl = (v) => {
   const s = String(v || '').trim();
@@ -123,6 +101,9 @@ const normaliseUrl = (v) => {
   return /^https?:\/\//i.test(s) ? s : `https://${s}`;
 };
 const looksLikeUrl = (v) => !v || /^https?:\/\/[^\s/$.?#].[^\s]*$/i.test(v);
+// A public Myfxbook account page: https://www.myfxbook.com/members/<user>/<system>/<accountId>
+const isMyfxbookAccountUrl = (v) =>
+  !v || /^https?:\/\/(?:www\.)?myfxbook\.com\/members\/[^/\s]+\/[^/\s]+\/\d+/i.test(v);
 const list = (s) => String(s || '').split(',').map((x) => x.trim()).filter(Boolean);
 
 function XLogo(props) {
@@ -314,7 +295,7 @@ function FilePicker({ id, icon: Icon, title, description, optional, files, onAdd
 
 // ---------- page ----------
 
-const EMPTY_LINKS = { youtube: '', twitter: '', instagram: '', website: '', telegram: '', tiktok: '' };
+const EMPTY_LINKS = { youtube: '', twitter: '', instagram: '', website: '', telegram: '', tiktok: '', myfxbook: '' };
 
 function countryCode(value) {
   if (!value) return 'IN';
@@ -350,6 +331,11 @@ export default function Profile() {
     formFromProfile({ fullName: user.fullName || user.name, country: user.country, bio: user.bio, profileImage: user.profileImage || user.avatar }),
   );
   const [extrasLive, setExtrasLive] = React.useState(false);
+  // The Myfxbook link (Sahil, 6 Oct 2026: traders connect their account; the
+  // free first step is their public Myfxbook page) needs backend support
+  // (deliverable B23). The field appears once GET /api/user/me returns a
+  // `socialLinks.myfxbook` key, like the B26 fields.
+  const [myfxbookLive, setMyfxbookLive] = React.useState(false);
   const [verification, setVerification] = React.useState(null);
   const [profileId, setProfileId] = React.useState(user.id || user._id || '');
   const [loading, setLoading] = React.useState(true);
@@ -373,6 +359,7 @@ export default function Profile() {
         const { data } = await getMyProfile();
         setForm(formFromProfile(data));
         setExtrasLive(Object.prototype.hasOwnProperty.call(data || {}, 'profileType'));
+        setMyfxbookLive(Object.prototype.hasOwnProperty.call(data?.socialLinks || {}, 'myfxbook'));
         setVerification(data.verifiedTrader || null);
         if (data.id) setProfileId(data.id);
       } catch (err) {
@@ -442,6 +429,9 @@ export default function Profile() {
     Object.entries(form.socialLinks).forEach(([k, v]) => {
       if (!looksLikeUrl(normaliseUrl(v))) next[`link_${k}`] = 'Enter a full link, e.g. https://…';
     });
+    if (myfxbookLive && !next.link_myfxbook && !isMyfxbookAccountUrl(normaliseUrl(form.socialLinks.myfxbook))) {
+      next.link_myfxbook = 'Paste your public Myfxbook account link, e.g. https://www.myfxbook.com/members/name/system/1234567';
+    }
     setErrors(next);
     const first = Object.keys(next)[0];
     if (first) {
@@ -455,6 +445,7 @@ export default function Profile() {
     const links = Object.fromEntries(
       Object.entries(form.socialLinks)
         .filter(([k]) => extrasLive || !['telegram', 'tiktok'].includes(k))
+        .filter(([k]) => myfxbookLive || k !== 'myfxbook')
         .map(([k, v]) => [k, normaliseUrl(v)]),
     );
     const body = {
@@ -803,6 +794,9 @@ export default function Profile() {
                         ]
                       : []),
                     ['website', 'Other (e.g. Facebook, LinkedIn, website)', Link2, 'bg-white/10', 'https://'],
+                    ...(myfxbookLive
+                      ? [['myfxbook', 'Myfxbook (verified trading results)', LineChart, 'bg-emerald-600', 'https://www.myfxbook.com/members/…']]
+                      : []),
                   ].map(([key, label, Icon, tint, ph]) => (
                     <div key={key} className="flex items-start gap-3">
                       <span className={`mt-6 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-white ${tint}`} aria-hidden="true">
