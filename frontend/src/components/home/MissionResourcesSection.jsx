@@ -120,7 +120,7 @@ function MissionResourcesSection() {
               They Scaled Capital & So Much More!
             </p>
             <a
-              href="https://www.youtube.com/@xk_trading_floor"
+              href="https://www.youtube.com/@XKTradingFloor"
               target="_blank"
               rel="noopener noreferrer"
               className="btn inline-flex items-center justify-center gap-2 rounded-full bg-red-600 hover:bg-red-700 text-white border-2 border-red-600 hover:border-red-700 hover:scale-105 transition-all shadow-lg shadow-red-500/20 mb-4 px-5 py-2.5 text-sm"

@@ -29,7 +29,10 @@ function CompanyFiltersBar({ filters, onChange }) {
     filters.category || filters.minRating || filters.search || filters.sortBy;
 
   return (
-    <div className="bg-gray-900/40 border border-gray-800/60 rounded-xl p-4 backdrop-blur-sm">
+    // `relative z-20`: backdrop-blur makes this box its own stacking layer, so
+    // the dropdowns' z-50 only counts inside it. Lifting the whole bar keeps
+    // the open menus above the company cards that follow.
+    <div className="relative z-20 bg-gray-900/40 border border-gray-800/60 rounded-xl p-4 backdrop-blur-sm">
       <div className="flex flex-wrap items-end gap-3 lg:gap-4">
         <div className="flex-1 min-w-[140px]">
           <label className="text-xs text-gray-400 mb-1.5 block">Category</label>
