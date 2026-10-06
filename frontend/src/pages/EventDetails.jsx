@@ -161,16 +161,23 @@ function EventDetails() {
             {(() => {
               // Parse price defensively — backend stores it as a number but
               // legacy events sometimes have "0" as a string. Any positive
-              // amount renders as "$X"; anything <=0 or missing = free event.
+              // amount renders as "$X". No price with an organiser link means
+              // the organiser sells the tickets (expos), so don't call it free.
               const priceNum = Number(event.price);
               const isPaid = Number.isFinite(priceNum) && priceNum > 0;
               const externalUrl = event.externalUrl?.trim();
               return (
                 <>
                   <div className="text-center mb-4">
-                    <div className="text-2xl font-semibold text-blue-400 mb-1">
-                      {isPaid ? `$${priceNum}` : "Free Event"}
-                    </div>
+                    {isPaid || !externalUrl ? (
+                      <div className="text-2xl font-semibold text-blue-400 mb-1">
+                        {isPaid ? `$${priceNum}` : "Free Event"}
+                      </div>
+                    ) : (
+                      <div className="text-base font-semibold text-blue-300 mb-1">
+                        Tickets on the organiser&apos;s site
+                      </div>
+                    )}
                     {event.seats > 0 && (
                       <div className="text-sm text-gray-400">
                         {event.seats} seats available
