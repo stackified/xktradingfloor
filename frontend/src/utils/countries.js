@@ -32,3 +32,30 @@ export function countryOptions() {
   if (!cache) cache = build();
   return cache;
 }
+
+// "IN" → 🇮🇳 (regional indicator symbols).
+export function flagEmoji(code) {
+  return String(code || '').toUpperCase().replace(/./g, (c) => String.fromCodePoint(127397 + c.charCodeAt(0)));
+}
+
+// Flag emoji only where the system font draws them: Windows has no flag glyphs
+// and shows the two letters instead, so callers skip the flag there.
+let flagSupport;
+export function supportsFlags() {
+  if (flagSupport !== undefined) return flagSupport;
+  try {
+    const ctx = document.createElement('canvas').getContext('2d');
+    ctx.canvas.width = ctx.canvas.height = 16;
+    ctx.font = '14px sans-serif';
+    ctx.fillText(flagEmoji('IN'), 0, 14);
+    const px = ctx.getImageData(0, 0, 16, 16).data;
+    let colour = false;
+    for (let i = 0; i < px.length; i += 4) {
+      if (px[i + 3] && (Math.abs(px[i] - px[i + 1]) > 30 || Math.abs(px[i + 1] - px[i + 2]) > 30)) colour = true;
+    }
+    flagSupport = colour;
+  } catch {
+    flagSupport = false;
+  }
+  return flagSupport;
+}
