@@ -4,6 +4,14 @@ on:
   push:
     branches:
       - main
+  # The backend calls GitHub's dispatches API with this event type when a post,
+  # event or company is published (deliverable B25), so the prerendered pages,
+  # sitemap and llms.txt pick it up within minutes instead of at the next
+  # release. Always builds main.
+  repository_dispatch:
+    types: [content-published]
+  # Manual "rebuild the live site" button in the Actions tab.
+  workflow_dispatch:
 
 concurrency:
   group: deploy-bluehost
@@ -11,7 +19,7 @@ concurrency:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CF_ZONE: ${{ secrets.CLOUDFLARE_ZONE_ID }}
       CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

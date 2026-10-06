@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {
   BadgeCheck,
+  BarChart3,
   Calendar,
   ExternalLink,
   FileText,
@@ -17,7 +18,94 @@ import {
   inviteVerifiedTrader,
   scheduleVerifiedTraderCall,
   decideVerifiedTraderApplication,
+  updateVerifiedTraderStats,
 } from "../../controllers/userProfileController.js";
+
+// Trading stats shown on the public trader profile (Sahil's design). Copied
+// by an admin from the trader's Myfxbook page or statements until the
+// account sync (B29) fills them.
+const STAT_FIELDS = [
+  ["winRate", "Win rate (%)"],
+  ["totalTrades", "Total trades"],
+  ["profitFactor", "Profit factor"],
+  ["maxDrawdownPct", "Max drawdown (%)"],
+  ["avgWin", "Average win ($)"],
+  ["avgLoss", "Average loss ($)"],
+];
+
+const FIELD = "mt-1 w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white";
+
+function numbersForm(verifiedTrader = {}) {
+  const stats = verifiedTrader.stats || {};
+  return {
+    pnl: verifiedTrader.pnl ?? "",
+    totalWithdrawals: verifiedTrader.totalWithdrawals ?? "",
+    youtubeEmbedUrl: verifiedTrader.youtubeEmbedUrl || "",
+    stats: Object.fromEntries(STAT_FIELDS.map(([key]) => [key, stats[key] ?? ""])),
+  };
+}
+
+const toNumber = (value) => (value === "" || value === null ? undefined : Number(value));
+
+function numbersPayload(form, withStats) {
+  const body = {
+    pnl: toNumber(form.pnl),
+    totalWithdrawals: toNumber(form.totalWithdrawals),
+    youtubeEmbedUrl: form.youtubeEmbedUrl || undefined,
+  };
+  if (withStats) {
+    body.stats = {
+      ...Object.fromEntries(STAT_FIELDS.map(([key]) => [key, toNumber(form.stats[key]) ?? null])),
+      lastUpdated: new Date().toISOString(),
+    };
+  }
+  return body;
+}
+
+// PNL, payouts, YouTube video and (once the backend stores them) the
+// trading stats; shared by the Approve and Edit stats dialogs.
+function NumbersFields({ form, setForm, withStats }) {
+  const setTop = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const setStat = (key) => (e) => setForm((f) => ({ ...f, stats: { ...f.stats, [key]: e.target.value } }));
+  return (
+    <>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="text-sm text-gray-400">Total PNL, verified ($)</span>
+          <input type="number" value={form.pnl} onChange={setTop("pnl")} className={FIELD} />
+        </label>
+        <label className="block">
+          <span className="text-sm text-gray-400">Total payouts, verified ($)</span>
+          <input type="number" value={form.totalWithdrawals} onChange={setTop("totalWithdrawals")} className={FIELD} />
+        </label>
+      </div>
+      <label className="block">
+        <span className="text-sm text-gray-400">YouTube video (optional)</span>
+        <input
+          type="url"
+          value={form.youtubeEmbedUrl}
+          onChange={setTop("youtubeEmbedUrl")}
+          placeholder="https://www.youtube.com/embed/..."
+          className={FIELD}
+        />
+      </label>
+      {withStats && (
+        <fieldset>
+          <legend className="text-sm font-medium text-white">Trading stats</legend>
+          <p className="mb-2 text-xs text-gray-500">From the trader&apos;s Myfxbook page or statements. Leave blank to hide.</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {STAT_FIELDS.map(([key, label]) => (
+              <label key={key} className="block">
+                <span className="text-sm text-gray-400">{label}</span>
+                <input type="number" step="any" min="0" value={form.stats[key]} onChange={setStat(key)} className={FIELD} />
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
+    </>
+  );
+}
 
 const STATUS_LABELS = {
   invited: "Invited",
@@ -68,7 +156,7 @@ function Modal({ isOpen, onClose, title, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-gray-900 border border-white/10 rounded-2xl shadow-2xl max-w-lg w-full p-6">
+      <div className="relative bg-gray-900 border border-white/10 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-white">{title}</h3>
           <button
@@ -99,11 +187,8 @@ export default function AdminVerifiedTraders() {
   const [approveModal, setApproveModal] = React.useState({ open: false, app: null });
   const [rejectModal, setRejectModal] = React.useState({ open: false, app: null });
   const [scheduledCallAt, setScheduledCallAt] = React.useState("");
-  const [approveForm, setApproveForm] = React.useState({
-    pnl: "",
-    totalWithdrawals: "",
-    youtubeEmbedUrl: "",
-  });
+  const [statsModal, setStatsModal] = React.useState({ open: false, app: null });
+  const [approveForm, setApproveForm] = React.useState(() => numbersForm());
   const [rejectionReason, setRejectionReason] = React.useState("");
   const [actionLoading, setActionLoading] = React.useState(false);
 
@@ -126,6 +211,11 @@ export default function AdminVerifiedTraders() {
   React.useEffect(() => {
     fetchApplications();
   }, [fetchApplications]);
+
+  // Trading stats are editable once the backend returns them (B23).
+  const statsLive = applications.some((app) =>
+    Object.prototype.hasOwnProperty.call(app.verifiedTrader || {}, "stats"),
+  );
 
   React.useEffect(() => {
     if (selectedApp && !applications.some((app) => app.id === selectedApp)) {
@@ -180,17 +270,33 @@ export default function AdminVerifiedTraders() {
     try {
       await decideVerifiedTraderApplication(approveModal.app.id, {
         decision: "approved",
-        pnl: approveForm.pnl !== "" ? Number(approveForm.pnl) : undefined,
-        totalWithdrawals:
-          approveForm.totalWithdrawals !== "" ? Number(approveForm.totalWithdrawals) : undefined,
-        youtubeEmbedUrl: approveForm.youtubeEmbedUrl || undefined,
+        ...numbersPayload(approveForm, statsLive),
       });
       setApproveModal({ open: false, app: null });
-      setApproveForm({ pnl: "", totalWithdrawals: "", youtubeEmbedUrl: "" });
+      setApproveForm(numbersForm());
       setMessage("Application approved.");
       fetchApplications();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to approve application");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleSaveStats() {
+    if (!statsModal.app) return;
+
+    setActionLoading(true);
+    setError("");
+    setMessage("");
+    try {
+      await updateVerifiedTraderStats(statsModal.app.id, numbersPayload(approveForm, true));
+      setStatsModal({ open: false, app: null });
+      setApproveForm(numbersForm());
+      setMessage("Trader stats saved.");
+      fetchApplications();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to save the stats");
     } finally {
       setActionLoading(false);
     }
@@ -464,11 +570,7 @@ export default function AdminVerifiedTraders() {
                       <button
                         type="button"
                         onClick={() => {
-                          setApproveForm({
-                            pnl: selected.verifiedTrader?.pnl ?? "",
-                            totalWithdrawals: selected.verifiedTrader?.totalWithdrawals ?? "",
-                            youtubeEmbedUrl: selected.verifiedTrader?.youtubeEmbedUrl || "",
-                          });
+                          setApproveForm(numbersForm(selected.verifiedTrader));
                           setApproveModal({ open: true, app: selected });
                         }}
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
@@ -488,6 +590,20 @@ export default function AdminVerifiedTraders() {
                         Reject
                       </button>
                     </>
+                  )}
+
+                  {statsLive && selected.verifiedTrader?.status === "approved" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setApproveForm(numbersForm(selected.verifiedTrader));
+                        setStatsModal({ open: true, app: selected });
+                      }}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    >
+                      <BarChart3 className="h-4 w-4" />
+                      Edit stats
+                    </button>
                   )}
                 </div>
               </div>
@@ -538,34 +654,7 @@ export default function AdminVerifiedTraders() {
         title="Approve verified trader"
       >
         <div className="space-y-4">
-          <label className="block">
-            <span className="text-sm text-gray-400">PNL (optional)</span>
-            <input
-              type="number"
-              value={approveForm.pnl}
-              onChange={(e) => setApproveForm((f) => ({ ...f, pnl: e.target.value }))}
-              className="mt-1 w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
-            />
-          </label>
-          <label className="block">
-            <span className="text-sm text-gray-400">Total withdrawals (optional)</span>
-            <input
-              type="number"
-              value={approveForm.totalWithdrawals}
-              onChange={(e) => setApproveForm((f) => ({ ...f, totalWithdrawals: e.target.value }))}
-              className="mt-1 w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
-            />
-          </label>
-          <label className="block">
-            <span className="text-sm text-gray-400">YouTube embed URL (optional)</span>
-            <input
-              type="url"
-              value={approveForm.youtubeEmbedUrl}
-              onChange={(e) => setApproveForm((f) => ({ ...f, youtubeEmbedUrl: e.target.value }))}
-              placeholder="https://www.youtube.com/embed/..."
-              className="mt-1 w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
-            />
-          </label>
+          <NumbersFields form={approveForm} setForm={setApproveForm} withStats={statsLive} />
           <div className="flex justify-end gap-3">
             <button
               type="button"
@@ -581,6 +670,33 @@ export default function AdminVerifiedTraders() {
               className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg"
             >
               {actionLoading ? "Approving..." : "Approve"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={statsModal.open}
+        onClose={() => setStatsModal({ open: false, app: null })}
+        title={`Edit stats: ${statsModal.app?.fullName || ""}`}
+      >
+        <div className="space-y-4">
+          <NumbersFields form={approveForm} setForm={setApproveForm} withStats />
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setStatsModal({ open: false, app: null })}
+              className="px-4 py-2 text-gray-300 hover:text-white"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveStats}
+              disabled={actionLoading}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg"
+            >
+              {actionLoading ? "Saving..." : "Save stats"}
             </button>
           </div>
         </div>

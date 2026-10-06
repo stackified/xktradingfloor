@@ -99,3 +99,11 @@ export async function decideVerifiedTraderApplication(userId, payload) {
   const response = await api.post(`/admin/users/verified-trader/${userId}/decide`, payload);
   return response.data;
 }
+
+// Edit an approved trader's verified numbers (PNL, payouts, trading stats).
+// Backend deliverable B23; the admin screen offers it once applications
+// carry `verifiedTrader.stats`.
+export async function updateVerifiedTraderStats(userId, payload) {
+  const response = await api.patch(`/admin/users/verified-trader/${userId}/stats`, payload);
+  return response.data;
+}
