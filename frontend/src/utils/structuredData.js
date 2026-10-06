@@ -142,12 +142,15 @@ export const eventJsonLd = (event) => {
     image: event.featuredImage,
     // Only emit an Offer when there's an actual price OR an external URL to
     // register at. Free events without a URL don't need an offers block.
+    // A price of 0 with an organiser link means "tickets sold by the
+    // organiser" (expos), not "free", so the Offer then carries no price.
     offers:
       event.price || event.externalUrl
         ? {
             "@type": "Offer",
-            price: event.price ? Number(event.price) : 0,
-            priceCurrency: "USD",
+            ...(Number(event.price) > 0
+              ? { price: Number(event.price), priceCurrency: "USD" }
+              : {}),
             availability: "https://schema.org/InStock",
             url:
               event.externalUrl?.trim() || `${SITE_URL}/events/${event._id}`,
