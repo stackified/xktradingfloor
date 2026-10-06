@@ -21,7 +21,7 @@ function FeaturesQuadrantSection() {
       title: "Build a market mindset",
       description: "XK Trading Floor teaches you how to use psychology to read the market like a pro and build your own winning strategy through real-world analysis and insights.",
       buttonText: "Watch free analysis now",
-      buttonLink: "https://www.youtube.com/@xk_trading_floor",
+      buttonLink: "https://www.youtube.com/@XKTradingFloor",
       isExternal: true,
     },
     {
@@ -56,7 +56,7 @@ function FeaturesQuadrantSection() {
     {
       name: "YouTube",
       icon: Youtube,
-      url: "https://www.youtube.com/@xk_trading_floor",
+      url: "https://www.youtube.com/@XKTradingFloor",
       color: "text-red-400",
       bgColor: "bg-red-500/20",
       hoverBg: "group-hover:bg-red-500/30",

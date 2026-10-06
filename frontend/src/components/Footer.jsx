@@ -1,8 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Youtube, Instagram, Linkedin, Twitter } from 'lucide-react';
 import { getAssetPath } from '../utils/assets.js';
 import DiscordLink from './shared/DiscordLink.jsx';
+
+// XK's official profiles, as confirmed by Sahil (6 Oct 2026). Keep in step with
+// `sameAs` in utils/siteJsonLd.json, which tells search engines they're ours.
+const SOCIAL_LINKS = [
+  { label: 'YouTube', href: 'https://www.youtube.com/@XKTradingFloor', Icon: Youtube },
+  { label: 'Instagram', href: 'https://www.instagram.com/xktradingfloor/', Icon: Instagram },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/company/xk-trading-floor/', Icon: Linkedin },
+  { label: 'X (Twitter)', href: 'https://x.com/XK_Capital', Icon: Twitter },
+];
 
 
 function Footer() {
@@ -20,6 +29,22 @@ function Footer() {
             />
           </Link>
           <p className="text-sm text-gray-400">Learn, trade, and grow with a modern trading community.</p>
+          <ul className="mt-4 flex items-center gap-2" aria-label="XK Trading Floor on social media">
+            {SOCIAL_LINKS.map(({ label, href, Icon }) => (
+              <li key={label}>
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  title={label}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-gray-300 transition-colors hover:border-white/30 hover:text-white"
+                >
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
         <div>
           <h2 className="font-semibold text-base mb-3">Links</h2>
