@@ -8,6 +8,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { login } from "../controllers/authController.js";
 import { loginSuccess } from "../redux/slices/authSlice.js";
 import { useToast } from "../contexts/ToastContext.jsx";
+import { trackEvent } from "../utils/analytics.js";
 
 // ?redirect=/blog/some-post sends the user back after login (e.g. from
 // "Log in to comment"). Only in-app paths are honoured, never another site.
@@ -38,6 +39,9 @@ function Login() {
         // The backend sets httpOnly cookie 'token' automatically
         // We also store token in user cookie for Authorization header
         dispatch(loginSuccess(res.data));
+        // GA4's recommended event. Until now GA's "login" was a rule counting
+        // visits to /login, so it included people who never signed in.
+        trackEvent("login", { method: "email" });
 
         // Show success toast with personalized message
         const userName = res.data.fullName || res.data.name || res.data.email?.split("@")[0] || "User";
