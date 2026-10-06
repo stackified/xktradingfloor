@@ -5,6 +5,7 @@ import {
   getBrokerSpreads,
   spreadsToRow,
 } from "../../controllers/spreadsController.js";
+import { getUserCookie } from "../../utils/cookies.js";
 
 const REFRESH_MS = 30000;
 
@@ -13,8 +14,13 @@ function LiveSpreadTable({ brokerId, brokerName }) {
   const prevRef = React.useRef(spreads);
   const [usingMock, setUsingMock] = React.useState(true);
 
+  // GET /spreads needs a login. Signed-out visitors (most of them) got a 401
+  // every 30 s, logged as a console error that cost the review pages
+  // Lighthouse "Best Practices" points; they get the sample rows instead.
+  const authDenied = React.useRef(!getUserCookie()?.token);
+
   const loadSpreads = React.useCallback(async () => {
-    if (!brokerId) return;
+    if (!brokerId || authDenied.current) return;
     try {
       const { data } = await getBrokerSpreads(brokerId);
       if (data?.pairs && Object.keys(data.pairs).length) {
@@ -27,7 +33,9 @@ function LiveSpreadTable({ brokerId, brokerName }) {
         return;
       }
     } catch (error) {
-      console.warn("Failed to load live spreads, using fallback", error);
+      // An expired session: stop asking until the next page load.
+      if (error?.response?.status === 401) authDenied.current = true;
+      else console.warn("Failed to load live spreads, using fallback", error);
     }
 
     setSpreads((prev) => {
