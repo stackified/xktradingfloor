@@ -103,5 +103,8 @@ if (isHomeRoute && container.hasChildNodes()) {
   hydrateRoot(container, app);
 } else {
   container.textContent = "";
+  // Tells the clean-up script in index.html, if it runs late, that #root
+  // now holds the real page and must be left alone.
+  window.__xkAppStarted = true;
   createRoot(container).render(app);
 }

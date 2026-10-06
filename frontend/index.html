@@ -198,8 +198,12 @@
         path = path.replace(/index\.html$/, "");
         if (path.charAt(path.length - 1) !== "/") path += "/";
         if (path !== base) {
+          // Normally this runs before the app starts. When something stalls
+          // parsing first (Cloudflare's email-decode script, injected into
+          // any page that shows an email address), the app can already have
+          // rendered by now, and clearing #root would blank the page.
           var root = document.getElementById("root");
-          if (root) root.textContent = "";
+          if (root && !window.__xkAppStarted) root.textContent = "";
           // The fallback canonical and og:url in <head> point at the
           // homepage. Every page sets its own through Helmet, so leaving the
           // fallback gave crawlers two conflicting canonicals ("/" and the

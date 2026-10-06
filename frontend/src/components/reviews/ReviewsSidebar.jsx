@@ -9,6 +9,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import StarRating from "./StarRating.jsx";
+import { reviewerName } from "../../utils/reviewerName.js";
 import CompanyLogo from "../shared/CompanyLogo.jsx";
 import { computeTrustScore } from "../../utils/trustScore.js";
 
@@ -119,7 +120,7 @@ function LatestReviewItem({ review }) {
           {review.title || companyName}
         </div>
         <div className="text-xs text-gray-400 mt-0.5">
-          {review.userName || "Trader"} •{" "}
+          {reviewerName(review, "Trader")} •{" "}
           {review.createdAt
             ? new Date(review.createdAt).toLocaleDateString()
             : "Recently"}

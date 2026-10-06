@@ -3,6 +3,7 @@ import { Flag } from "lucide-react";
 import StarRating from "./StarRating.jsx";
 import { deleteReview, reportReview, hideReview, pinReview, REVIEW_MODERATION_ENABLED } from "../../controllers/reviewsController.js";
 import { getAssetPath } from "../../utils/assets.js";
+import { reviewerName } from "../../utils/reviewerName.js";
 import { useSelector } from "react-redux";
 import { getUserCookie } from "../../utils/cookies.js";
 
@@ -84,7 +85,7 @@ function CompanyReviewCard({ review, currentUserId, onUpdate, onDelete }) {
         <div className="h-10 w-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
           <img
             src={validAvatar}
-            alt={review.userName}
+            alt={reviewerName(review)}
             className="h-full w-full object-cover"
             onError={(e) => {
               e.target.src = getAssetPath("/assets/users/default-avatar.jpg");
@@ -96,7 +97,7 @@ function CompanyReviewCard({ review, currentUserId, onUpdate, onDelete }) {
           <div className="flex items-start justify-between gap-2">
             <div>
               <div className="font-semibold flex items-center gap-2">
-                {review.userName || review.userId?.fullName || review.userId?.email || "Anonymous"}
+                {reviewerName(review)}
                 {review.isPinned && <span className="text-[10px] bg-accent/20 text-accent px-1.5 rounded uppercase font-bold tracking-wider">PINNED</span>}
                 {review.isHidden && <span className="text-[10px] bg-red-500/20 text-red-400 px-1.5 rounded uppercase font-bold tracking-wider">HIDDEN</span>}
               </div>
