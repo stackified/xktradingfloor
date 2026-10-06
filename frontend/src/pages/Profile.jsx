@@ -89,6 +89,11 @@ const YEARS = [
   { value: '10+', label: '10+ years' },
 ];
 const MARKETS = ['Forex', 'Gold & Metals', 'Indices', 'Crypto', 'Stocks', 'Commodities'];
+const PLATFORMS = ['MT4', 'MT5', 'cTrader', 'TradingView', 'DXtrade', 'Match-Trader', 'NinjaTrader'];
+const SESSIONS = ['Asian', 'London', 'New York', 'Sydney'];
+// Socials that can show a follower count on the public profile.
+const FOLLOWER_KEYS = ['youtube', 'twitter', 'instagram', 'telegram', 'tiktok'];
+const FOLLOWERS_MAX = 1_000_000_000;
 
 const INPUT =
   'w-full rounded-lg border border-white/10 bg-[#0b1220] px-3.5 py-2.5 text-sm text-white placeholder:text-gray-500 ' +
@@ -173,6 +178,33 @@ function Field({ id, label, required, optional, error, hint, children, className
         </p>
       )}
     </div>
+  );
+}
+
+// Multi-select as toggle chips (markets, platforms, sessions).
+function ChipGroup({ legend, options, selected, onToggle, className = '' }) {
+  return (
+    <fieldset className={className}>
+      <legend className="mb-1.5 block text-sm font-medium text-gray-200">{legend}</legend>
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => {
+          const on = selected.includes(option);
+          return (
+            <button
+              key={option}
+              type="button"
+              aria-pressed={on}
+              onClick={() => onToggle(option)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                on ? 'border-blue-500 bg-blue-500/15 text-blue-200' : 'border-white/10 bg-[#0b1220] text-gray-300 hover:border-white/20'
+              }`}
+            >
+              {option}
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
   );
 }
 
@@ -317,7 +349,38 @@ function formFromProfile(data = {}) {
     yearsOfExperience: data.yearsOfExperience || '',
     primaryMarkets: data.primaryMarkets || [],
     socialLinks: { ...EMPTY_LINKS, ...(data.socialLinks || {}) },
+    // Inputs hold text; payload() turns these back into numbers and lists.
+    socialFollowers: Object.fromEntries(
+      FOLLOWER_KEYS.map((k) => [k, data.socialFollowers?.[k] ? String(data.socialFollowers[k]) : '']),
+    ),
+    platforms: data.platforms || [],
+    riskPerTrade: data.tradingSetup?.riskPerTrade || '',
+    holdingTime: data.tradingSetup?.holdingTime || '',
+    sessions: data.tradingSetup?.sessions || [],
+    instruments: (data.tradingSetup?.instruments || []).join(', '),
   };
+}
+
+// Which optional fields the backend stores yet: each group appears once
+// GET /api/user/me returns its key (deliverables B23 / B26).
+function liveFields(data = {}) {
+  const has = (obj, key) => Object.prototype.hasOwnProperty.call(obj || {}, key);
+  return {
+    extras: has(data, 'profileType'),
+    myfxbook: has(data.socialLinks, 'myfxbook'),
+    followers: has(data, 'socialFollowers'),
+    platforms: has(data, 'platforms'),
+    setup: has(data, 'tradingSetup'),
+  };
+}
+
+// "12,500" / "12.5K" / "1.2M" → 12500 / 12500 / 1200000; '' → 0; junk → NaN.
+function parseFollowers(text) {
+  const t = String(text || '').trim().replace(/,/g, '').toUpperCase();
+  if (!t) return 0;
+  const m = t.match(/^(\d+(?:\.\d+)?)([KM]?)$/);
+  if (!m) return NaN;
+  return Math.round(Number(m[1]) * (m[2] === 'M' ? 1e6 : m[2] === 'K' ? 1e3 : 1));
 }
 
 export default function Profile() {
@@ -330,12 +393,13 @@ export default function Profile() {
   const [form, setForm] = React.useState(() =>
     formFromProfile({ fullName: user.fullName || user.name, country: user.country, bio: user.bio, profileImage: user.profileImage || user.avatar }),
   );
-  const [extrasLive, setExtrasLive] = React.useState(false);
   // The Myfxbook link (Sahil, 6 Oct 2026: traders connect their account; the
-  // free first step is their public Myfxbook page) needs backend support
-  // (deliverable B23). The field appears once GET /api/user/me returns a
-  // `socialLinks.myfxbook` key, like the B26 fields.
-  const [myfxbookLive, setMyfxbookLive] = React.useState(false);
+  // free first step is their public Myfxbook page), follower counts,
+  // platforms and trading setup need backend support (B23), like the B26
+  // fields. Each appears once GET /api/user/me returns its key.
+  const [live, setLive] = React.useState(() => liveFields());
+  const extrasLive = live.extras;
+  const myfxbookLive = live.myfxbook;
   const [verification, setVerification] = React.useState(null);
   const [profileId, setProfileId] = React.useState(user.id || user._id || '');
   const [loading, setLoading] = React.useState(true);
@@ -358,8 +422,7 @@ export default function Profile() {
       try {
         const { data } = await getMyProfile();
         setForm(formFromProfile(data));
-        setExtrasLive(Object.prototype.hasOwnProperty.call(data || {}, 'profileType'));
-        setMyfxbookLive(Object.prototype.hasOwnProperty.call(data?.socialLinks || {}, 'myfxbook'));
+        setLive(liveFields(data || {}));
         setVerification(data.verifiedTrader || null);
         if (data.id) setProfileId(data.id);
       } catch (err) {
@@ -376,11 +439,14 @@ export default function Profile() {
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
   const setLink = (key) => (e) => setForm((f) => ({ ...f, socialLinks: { ...f.socialLinks, [key]: e.target.value } }));
-  const toggleMarket = (m) =>
+  const setFollowers = (key) => (e) => setForm((f) => ({ ...f, socialFollowers: { ...f.socialFollowers, [key]: e.target.value } }));
+  // Toggle a value in one of the chip lists (markets, platforms, sessions).
+  const toggleIn = (field) => (value) =>
     setForm((f) => ({
       ...f,
-      primaryMarkets: f.primaryMarkets.includes(m) ? f.primaryMarkets.filter((x) => x !== m) : [...f.primaryMarkets, m],
+      [field]: f[field].includes(value) ? f[field].filter((x) => x !== value) : [...f[field], value],
     }));
+  const toggleMarket = toggleIn('primaryMarkets');
 
   function onAvatarChosen(e) {
     const file = e.target.files?.[0];
@@ -432,10 +498,18 @@ export default function Profile() {
     if (myfxbookLive && !next.link_myfxbook && !isMyfxbookAccountUrl(normaliseUrl(form.socialLinks.myfxbook))) {
       next.link_myfxbook = 'Paste your public Myfxbook account link, e.g. https://www.myfxbook.com/members/name/system/1234567';
     }
+    if (live.followers) {
+      FOLLOWER_KEYS.forEach((k) => {
+        const n = parseFollowers(form.socialFollowers[k]);
+        if (!Number.isFinite(n) || n > FOLLOWERS_MAX) next[`followers_${k}`] = 'Enter a number, e.g. 12500 or 12.5K';
+      });
+    }
     setErrors(next);
     const first = Object.keys(next)[0];
     if (first) {
-      const el = document.getElementById(first.startsWith('link_') ? `link-${first.slice(5)}` : `pf-${first}`);
+      const el = document.getElementById(
+        first.startsWith('link_') ? `link-${first.slice(5)}` : first.startsWith('followers_') ? `followers-${first.slice(10)}` : `pf-${first}`,
+      );
       el?.focus();
     }
     return !first;
@@ -460,6 +534,18 @@ export default function Profile() {
       body.profileType = form.profileType;
       body.yearsOfExperience = form.yearsOfExperience;
       body.primaryMarkets = form.primaryMarkets;
+    }
+    if (live.followers) {
+      body.socialFollowers = Object.fromEntries(FOLLOWER_KEYS.map((k) => [k, parseFollowers(form.socialFollowers[k]) || 0]));
+    }
+    if (live.platforms) body.platforms = form.platforms;
+    if (live.setup) {
+      body.tradingSetup = {
+        riskPerTrade: form.riskPerTrade.trim(),
+        holdingTime: form.holdingTime.trim(),
+        sessions: form.sessions,
+        instruments: list(form.instruments).slice(0, 10),
+      };
     }
     return body;
   }
@@ -748,30 +834,31 @@ export default function Profile() {
                           ))}
                         </select>
                       </Field>
-                      <fieldset>
-                        <legend className="mb-1.5 block text-sm font-medium text-gray-200">Primary markets</legend>
-                        <div className="flex flex-wrap gap-2">
-                          {MARKETS.map((m) => {
-                            const on = form.primaryMarkets.includes(m);
-                            return (
-                              <button
-                                key={m}
-                                type="button"
-                                aria-pressed={on}
-                                onClick={() => toggleMarket(m)}
-                                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                                  on ? 'border-blue-500 bg-blue-500/15 text-blue-200' : 'border-white/10 bg-[#0b1220] text-gray-300 hover:border-white/20'
-                                }`}
-                              >
-                                {m}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </fieldset>
+                      <ChipGroup legend="Primary markets" options={MARKETS} selected={form.primaryMarkets} onToggle={toggleMarket} />
                     </>
                   )}
+                  {live.platforms && (
+                    <ChipGroup legend="Trading platforms" options={PLATFORMS} selected={form.platforms} onToggle={toggleIn('platforms')} className="sm:col-span-2" />
+                  )}
                 </div>
+                {live.setup && (
+                  <div className="mt-6 border-t border-white/10 pt-5">
+                    <h3 className="text-sm font-semibold text-white">Trading setup</h3>
+                    <p className="mt-0.5 mb-4 text-xs text-gray-500">Shown on your public profile.</p>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Field id="pf-riskPerTrade" label="Risk per trade" optional>
+                        <input id="pf-riskPerTrade" className={INPUT} value={form.riskPerTrade} onChange={set('riskPerTrade')} maxLength={100} placeholder="0.5% – 1%" />
+                      </Field>
+                      <Field id="pf-holdingTime" label="Average holding time" optional>
+                        <input id="pf-holdingTime" className={INPUT} value={form.holdingTime} onChange={set('holdingTime')} maxLength={100} placeholder="15 min – 2 hours" />
+                      </Field>
+                      <ChipGroup legend="Preferred sessions" options={SESSIONS} selected={form.sessions} onToggle={toggleIn('sessions')} />
+                      <Field id="pf-instruments" label="Trading instruments" optional hint="Separate with commas">
+                        <input id="pf-instruments" className={INPUT} value={form.instruments} onChange={set('instruments')} placeholder="XAUUSD, EURUSD, NAS100" />
+                      </Field>
+                    </div>
+                  </div>
+                )}
               </Card>
 
               {/* 4 */}
@@ -814,6 +901,20 @@ export default function Profile() {
                           {...(errors[`link_${key}`] ? { 'aria-invalid': true, 'aria-describedby': `link-${key}-error` } : {})}
                         />
                       </Field>
+                      {live.followers && FOLLOWER_KEYS.includes(key) && (
+                        <Field id={`followers-${key}`} label="Followers" error={errors[`followers_${key}`]} className="w-24 flex-shrink-0">
+                          <input
+                            id={`followers-${key}`}
+                            inputMode="decimal"
+                            className={INPUT}
+                            value={form.socialFollowers[key]}
+                            onChange={setFollowers(key)}
+                            placeholder="12.5K"
+                            aria-label={`${label} followers`}
+                            {...(errors[`followers_${key}`] ? { 'aria-invalid': true, 'aria-describedby': `followers-${key}-error` } : {})}
+                          />
+                        </Field>
+                      )}
                     </div>
                   ))}
                 </div>
