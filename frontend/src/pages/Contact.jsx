@@ -220,7 +220,7 @@ Sent from xktradingfloor.com/contact`;
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   <a
-                    href="https://www.youtube.com/@xk_trading_floor"
+                    href="https://www.youtube.com/@XKTradingFloor"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-3 rounded-lg bg-gray-800/50 border border-gray-700 hover:border-blue-500 hover:bg-gray-800 transition-all group"
