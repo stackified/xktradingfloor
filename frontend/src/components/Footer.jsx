@@ -4,12 +4,11 @@ import { MessageCircle, Youtube, Instagram, Linkedin, Twitter } from 'lucide-rea
 import { getAssetPath } from '../utils/assets.js';
 import DiscordLink from './shared/DiscordLink.jsx';
 
+// "Website by …" credit in the bottom bar. Plain text until `url` is set.
+const AGENCY = { name: 'Stackified', url: '' };
+
 // XK's official profiles, as confirmed by Sahil (6 Oct 2026). Keep in step with
 // `sameAs` in utils/siteJsonLd.json, which tells search engines they're ours.
-// "Website by …" credit in the bottom bar (Sahil asked for an agency link).
-// Hidden until both are filled in.
-const AGENCY = { name: '', url: '' };
-
 const SOCIAL_LINKS = [
   { label: 'YouTube', href: 'https://www.youtube.com/@XKTradingFloor', Icon: Youtube },
   { label: 'Instagram', href: 'https://www.instagram.com/xktradingfloor/', Icon: Instagram },
@@ -93,12 +92,16 @@ function Footer() {
           hydration saw one node where React expected three and threw #418. */}
       <div className="border-t border-border/60 py-4 text-center text-xs text-gray-400">
         <span>{`© ${new Date().getFullYear()} XK Trading Floor`}</span>
-        {AGENCY.name && AGENCY.url && (
+        {AGENCY.name && (
           <>
             <span aria-hidden="true">{' · '}</span>
-            <a href={AGENCY.url} target="_blank" rel="noopener" className="hover:text-white">
-              {`Website by ${AGENCY.name}`}
-            </a>
+            {AGENCY.url ? (
+              <a href={AGENCY.url} target="_blank" rel="noopener" className="hover:text-white">
+                {`Website by ${AGENCY.name}`}
+              </a>
+            ) : (
+              <span>{`Website by ${AGENCY.name}`}</span>
+            )}
           </>
         )}
       </div>
