@@ -130,7 +130,7 @@ function generateTextImage(
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
 
-      resolve(canvas.toDataURL("image/png"));
+      resolve(canvas.toDataURL("image/jpeg", 0.82));
     };
 
     // If using placeholder background, load it first
@@ -213,7 +213,7 @@ function generateTextImage(
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
 
-        resolve(canvas.toDataURL("image/png"));
+        resolve(canvas.toDataURL("image/jpeg", 0.82));
       };
       img.onerror = () => {
         // If placeholder fails to load, use gradient only
