@@ -56,6 +56,9 @@ jobs:
           protocol: ftp
           port: 21
           dangerous-clean-slate: false
+          # Bluehost's FTP server is slow to answer at times; the default 30 s
+          # control-socket timeout failed two deploys in a row on 7 Oct 2026.
+          timeout: 120000
           log-level: standard
           exclude: |
             **/.git*
