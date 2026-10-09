@@ -8,7 +8,7 @@ import FaqSection from "../components/shared/FaqSection.jsx";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { m as motion } from "framer-motion";
-import { Lock } from "lucide-react";
+import { Lock, PenLine } from "lucide-react";
 import { getCompanyById } from "../controllers/companiesController.js";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
 import DesignedHtml from "../components/shared/DesignedHtml.jsx";
@@ -32,6 +32,11 @@ import LiveSpreadTable from "../components/spreads/LiveSpreadTable.jsx";
 import ConfirmModal from "../components/shared/ConfirmModal.jsx";
 import { getUserCookie } from "../utils/cookies.js";
 import { useToast } from "../contexts/ToastContext.jsx";
+
+// Outlined so it stands out on the dark header card (btn-secondary is nearly
+// the same colour as the card).
+const WRITE_REVIEW_CLASS =
+  "btn w-fit gap-2 border border-blue-500/40 bg-blue-500/10 text-blue-200 hover:bg-blue-500/20 hover:text-white";
 
 function CompanyDetails() {
   const { companyId } = useParams();
@@ -105,12 +110,41 @@ function CompanyDetails() {
   const [showConfirmModal, setShowConfirmModal] = React.useState(false);
   const [reviewToDelete, setReviewToDelete] = React.useState(null);
 
+  // The form sits in the reviews section near the bottom, so both the top
+  // button and "Edit Your Review" scroll there (this used to scroll to the
+  // top of the page, away from the form).
+  const reviewsRef = React.useRef(null);
+  const scrollToReviews = (behavior = "smooth") =>
+    setTimeout(() =>
+      reviewsRef.current?.scrollIntoView({ behavior, block: "start" })
+    );
+
   const handleEditReview = (review) => {
     setEditingReview(review);
     setShowReviewForm(true);
-    // Scroll to form
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToReviews();
   };
+
+  const openReviewForm = (behavior) => {
+    if (canSubmitReview) {
+      setEditingReview(userReview || null);
+      setShowReviewForm(true);
+    }
+    scrollToReviews(behavior);
+  };
+
+  // Signed-out visitors log in and come back to /reviews/:id#write-review,
+  // which opens the form straight away.
+  const loginToReview = `/login?redirect=${encodeURIComponent(`/reviews/${companyId}#write-review`)}`;
+  React.useEffect(() => {
+    if (loading || !company || location.hash !== "#write-review") return;
+    // Jump straight there on arrival, and again once the designed review's
+    // images above have loaded and pushed the section down.
+    openReviewForm("auto");
+    setTimeout(() => reviewsRef.current?.scrollIntoView({ block: "start" }), 1200);
+    // Drop the hash so a later data reload (after submitting) doesn't reopen it.
+    navigate({ pathname: location.pathname, search: location.search }, { replace: true });
+  }, [loading, company, location.hash]);
 
   const confirmDeleteReview = (reviewId) => {
     setReviewToDelete(reviewId);
@@ -169,7 +203,7 @@ function CompanyDetails() {
               You must be logged in to view company details and reviews.
             </p>
             <button
-              onClick={() => navigate(`/login?next=${encodeURIComponent(location.pathname)}`)}
+              onClick={() => navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`)}
               className="btn btn-primary px-8"
             >
               Login to View
@@ -244,7 +278,33 @@ function CompanyDetails() {
         </Link>
 
         {/* Company Header (with country, regulation, assets, platforms, etc.) */}
-        <CompanyProfileHeader company={company} />
+        <CompanyProfileHeader
+          company={company}
+          reviewAction={
+            !user ? (
+              <Link
+                to={loginToReview}
+                onClick={() => trackEvent("write_review_click", { company: company.name, location: "company_top", signed_in: false })}
+                className={WRITE_REVIEW_CLASS}
+              >
+                <PenLine className="h-4 w-4" />
+                Write a Review
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  trackEvent("write_review_click", { company: company.name, location: "company_top", signed_in: true });
+                  openReviewForm();
+                }}
+                className={WRITE_REVIEW_CLASS}
+              >
+                <PenLine className="h-4 w-4" />
+                {userReview ? "Edit Your Review" : "Write a Review"}
+              </button>
+            )
+          }
+        />
 
         {/* Designed review (a full styled HTML page pasted by the admin),
             shown exactly as designed. */}
@@ -445,9 +505,9 @@ function CompanyDetails() {
         )}
 
         {/* Reviews Section */}
-        <div className="card">
+        <div id="reviews" ref={reviewsRef} className="card scroll-mt-24">
           <div className="card-body">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
               <h2 className="font-display font-bold text-lg sm:text-xl">
                 <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
                   User
@@ -455,7 +515,7 @@ function CompanyDetails() {
                 Reviews
               </h2>
               {!user && (
-                <Link to="/login" className="btn btn-secondary">
+                <Link to={loginToReview} className="btn btn-secondary">
                   Login to Review
                 </Link>
               )}

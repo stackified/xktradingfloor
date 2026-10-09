@@ -1,9 +1,10 @@
+// Gold first, as Sahil asked (9 Oct): it's the pair traders watch most.
 export const V1_PAIRS = [
+  { key: "XAU/USD", label: "XAU/USD (Gold)", baseline: 25 },
   { key: "EUR/USD", label: "EUR/USD", baseline: 0.8 },
   { key: "GBP/USD", label: "GBP/USD", baseline: 1.1 },
   { key: "USD/JPY", label: "USD/JPY", baseline: 0.9 },
   { key: "AUD/USD", label: "AUD/USD", baseline: 1.0 },
-  { key: "XAU/USD", label: "XAU/USD (Gold)", baseline: 25 },
   { key: "XAG/USD", label: "XAG/USD (Silver)", baseline: 3.2 },
   { key: "BTC/USD", label: "BTC/USD", baseline: 32 },
   { key: "ETH/USD", label: "ETH/USD", baseline: 8 },
