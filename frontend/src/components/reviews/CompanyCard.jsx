@@ -30,10 +30,17 @@ const CATEGORY_COLORS = {
   PropFirm: "bg-blue-500/15 text-blue-400 border-blue-500/30",
   Crypto: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
 };
+// "Trusted" only where Sahil has set it (company.trusted, backend B32); he
+// asked on 9 Oct to stop calling every broker trusted.
 const CATEGORY_LABELS = {
-  Broker: "Trusted Broker",
-  PropFirm: "Top Prop Firm",
+  Broker: "Broker",
+  PropFirm: "Prop Firm",
   Crypto: "Crypto Exchange",
+};
+const TRUSTED_LABELS = {
+  Broker: "Trusted Broker",
+  PropFirm: "Trusted Prop Firm",
+  Crypto: "Trusted Exchange",
 };
 
 function CompanyCard({ company, user }) {
@@ -78,7 +85,7 @@ function CompanyCard({ company, user }) {
                       "bg-gray-500/15 text-gray-400 border-gray-500/30"
                     }`}
                   >
-                    {CATEGORY_LABELS[company.category] || company.category}
+                    {(company.trusted ? TRUSTED_LABELS : CATEGORY_LABELS)[company.category] || company.category}
                   </span>
                   {company.status === "pending" && (
                     <span className="text-[11px] px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400 border border-yellow-500/30">
@@ -165,11 +172,14 @@ function CompanyCard({ company, user }) {
             />
           </div>
           <div className="hidden sm:block text-xs text-gray-400">
-            {reviewCount > 0
-              ? `Based on ${reviewCount} verified ${
-                  reviewCount === 1 ? "review" : "reviews"
-                }`
-              : "No reviews yet — be the first"}
+            {/* Not "verified": no review is checked against proof until B19. */}
+            {reviewCount > 0 ? (
+              `Based on ${reviewCount} ${reviewCount === 1 ? "review" : "reviews"}`
+            ) : (
+              <Link to={`/reviews/${id}#write-review`} className="hover:text-blue-300 transition-colors">
+                No reviews yet. Be the first
+              </Link>
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">

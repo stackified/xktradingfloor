@@ -56,7 +56,8 @@ function SidebarSection({ title, viewAllLink, children }) {
   );
 }
 
-function CompanyListItem({ company, rank, showMetric }) {
+function CompanyListItem({ company, rank }) {
+  const hasReviews = (company.totalReviews || 0) > 0;
   const { score } = computeTrustScore(company.ratingsAggregate, company.totalReviews);
 
   const rankColors = [
@@ -84,16 +85,21 @@ function CompanyListItem({ company, rank, showMetric }) {
         <div className="text-sm font-medium text-white group-hover:text-blue-300 transition-colors truncate">
           {company.name}
         </div>
-        <div className="flex items-center gap-1 mt-0.5">
-          <StarRating value={company.ratingsAggregate} size={12} />
-          <span className="text-xs text-gray-400">
-            {company.ratingsAggregate?.toFixed(1)}
-          </span>
-        </div>
+        {hasReviews ? (
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <StarRating value={company.ratingsAggregate} size={12} />
+            <span className="text-xs text-gray-400">
+              {company.ratingsAggregate.toFixed(1)}
+            </span>
+          </div>
+        ) : (
+          <div className="text-xs text-gray-500 mt-0.5">No reviews yet</div>
+        )}
       </div>
-      {showMetric && (
-        <span className="text-xs text-gray-400 flex-shrink-0">
-          {showMetric === "score" ? `${score}` : showMetric}
+      {hasReviews && (
+        <span className="flex-shrink-0 text-right leading-tight">
+          <span className="block text-sm font-semibold text-white">{score}</span>
+          <span className="block text-[10px] text-gray-500">TrustScore</span>
         </span>
       )}
     </Link>
@@ -166,7 +172,6 @@ function ReviewsSidebar({ brokers = [], propFirms = [], latestReviews = [] }) {
                 key={company.id || company._id}
                 company={company}
                 rank={idx + 1}
-                showMetric="score"
               />
             ))
           ) : (
@@ -184,7 +189,6 @@ function ReviewsSidebar({ brokers = [], propFirms = [], latestReviews = [] }) {
                 key={company.id || company._id}
                 company={company}
                 rank={idx + 1}
-                showMetric="Prop Firm"
               />
             ))
           ) : (
