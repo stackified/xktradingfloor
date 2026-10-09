@@ -16,7 +16,7 @@ const BANNER = {
   id: "surat-seminar-2026",
   eventPath: null,
   endsAt: Date.parse("2026-11-01T14:00:00+05:30"),
-  src: (w) => getAssetPath(`/banners/surat-seminar-2026-${w}.webp`),
+  src: (w) => getAssetPath(`/banners/surat-seminar-2026-v2-${w}.webp`),
   widths: [800, 1200, 2000],
   alt:
     "Surat Trading Seminar: FundingPips x Akash.FRX x Sahil Shaikh. Sunday 1 November 2026, 10 AM to 2 PM, in Surat. " +
