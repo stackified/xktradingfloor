@@ -1,0 +1,1 @@
+import{R as a,a3 as i,j as e}from"./main-1iFSgl1S.js";function o({content:t,rendered:l,className:r=""}){const s=a.useMemo(()=>l||i(t),[t,l]);return s.html?e.jsxs("div",{className:r,children:[s.fonts.map(n=>e.jsx("link",{rel:"stylesheet",href:n},n)),e.jsx("style",{children:s.css}),e.jsx("div",{className:s.scopeClass,dangerouslySetInnerHTML:{__html:s.html}})]}):null}export{o as D};
