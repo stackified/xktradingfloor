@@ -17,6 +17,7 @@ import FeaturedEvents from '../components/home/FeaturedEvents.jsx';
 import LatestBlogs from '../components/home/LatestBlogs.jsx';
 import CTASection from '../components/home/CTASection.jsx';
 import HydrateChunk from '../components/shared/HydrateChunk.jsx';
+import PromoBanner from '../components/shared/PromoBanner.jsx';
 
 function Home() {
   return (
@@ -28,6 +29,7 @@ function Home() {
       />
       <HeroSection />
       {/* Everything below the hero hydrates as its own chunk; see HydrateChunk. */}
+      <HydrateChunk><PromoBanner /></HydrateChunk>
       <HydrateChunk><StatsSection /></HydrateChunk>
       <HydrateChunk><TopCompaniesTables /></HydrateChunk>
       <HydrateChunk><WhatIsXK /></HydrateChunk>
