@@ -10,6 +10,7 @@ import EventBadges from "../components/shared/EventBadges.jsx";
 import RegisterModal from "../components/academy/RegisterModal.jsx";
 import EventRegisterModal from "../components/academy/EventRegisterModal.jsx";
 import { formatEventWhen, formatEventPlace } from "../utils/eventTime.js";
+import { eventPricing } from "../utils/eventPricing.js";
 import { getUserCookie } from "../utils/cookies.js";
 import DesignedHtml from "../components/shared/DesignedHtml.jsx";
 import { eventDescriptionView, eventSummary } from "../utils/eventDescription.js";
@@ -159,17 +160,13 @@ function EventDetails() {
         <div className="card h-fit">
           <div className="card-body">
             {(() => {
-              // Parse price defensively — backend stores it as a number but
-              // legacy events sometimes have "0" as a string. Any positive
-              // amount renders as "$X". No price with an organiser link means
-              // the organiser sells the tickets (expos), so don't call it free.
-              const priceNum = Number(event.price);
-              const isPaid = Number.isFinite(priceNum) && priceNum > 0;
-              const externalUrl = event.externalUrl?.trim();
+              // Expos with an organiser link sell their own tickets; any other
+              // event without a price is free (utils/eventPricing.js).
+              const { isPaid, price: priceNum, ticketsAtOrganiser, externalUrl } = eventPricing(event);
               return (
                 <>
                   <div className="text-center mb-4">
-                    {isPaid || !externalUrl ? (
+                    {!ticketsAtOrganiser ? (
                       <div className="text-2xl font-semibold text-blue-400 mb-1">
                         {isPaid ? `$${priceNum}` : "Free Event"}
                       </div>
@@ -204,7 +201,7 @@ function EventDetails() {
                       rel="noopener noreferrer"
                       className="btn btn-primary w-full inline-flex items-center justify-center gap-2"
                     >
-                      Register at Organizer
+                      {ticketsAtOrganiser ? "Register at Organizer" : "Register"}
                       <ExternalLink className="h-4 w-4" />
                     </a>
                   ) : user ? (
@@ -223,8 +220,10 @@ function EventDetails() {
                   <div className="text-xs text-gray-400 mt-3 text-center">
                     {EVENT_LEADS_LIVE
                       ? "No account needed."
-                      : externalUrl
+                      : ticketsAtOrganiser
                       ? "Registration is handled on the organizer's site."
+                      : externalUrl
+                      ? `${isPaid ? "Registration" : "This is a free event. Registration"} opens in a new tab.`
                       : isPaid
                         ? "Registration is required to attend."
                         : "This is a free event. Registration is required."}
