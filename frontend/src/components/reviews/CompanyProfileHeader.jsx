@@ -48,7 +48,9 @@ function ChipList({ items }) {
   );
 }
 
-function CompanyProfileHeader({ company }) {
+// reviewAction: the "Write a Review" button, shown at the top next to the
+// visit button (Sahil, 8 Oct: nobody scrolls to the bottom to find it).
+function CompanyProfileHeader({ company, reviewAction = null }) {
   const isPropFirm = company.category === "PropFirm";
   const assets = csvOrArray(company.assets);
   const platforms = csvOrArray(company.platforms);
@@ -156,17 +158,22 @@ function CompanyProfileHeader({ company }) {
           )
         )}
 
-        {company.website && (
-          <a
-            href={company.website}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackEvent("visit_company", { company: company.name, category: company.category, location: "company_page" })}
-            className="btn btn-primary inline-flex items-center gap-2 w-fit"
-          >
-            <span>Visit {company.name}</span>
-            <ExternalLink className="h-4 w-4" />
-          </a>
+        {(company.website || reviewAction) && (
+          <div className="flex flex-wrap items-center gap-3">
+            {company.website && (
+              <a
+                href={company.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackEvent("visit_company", { company: company.name, category: company.category, location: "company_page" })}
+                className="btn btn-primary inline-flex items-center gap-2 w-fit"
+              >
+                <span>Visit {company.name}</span>
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            )}
+            {reviewAction}
+          </div>
         )}
       </div>
     </motion.div>
