@@ -1,6 +1,7 @@
 import siteJsonLd from "./siteJsonLd.json";
 import { authorDisplayName, isStaffAccount } from "./authors.js";
 import { reviewerName } from "./reviewerName.js";
+import { eventPricing } from "./eventPricing.js";
 
 const SITE_URL = "https://xktradingfloor.com";
 const SITE_NAME = "XK Trading Floor";
@@ -116,6 +117,7 @@ export const articleJsonLd = (blog) => {
 
 export const eventJsonLd = (event) => {
   if (!event) return null;
+  const pricing = eventPricing(event);
   return {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -142,15 +144,17 @@ export const eventJsonLd = (event) => {
     image: event.featuredImage,
     // Only emit an Offer when there's an actual price OR an external URL to
     // register at. Free events without a URL don't need an offers block.
-    // A price of 0 with an organiser link means "tickets sold by the
-    // organiser" (expos), not "free", so the Offer then carries no price.
+    // Expos with an organiser link sell their own tickets, so their Offer
+    // carries no price; any other event without a price is free (price 0).
     offers:
       event.price || event.externalUrl
         ? {
             "@type": "Offer",
-            ...(Number(event.price) > 0
-              ? { price: Number(event.price), priceCurrency: "USD" }
-              : {}),
+            ...(pricing.isPaid
+              ? { price: pricing.price, priceCurrency: "USD" }
+              : pricing.isFree
+                ? { price: 0, priceCurrency: "USD" }
+                : {}),
             availability: "https://schema.org/InStock",
             url:
               event.externalUrl?.trim() || `${SITE_URL}/events/${event._id}`,
