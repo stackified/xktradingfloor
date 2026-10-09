@@ -153,9 +153,10 @@ npm run dev          # Start development server with auto-reload
 
 ## 🌍 Deployment
 
-- **Production:** pushes to `main` build the frontend (`npm run build:prod`) and upload it to Bluehost over FTP, serving [xktradingfloor.com](https://xktradingfloor.com).
+- **Production:** pushes to `main` build the frontend (`npm run build:prod`) and upload it to Bluehost with rsync over SSH (FTP only as a fallback when the `BLUEHOST_SSH_KEY` secret is missing), serving [xktradingfloor.com](https://xktradingfloor.com). Each deploy then pings IndexNow and clears the Cloudflare cache.
+  - Also runs on `repository_dispatch` (`content-published`) and by hand from the Actions tab; a manual run can be a dry run that only lists what would change on the server.
 - **Staging:** pushes to `dev` build the frontend (`npm run build:gith`) and publish it to the `gh-pages` branch, serving [stackified.github.io/xktradingfloor](https://stackified.github.io/xktradingfloor/).
-- **Backend:** the Express API is hosted on Render.
+- **Backend:** the Express API is hosted on Render, which deploys every push to `main` automatically.
 
 The workflows live in `.github/workflows/`.
 
