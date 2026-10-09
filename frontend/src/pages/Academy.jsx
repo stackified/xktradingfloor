@@ -3,6 +3,7 @@ import Seo from '../components/shared/Seo.jsx';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import HeroAcademy from '../components/academy/HeroAcademy.jsx';
+import PromoBanner from '../components/shared/PromoBanner.jsx';
 import EventsGrid from '../components/academy/EventsGrid.jsx';
 import FreeResources from '../components/academy/FreeResources.jsx';
 import PodcastSection from '../components/academy/PodcastSection.jsx';
@@ -35,6 +36,7 @@ function Academy() {
       />
       <HeroAcademy />
       <div className="bg-black">
+        <PromoBanner />
         {isAdmin && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-end gap-4">
