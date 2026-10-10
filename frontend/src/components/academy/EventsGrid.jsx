@@ -49,6 +49,7 @@ function MapWhenVisible(props) {
 import EventFeaturedSlider from "./EventFeaturedSlider.jsx";
 import { formatEventDate, formatEventTimeShort, formatEventPlace } from "../../utils/eventTime.js";
 import { eventSummary } from "../../utils/eventDescription.js";
+import { eventPath } from "../../utils/eventUrl.js";
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -212,7 +213,7 @@ function EventCard({ evt, onRegister }) {
     if (e.target.closest("button")) {
       return;
     }
-    navigate(`/events/${evt.id}`);
+    navigate(eventPath(evt));
   };
 
   return (

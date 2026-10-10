@@ -27,6 +27,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer-core";
 import { BLOG_CATEGORIES } from "../src/utils/blogCategories.js";
+import { eventPath } from "../src/utils/eventUrl.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DOCS = path.resolve(__dirname, "../docs");
@@ -123,10 +124,10 @@ async function dynamicPages() {
       .map((c) => String(c._id || c.id || ""))
       .filter((id) => OBJECT_ID.test(id))
       .map((id) => `reviews/${id}`);
+    // Event pages are written at their readable URL (utils/eventUrl.js).
     const eventPages = docsOf(events)
-      .map((e) => String(e._id || e.id || ""))
-      .filter((id) => OBJECT_ID.test(id))
-      .map((id) => `events/${id}`);
+      .filter((e) => OBJECT_ID.test(String(e._id || e.id || "")))
+      .map((e) => eventPath(e).slice(1));
     return { companyPages, eventPages };
   } catch (e) {
     log(`API unreachable (${e.message}); static pages only`);
