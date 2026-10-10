@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { CalendarDays, MapPin, Users, ArrowRight } from "lucide-react";
+import { CalendarDays, MapPin, Ticket, Users, ArrowRight } from "lucide-react";
 import { trackEvent } from "../../utils/analytics.js";
 import { getAssetPath } from "../../utils/assets.js";
 
@@ -10,11 +10,12 @@ import { getAssetPath } from "../../utils/assets.js";
 // It hides itself once the seminar is over; remove it and public/banners/
 // in the next release after that.
 //
-// eventPath: the seminar's event page (added in admin on 10 Oct). Without
-// it the banner points to the Events page.
+// eventPath: Sahil's event page for the seminar. Without it the banner
+// points to the Events page. Entry is $25 (Sahil, 10 Oct), so nothing here
+// says "free"; the free part is the $5,000 funded account on the poster.
 const BANNER = {
   id: "surat-seminar-2026",
-  eventPath: "/events/6ac9b9ad8d39074ae2efba0c",
+  eventPath: "/events/6ac93428f42efd8eb2faa791",
   endsAt: Date.parse("2026-11-01T14:00:00+05:30"),
   src: (w) => getAssetPath(`/banners/surat-seminar-2026-v2-${w}.webp`),
   widths: [800, 1200, 2000],
@@ -63,7 +64,7 @@ function PromoBanner() {
         )}
         <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-300">
-            <li className="font-semibold text-white">Free trading seminar</li>
+            <li className="font-semibold text-white">Trading seminar</li>
             <li className="inline-flex items-center gap-1.5">
               <CalendarDays className="h-4 w-4 text-blue-400" aria-hidden="true" />
               Sun 1 Nov, 10 AM to 2 PM
@@ -71,6 +72,10 @@ function PromoBanner() {
             <li className="inline-flex items-center gap-1.5">
               <MapPin className="h-4 w-4 text-blue-400" aria-hidden="true" />
               Surat
+            </li>
+            <li className="inline-flex items-center gap-1.5">
+              <Ticket className="h-4 w-4 text-blue-400" aria-hidden="true" />
+              $25 entry
             </li>
             <li className="inline-flex items-center gap-1.5">
               <Users className="h-4 w-4 text-blue-400" aria-hidden="true" />
@@ -83,7 +88,7 @@ function PromoBanner() {
               onClick={onClick}
               className="btn btn-primary w-full gap-2 sm:w-auto"
             >
-              {BANNER.eventPath ? "Register free" : "See event"}
+              {BANNER.eventPath ? "Register" : "See event"}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           )}
