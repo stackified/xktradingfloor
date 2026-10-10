@@ -10,11 +10,11 @@ import { getAssetPath } from "../../utils/assets.js";
 // It hides itself once the seminar is over; remove it and public/banners/
 // in the next release after that.
 //
-// eventPath: set it to "/events/<id>" once the event is added in admin.
-// Until then the banner points to the Events page.
+// eventPath: the seminar's event page (added in admin on 10 Oct). Without
+// it the banner points to the Events page.
 const BANNER = {
   id: "surat-seminar-2026",
-  eventPath: null,
+  eventPath: "/events/6ac9b9ad8d39074ae2efba0c",
   endsAt: Date.parse("2026-11-01T14:00:00+05:30"),
   src: (w) => getAssetPath(`/banners/surat-seminar-2026-v2-${w}.webp`),
   widths: [800, 1200, 2000],

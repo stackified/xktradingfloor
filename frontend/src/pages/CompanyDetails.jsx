@@ -547,7 +547,7 @@ function CompanyDetails() {
                 ))}
               {user && !canSubmitReview && (
                 <div className="text-sm text-gray-400">
-                  Only trader accounts can publish reviews.
+                  Admin and operator accounts can't post reviews. Sign in with a normal account to write one.
                 </div>
               )}
             </div>

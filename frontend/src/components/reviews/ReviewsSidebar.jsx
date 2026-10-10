@@ -14,20 +14,22 @@ import CompanyLogo from "../shared/CompanyLogo.jsx";
 import { computeTrustScore } from "../../utils/trustScore.js";
 
 const whyChooseItems = [
+  // Sahil approved this wording on 9 Oct: no "verified payouts" or "live
+  // spreads" until the payout data and live spread feeds exist.
   {
-    title: "Real Unbiased Review",
-    subtitle: "Every review is checked by our team.",
+    title: "Real, Unbiased Reviews",
+    subtitle: "Every review is approved before it's published.",
     icon: ShieldCheck,
   },
   {
-    title: "Real Payout & Verified",
-    subtitle: "We verify payouts, not just talk.",
-    icon: DollarSign,
+    title: "Verified Traders",
+    subtitle: "The badge is given only after proof is checked.",
+    icon: BadgeCheck,
   },
   {
-    title: "Trader with Verified Data",
-    subtitle: "Spreads & conditions updated live.",
-    icon: BadgeCheck,
+    title: "Spread Comparison",
+    subtitle: "Compare brokers' spreads, live data coming soon.",
+    icon: DollarSign,
   },
   {
     title: "Events",
