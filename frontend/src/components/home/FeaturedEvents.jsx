@@ -6,6 +6,7 @@ import EventImage from '../shared/EventImage.jsx';
 import EventBadges from '../shared/EventBadges.jsx';
 import { formatEventDate } from '../../utils/eventTime.js';
 import { eventSummary } from '../../utils/eventDescription.js';
+import { eventPath } from '../../utils/eventUrl.js';
 
 function eventTime(evt) {
   const t = new Date(evt?.dateTime || evt?.date || 0).getTime();
@@ -129,7 +130,7 @@ function FeaturedEvents() {
               <EventCard
                 key={evt.id}
                 evt={evt}
-                onClick={() => navigate(`/events/${evt.id}`, { state: { event: evt } })}
+                onClick={() => navigate(eventPath(evt), { state: { event: evt } })}
               />
             ))}
         </div>

@@ -6,6 +6,7 @@ import EventImage from "../shared/EventImage.jsx";
 import EventBadges from "../shared/EventBadges.jsx";
 import { formatEventDate, formatEventPlace } from "../../utils/eventTime.js";
 import { eventSummary } from "../../utils/eventDescription.js";
+import { eventPath } from "../../utils/eventUrl.js";
 
 const SLIDES = 3;
 const AUTO_ADVANCE_MS = 7000;
@@ -121,7 +122,7 @@ function EventFeaturedSlider({ category = "" }) {
         className="grid grid-cols-1 items-center gap-6 rounded-2xl border border-white/[0.08] bg-[#0B1120] p-4 sm:p-5 lg:grid-cols-[55fr_45fr] lg:gap-10 lg:p-6"
         aria-live="polite"
       >
-        <Link to={`/events/${current.id}`} className="block overflow-hidden rounded-xl" aria-label={current.title}>
+        <Link to={eventPath(current)} className="block overflow-hidden rounded-xl" aria-label={current.title}>
           <EventImage src={imageSrc} alt={current.title} />
         </Link>
         <div className="min-w-0">
@@ -132,7 +133,7 @@ function EventFeaturedSlider({ category = "" }) {
             {formatEventPlace(current) ? ` · ${formatEventPlace(current)}` : ""}
           </p>
           <h4 className="mb-3 font-display text-xl font-bold leading-tight text-white sm:text-2xl lg:text-3xl">
-            <Link to={`/events/${current.id}`} className="hover:text-[#93C5FD]">
+            <Link to={eventPath(current)} className="hover:text-[#93C5FD]">
               {current.title}
             </Link>
           </h4>
@@ -142,7 +143,7 @@ function EventFeaturedSlider({ category = "" }) {
             </p>
           )}
           <Link
-            to={`/events/${current.id}`}
+            to={eventPath(current)}
             className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#2563EB] px-5 text-sm font-semibold text-white transition hover:brightness-110"
           >
             View event
