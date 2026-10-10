@@ -65,22 +65,21 @@ Key facts:
 - [Tools & Guides](https://stackified.github.io/xktradingfloor/blog/category/tools-guides): calculators, checklists and how-to guides
 
 ## Events
-- [Money Expo India 2026 – Mumbai](https://stackified.github.io/xktradingfloor/events/6a79a9936c0cf1ab7f1c7da7): 2026-08-29
-- [iFX EXPO Asia 2026](https://stackified.github.io/xktradingfloor/events/6ac4c0ab4bbbbdd0270f388b): 2026-10-08
-- [Surat Trading Seminar 2026](https://stackified.github.io/xktradingfloor/events/6ac9b9ad8d39074ae2efba0c): 2026-11-01
-- [Surat Trading Seminar 2026 | FundingPips × Akash.FRX × Sahil Shaikh](https://stackified.github.io/xktradingfloor/events/6ac93428f42efd8eb2faa791): 2026-11-01
-- [WIKI FINANCE EXPO Cyprus 2026](https://stackified.github.io/xktradingfloor/events/6ac4c0b44bbbbdd0270f3a23): 2026-11-06
-- [Traders Fair Uzbekistan 2026](https://stackified.github.io/xktradingfloor/events/6ac4c0b24bbbbdd0270f39bd): 2026-11-14
-- [Finance Magnates Summit London 2026](https://stackified.github.io/xktradingfloor/events/6ac4c0834bbbbdd0270f381d): 2026-11-24
-- [WikiEXPO Singapore 2027](https://stackified.github.io/xktradingfloor/events/6ac4c0b64bbbbdd0270f3a87): 2027-03-18
-- [iFX EXPO Dubai 2027](https://stackified.github.io/xktradingfloor/events/6ac4c0ad4bbbbdd0270f38ef): 2027-03-23
-- [Traders Fair Philippines 2027](https://stackified.github.io/xktradingfloor/events/6ac4c0b84bbbbdd0270f3aed): 2027-04-03
-- [WikiEXPO Dubai 2027](https://stackified.github.io/xktradingfloor/events/6ac4c0bb4bbbbdd0270f3b55): 2027-04-15
-- [Finance Magnates Summit Singapore 2027](https://stackified.github.io/xktradingfloor/events/6ac4c0b14bbbbdd0270f3957): 2027-05-05
-- [Traders Fair Laos 2027](https://stackified.github.io/xktradingfloor/events/6ac4c0bc4bbbbdd0270f3bb9): 2027-05-29
-- [Wiki Finance Expo Hong Kong 2027](https://stackified.github.io/xktradingfloor/events/6ac4c0be4bbbbdd0270f3c21): 2027-09-23
-- [WikiEXPO Sydney 2027](https://stackified.github.io/xktradingfloor/events/6ac4c0bf4bbbbdd0270f3c87): 2027-10-14
-- [WikiEXPO Cyprus 2027](https://stackified.github.io/xktradingfloor/events/6ac4c0c14bbbbdd0270f3ceb): 2027-11-18
+- [Money Expo India 2026 – Mumbai](https://stackified.github.io/xktradingfloor/events/money-expo-india-2026-mumbai-6a79a9936c0cf1ab7f1c7da7): 2026-08-29
+- [iFX EXPO Asia 2026](https://stackified.github.io/xktradingfloor/events/ifx-expo-asia-2026-6ac4c0ab4bbbbdd0270f388b): 2026-10-08
+- [Surat Trading Seminar 2026 | FundingPips × Akash.FRX × Sahil Shaikh](https://stackified.github.io/xktradingfloor/events/surat-trading-seminar-2026-fundingpips-akash-frx-sahil-shaikh-6ac93428f42efd8eb2faa791): 2026-11-01
+- [WIKI FINANCE EXPO Cyprus 2026](https://stackified.github.io/xktradingfloor/events/wiki-finance-expo-cyprus-2026-6ac4c0b44bbbbdd0270f3a23): 2026-11-06
+- [Traders Fair Uzbekistan 2026](https://stackified.github.io/xktradingfloor/events/traders-fair-uzbekistan-2026-6ac4c0b24bbbbdd0270f39bd): 2026-11-14
+- [Finance Magnates Summit London 2026](https://stackified.github.io/xktradingfloor/events/finance-magnates-summit-london-2026-6ac4c0834bbbbdd0270f381d): 2026-11-24
+- [WikiEXPO Singapore 2027](https://stackified.github.io/xktradingfloor/events/wikiexpo-singapore-2027-6ac4c0b64bbbbdd0270f3a87): 2027-03-18
+- [iFX EXPO Dubai 2027](https://stackified.github.io/xktradingfloor/events/ifx-expo-dubai-2027-6ac4c0ad4bbbbdd0270f38ef): 2027-03-23
+- [Traders Fair Philippines 2027](https://stackified.github.io/xktradingfloor/events/traders-fair-philippines-2027-6ac4c0b84bbbbdd0270f3aed): 2027-04-03
+- [WikiEXPO Dubai 2027](https://stackified.github.io/xktradingfloor/events/wikiexpo-dubai-2027-6ac4c0bb4bbbbdd0270f3b55): 2027-04-15
+- [Finance Magnates Summit Singapore 2027](https://stackified.github.io/xktradingfloor/events/finance-magnates-summit-singapore-2027-6ac4c0b14bbbbdd0270f3957): 2027-05-05
+- [Traders Fair Laos 2027](https://stackified.github.io/xktradingfloor/events/traders-fair-laos-2027-6ac4c0bc4bbbbdd0270f3bb9): 2027-05-29
+- [Wiki Finance Expo Hong Kong 2027](https://stackified.github.io/xktradingfloor/events/wiki-finance-expo-hong-kong-2027-6ac4c0be4bbbbdd0270f3c21): 2027-09-23
+- [WikiEXPO Sydney 2027](https://stackified.github.io/xktradingfloor/events/wikiexpo-sydney-2027-6ac4c0bf4bbbbdd0270f3c87): 2027-10-14
+- [WikiEXPO Cyprus 2027](https://stackified.github.io/xktradingfloor/events/wikiexpo-cyprus-2027-6ac4c0c14bbbbdd0270f3ceb): 2027-11-18
 
 ## Optional
 - [Privacy policy](https://stackified.github.io/xktradingfloor/privacy-policy)
