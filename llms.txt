@@ -67,6 +67,8 @@ Key facts:
 ## Events
 - [Money Expo India 2026 – Mumbai](https://stackified.github.io/xktradingfloor/events/6a79a9936c0cf1ab7f1c7da7): 2026-08-29
 - [iFX EXPO Asia 2026](https://stackified.github.io/xktradingfloor/events/6ac4c0ab4bbbbdd0270f388b): 2026-10-08
+- [Surat Trading Seminar 2026](https://stackified.github.io/xktradingfloor/events/6ac9b9ad8d39074ae2efba0c): 2026-11-01
+- [Surat Trading Seminar 2026 | FundingPips × Akash.FRX × Sahil Shaikh](https://stackified.github.io/xktradingfloor/events/6ac93428f42efd8eb2faa791): 2026-11-01
 - [WIKI FINANCE EXPO Cyprus 2026](https://stackified.github.io/xktradingfloor/events/6ac4c0b44bbbbdd0270f3a23): 2026-11-06
 - [Traders Fair Uzbekistan 2026](https://stackified.github.io/xktradingfloor/events/6ac4c0b24bbbbdd0270f39bd): 2026-11-14
 - [Finance Magnates Summit London 2026](https://stackified.github.io/xktradingfloor/events/6ac4c0834bbbbdd0270f381d): 2026-11-24
