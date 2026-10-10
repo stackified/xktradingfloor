@@ -15,7 +15,7 @@ import { getAssetPath } from "../../utils/assets.js";
 // says "free"; the free part is the $5,000 funded account on the poster.
 const BANNER = {
   id: "surat-seminar-2026",
-  eventPath: "/events/6ac93428f42efd8eb2faa791",
+  eventPath: "/events/surat-trading-seminar-2026-fundingpips-akash-frx-sahil-shaikh-6ac93428f42efd8eb2faa791",
   endsAt: Date.parse("2026-11-01T14:00:00+05:30"),
   src: (w) => getAssetPath(`/banners/surat-seminar-2026-v2-${w}.webp`),
   widths: [800, 1200, 2000],

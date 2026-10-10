@@ -2,6 +2,7 @@ import siteJsonLd from "./siteJsonLd.json";
 import { authorDisplayName, isStaffAccount } from "./authors.js";
 import { reviewerName } from "./reviewerName.js";
 import { eventPricing } from "./eventPricing.js";
+import { eventPath } from "./eventUrl.js";
 
 const SITE_URL = "https://xktradingfloor.com";
 const SITE_NAME = "XK Trading Floor";
@@ -134,7 +135,7 @@ export const eventJsonLd = (event) => {
       event.type === "online"
         ? {
             "@type": "VirtualLocation",
-            url: `${SITE_URL}/events/${event._id}`,
+            url: `${SITE_URL}${eventPath(event)}`,
           }
         : {
             "@type": "Place",
@@ -157,7 +158,7 @@ export const eventJsonLd = (event) => {
                 : {}),
             availability: "https://schema.org/InStock",
             url:
-              event.externalUrl?.trim() || `${SITE_URL}/events/${event._id}`,
+              event.externalUrl?.trim() || `${SITE_URL}${eventPath(event)}`,
           }
         : undefined,
     // Use the real organizer name if we have one, else fall back to XK.

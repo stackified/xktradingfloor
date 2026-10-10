@@ -12,6 +12,7 @@ import { writeFileSync, mkdirSync, existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, resolve } from "node:path";
 import { BLOG_CATEGORIES } from "../src/utils/blogCategories.js";
+import { eventPath } from "../src/utils/eventUrl.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -156,9 +157,10 @@ async function loadDynamic() {
   eventList.forEach((e) => {
     const id = e?._id || e?.id;
     if (!id) return;
-    LLMS.events.push({ title: String(e.title || "").trim(), date: e.dateTime, path: `/events/${id}` });
+    const path = eventPath(e); // readable /events/<title>-<id> URL
+    LLMS.events.push({ title: String(e.title || "").trim(), date: e.dateTime, path });
     out.push({
-      path: `/events/${id}`,
+      path,
       lastmod: iso(e.updatedAt || e.createdAt),
       priority: "0.6",
       changefreq: "weekly",

@@ -1,7 +1,7 @@
 import React from "react";
 import Seo from "../components/shared/Seo.jsx";
 import { eventJsonLd, breadcrumbJsonLd } from "../utils/structuredData.js";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ExternalLink } from "lucide-react";
 import { getEventById, EVENT_LEADS_LIVE } from "../controllers/eventsController.js";
@@ -11,12 +11,17 @@ import RegisterModal from "../components/academy/RegisterModal.jsx";
 import EventRegisterModal from "../components/academy/EventRegisterModal.jsx";
 import { formatEventWhen, formatEventPlace } from "../utils/eventTime.js";
 import { eventPricing } from "../utils/eventPricing.js";
+import { eventPath, eventIdFromParam } from "../utils/eventUrl.js";
 import { getUserCookie } from "../utils/cookies.js";
 import DesignedHtml from "../components/shared/DesignedHtml.jsx";
 import { eventDescriptionView, eventSummary } from "../utils/eventDescription.js";
 
 function EventDetails() {
-  const { eventId } = useParams();
+  // The param is "<title-slug>-<id>" or, on old links, a bare id.
+  const { eventId: param } = useParams();
+  const eventId = eventIdFromParam(param);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [event, setEvent] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [modalOpen, setModalOpen] = React.useState(false);
@@ -42,6 +47,17 @@ function EventDetails() {
     }
     loadEvent();
   }, [eventId]);
+
+  // Old /events/<id> links (and links made before a title changed) move to
+  // the current readable URL, keeping any query or hash.
+  React.useEffect(() => {
+    if (!event) return;
+    const canonical = eventPath(event);
+    if (location.pathname !== canonical) {
+      navigate({ pathname: canonical, search: location.search, hash: location.hash }, { replace: true });
+    }
+  }, [event, location.pathname]);
+
   const reduxUser = useSelector((state) => state.auth.user);
   const user = reduxUser || getUserCookie();
 
@@ -76,7 +92,7 @@ function EventDetails() {
       <Seo
         title={event.title}
         description={eventSummary(event, 160) || "View event details and register for XK Trading Floor workshops and webinars."}
-        path={`/events/${event._id}`}
+        path={eventPath(event)}
         image={event.featuredImage || event.image}
         type="event"
         jsonLd={[
@@ -84,7 +100,7 @@ function EventDetails() {
           breadcrumbJsonLd([
             { name: "Home", url: "/" },
             { name: "Events", url: "/events" },
-            { name: event.title, url: `/events/${event._id}` },
+            { name: event.title, url: eventPath(event) },
           ]),
         ].filter(Boolean)}
       />
