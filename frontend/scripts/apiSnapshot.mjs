@@ -7,10 +7,20 @@
 
 import { API_SNAPSHOT_ID, apiSnapshotKey } from "../src/utils/apiSnapshot.js";
 
-// Every visitor downloads the saved copy, so big answers are left out.
-// shortcut: hub pages (/reviews, /live-spreads) lose their 150 KB+ company
-// lists and still render empty for Google; trim those API answers to fix.
+// Every visitor downloads the saved copy, so it is kept small. An answer over
+// the limit is saved with its long text fields emptied (company lists carry
+// whole designed-HTML descriptions that list pages never show); if it is
+// still too big, it is left out.
 const MAX_RESPONSE_CHARS = 64 * 1024;
+const MAX_TEXT_FIELD_CHARS = 2000;
+
+function fitted(text) {
+  if (text.length <= MAX_RESPONSE_CHARS) return JSON.parse(text);
+  const trimmed = JSON.stringify(JSON.parse(text), (_, v) =>
+    typeof v === "string" && v.length > MAX_TEXT_FIELD_CHARS ? "" : v
+  );
+  return trimmed.length <= MAX_RESPONSE_CHARS ? JSON.parse(trimmed) : undefined;
+}
 
 export function recordApi(page, apiBase) {
   const saved = new Map();
@@ -29,7 +39,8 @@ export function recordApi(page, apiBase) {
       res
         .text()
         .then((text) => {
-          if (text.length <= MAX_RESPONSE_CHARS) saved.set(apiSnapshotKey(req.method(), res.url(), req.postData()), JSON.parse(text));
+          const data = fitted(text);
+          if (data !== undefined) saved.set(apiSnapshotKey(req.method(), res.url(), req.postData()), data);
         })
         .catch(() => {})
     );
