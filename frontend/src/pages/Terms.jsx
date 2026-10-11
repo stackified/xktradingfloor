@@ -2,6 +2,7 @@ import React from "react";
 import Seo from "../components/shared/Seo.jsx";
 import { m as motion } from "framer-motion";
 import { FileText, AlertTriangle, Shield, User, Ban, Copyright, Download, Users, XCircle, RefreshCw, Mail, Globe, ExternalLink } from "lucide-react";
+import { CONTACT_EMAIL } from "../utils/contact.js";
 
 function Terms() {
   const currentDate = new Date().toLocaleDateString("en-US", {
@@ -270,11 +271,11 @@ function Terms() {
               </p>
               <div className="space-y-2">
                 <a
-                  href="mailto:x.tradersz@gmail.com"
+                  href={`mailto:${CONTACT_EMAIL}`}
                   className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors text-sm sm:text-base"
                 >
                   <Mail className="h-4 w-4" />
-                  x.tradersz@gmail.com
+                  {CONTACT_EMAIL}
                 </a>
                 <a
                   href="https://xktradingfloor.com"
