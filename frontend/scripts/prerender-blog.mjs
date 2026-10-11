@@ -26,6 +26,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer-core";
+import { recordApi } from "./apiSnapshot.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DOCS = path.resolve(__dirname, "../docs");
@@ -161,9 +162,11 @@ try {
   await page.setViewport({ width: 1280, height: 900 });
   await page.setRequestInterception(true);
   page.on("request", (r) => (ABORT.test(r.url()) ? r.abort() : r.continue()));
+  const apiRecord = recordApi(page, API);
 
   for (const slug of slugs) {
     try {
+      apiRecord.reset();
       await page.goto(`http://localhost:${PORT}${BASE}blog/${slug}`, { waitUntil: "domcontentloaded", timeout: 60000 });
       await page.waitForSelector("article.article-content", { timeout: 60000 });
       // Let Helmet flush the head tags and images get their src.
@@ -187,6 +190,7 @@ try {
         return document.title;
       });
 
+      await apiRecord.embed();
       const html = await page.content();
       if (!/og:type" content="article"|content="article" property="og:type"/.test(html)) throw new Error("article meta missing");
       await writeFile(path.join(OUT_DIR, `${slug}.html`), html, "utf8");

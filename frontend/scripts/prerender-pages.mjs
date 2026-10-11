@@ -26,6 +26,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer-core";
+import { recordApi } from "./apiSnapshot.mjs";
 import { BLOG_CATEGORIES } from "../src/utils/blogCategories.js";
 import { eventPath } from "../src/utils/eventUrl.js";
 
@@ -184,9 +185,11 @@ try {
   await page.setViewport({ width: 1280, height: 900 });
   await page.setRequestInterception(true);
   page.on("request", (r) => (ABORT.test(r.url()) ? r.abort() : r.continue()));
+  const apiRecord = recordApi(page, API);
 
   for (const route of pages) {
     try {
+      apiRecord.reset();
       await page.goto(`http://localhost:${PORT}${BASE}${route}`, { waitUntil: "domcontentloaded", timeout: 60000 });
       // The page's own <title> (set by its Seo component) and a heading.
       await page.waitForFunction(
@@ -216,6 +219,7 @@ try {
       });
 
       if (head.canonicals !== 1) throw new Error(`expected 1 canonical, found ${head.canonicals}`);
+      await apiRecord.embed();
       const html = await page.content();
       const out = path.join(DOCS, `${route}.html`);
       await mkdir(path.dirname(out), { recursive: true });
