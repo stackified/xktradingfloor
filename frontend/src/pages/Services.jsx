@@ -13,8 +13,8 @@ import {
 import HeroSection from "../components/shared/HeroSection.jsx";
 import Seo from "../components/shared/Seo.jsx";
 import { useToast } from "../contexts/ToastContext.jsx";
+import { CONTACT_EMAIL } from "../utils/contact.js";
 
-const CONTACT_EMAIL = "hello@xktradingfloor.com";
 
 function Services() {
   const toast = useToast();

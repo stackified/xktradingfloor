@@ -11,6 +11,7 @@ import {
   Mail,
   ExternalLink,
 } from "lucide-react";
+import { CONTACT_EMAIL } from "../utils/contact.js";
 
 function PrivacyPolicy() {
   const currentDate = new Date().toLocaleDateString("en-US", {
@@ -129,7 +130,7 @@ function PrivacyPolicy() {
         "Opt-out of marketing communication",
         "Restriction of processing",
       ],
-      note: "Email us at: x.tradersz@gmail.com",
+      note: `Email us at: ${CONTACT_EMAIL}`,
     },
     {
       id: 8,
@@ -280,11 +281,11 @@ function PrivacyPolicy() {
               </p>
               <div className="space-y-2">
                 <a
-                  href="mailto:x.tradersz@gmail.com"
+                  href={`mailto:${CONTACT_EMAIL}`}
                   className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors text-sm sm:text-base"
                 >
                   <Mail className="h-4 w-4" />
-                  x.tradersz@gmail.com
+                  {CONTACT_EMAIL}
                 </a>
                 <a
                   href="https://xktradingfloor.com"
