@@ -5,6 +5,7 @@ import Seo from "../components/shared/Seo.jsx";
 import FaqSection from "../components/shared/FaqSection.jsx";
 import { faqJsonLd } from "../utils/faq.js";
 import { breadcrumbJsonLd } from "../utils/structuredData.js";
+import { CONTACT_EMAIL } from "../utils/contact.js";
 
 // /how-we-rate: how XK's ratings, reviews, Verified Trader badges and data
 // work, and how XK makes money. Answer engines and AI assistants weigh a
@@ -236,8 +237,8 @@ function HowWeRate() {
         <Section icon={Mail} id="corrections" title="Corrections">
           <p>
             Found something wrong, outdated or missing? Email{" "}
-            <a href="mailto:x.tradersz@gmail.com" className="text-blue-400 underline underline-offset-2 hover:text-blue-300">
-              x.tradersz@gmail.com
+            <a href={`mailto:${CONTACT_EMAIL}`} className="text-blue-400 underline underline-offset-2 hover:text-blue-300">
+              {CONTACT_EMAIL}
             </a>{" "}
             or use the{" "}
             <Link to="/contact" className="text-blue-400 underline underline-offset-2 hover:text-blue-300">

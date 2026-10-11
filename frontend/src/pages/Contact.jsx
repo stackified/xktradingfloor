@@ -15,8 +15,8 @@ import Seo from "../components/shared/Seo.jsx";
 import CustomSelect from "../components/shared/CustomSelect.jsx";
 import DiscordLink from "../components/shared/DiscordLink.jsx";
 import { trackEvent } from "../utils/analytics.js";
+import { CONTACT_EMAIL } from "../utils/contact.js";
 
-const CONTACT_EMAIL = "x.tradersz@gmail.com";
 
 function Contact() {
   const [ok, setOk] = React.useState(false);
@@ -188,10 +188,10 @@ Sent from xktradingfloor.com/contact`;
                       aria-hidden="true"
                     />
                     <a
-                      href="mailto:x.tradersz@gmail.com"
+                      href={`mailto:${CONTACT_EMAIL}`}
                       className="hover:text-white transition-colors"
                     >
-                      x.tradersz@gmail.com
+                      {CONTACT_EMAIL}
                     </a>
                   </li>
                   <li className="flex items-center gap-3 text-sm sm:text-base text-gray-300">
