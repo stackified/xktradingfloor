@@ -1,4 +1,5 @@
 import axios from "axios";
+import { API_SNAPSHOT_ID, apiSnapshotKey } from "../utils/apiSnapshot.js";
 
 // Use relative path to leverage Vite proxy in development
 // checks if we are in production or not
@@ -90,8 +91,31 @@ api.interceptors.response.use(
       }
     }
     // if (err.response?.status === 401) { /* handle logout or refresh */ }
+
+    // API unreachable or failing: answer from the copy saved into this
+    // prerendered page, if it has one (scripts/apiSnapshot.mjs says why).
+    if (err.config && !axios.isCancel(err) && (!err.response || err.response.status >= 500)) {
+      const saved = snapshotFor(err.config);
+      if (saved !== undefined) {
+        return { data: saved, status: 200, statusText: "OK", headers: {}, config: err.config, request: null };
+      }
+    }
     return Promise.reject(err);
   }
 );
+
+let snapshot;
+function snapshotFor(config) {
+  try {
+    if (snapshot === undefined) {
+      snapshot = JSON.parse(document.getElementById(API_SNAPSHOT_ID)?.textContent || "{}");
+    }
+    const url = new URL(api.getUri(config), window.location.href).href;
+    return snapshot[apiSnapshotKey(config.method, url, typeof config.data === "string" ? config.data : undefined)];
+  } catch {
+    snapshot = snapshot || {};
+    return undefined;
+  }
+}
 
 export default api;
