@@ -27,6 +27,11 @@
   # The Learn page became the blog's Learn Trading category (2 Oct 2026).
   RewriteRule ^learn$ /blog/category/learn-trading [R=301,L]
 
+  # Old and guessable addresses, answered with a real 301 instead of the app's
+  # client-side redirect (Academy became Events) or its "Page not found".
+  RewriteRule ^academy$ /events [R=301,L]
+  RewriteRule ^spreads$ /live-spreads [R=301,L]
+
   # Serve real files as-is (ads.txt, verification file, assets, etc.).
   # Directories are deliberately NOT served: blog/ holds the prerendered
   # posts, and /blog itself must still reach the app, not the folder.

@@ -428,7 +428,9 @@ export default function ImageWithFallback({
     (imgSrc === fallbackUrl && src && imgSrc !== cdnUrl);
 
   const loadingProps = priority
-    ? { loading: "eager", fetchPriority: "high" }
+    // Lowercase on purpose: React 18 drops the camelCase fetchPriority prop
+    // (with a console warning), so the hint never reached the browser.
+    ? { loading: "eager", fetchpriority: "high" }
     : { loading: "lazy", decoding: "async" };
 
   // If using fallback and alt text exists, wrap in container with text overlay
