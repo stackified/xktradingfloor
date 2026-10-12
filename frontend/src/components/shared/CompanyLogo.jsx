@@ -105,7 +105,7 @@ function CompanyLogo({ src, name = "", size = "md", className = "", priority = f
         onLoad={handleLoad}
         onError={handleError}
         className={`h-full w-full ${poster ? "object-cover" : "object-contain"}`}
-        {...(priority ? { loading: "eager", fetchPriority: "high" } : { loading: "lazy", decoding: "async" })}
+        {...(priority ? { loading: "eager", fetchpriority: "high" } : { loading: "lazy", decoding: "async" })}
       />
     </div>
   );

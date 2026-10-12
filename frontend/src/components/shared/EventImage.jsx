@@ -20,6 +20,10 @@ function EventImage({ src, alt = "", className = "", rounded = "", priority = fa
           aria-hidden="true"
           className="absolute inset-0 h-full w-full object-cover scale-110 blur-xl opacity-60"
           loading={priority ? "eager" : "lazy"}
+          // The blurred copy is what Lighthouse sees as the largest paint on
+          // event pages; same URL as the main image, so one request. Lowercase
+          // because React 18 drops the camelCase prop.
+          fetchpriority={priority ? "high" : undefined}
           decoding="async"
         />
       )}
