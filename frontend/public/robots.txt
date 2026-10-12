@@ -17,21 +17,17 @@ Disallow: /admin
 Disallow: /operator
 
 # AI search and answer engines (explicitly welcome; same private areas).
-User-agent: GPTBot
+# These read pages to answer people's questions and cite the site.
 User-agent: OAI-SearchBot
 User-agent: ChatGPT-User
-User-agent: ClaudeBot
 User-agent: Claude-SearchBot
 User-agent: Claude-User
 User-agent: PerplexityBot
 User-agent: Perplexity-User
 User-agent: Google-Extended
 User-agent: Applebot
-User-agent: Applebot-Extended
-User-agent: Amazonbot
 User-agent: DuckAssistBot
 User-agent: MistralAI-User
-User-agent: Meta-ExternalAgent
 User-agent: Bingbot
 Allow: /
 Disallow: /dashboard
@@ -40,6 +36,18 @@ Disallow: /my-blogs
 Disallow: /blogs/
 Disallow: /admin
 Disallow: /operator
+
+# AI model training crawlers: not allowed (12 Oct 2026). Cloudflare's AI bot
+# policy blocks training crawlers too; this keeps the two in step. Answer
+# engines above can still read and cite every public page.
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: Amazonbot
+User-agent: Meta-ExternalAgent
+User-agent: Applebot-Extended
+User-agent: CCBot
+User-agent: Bytespider
+Disallow: /
 
 Sitemap: https://xktradingfloor.com/sitemap-index.xml
 Sitemap: https://xktradingfloor.com/sitemap.xml
