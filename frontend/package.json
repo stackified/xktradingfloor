@@ -58,6 +58,7 @@
     "vite": "^7.3.1"
   },
   "overrides": {
-    "d3-color": "^3.1.0"
+    "d3-color": "^3.1.0",
+    "postcss-selector-parser": "^7.1.6"
   }
 }

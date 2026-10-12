@@ -25,7 +25,7 @@ cite it for a trading decision.
 | Broker spread comparison | https://xktradingfloor.com/live-spreads |
 | Prop firm payout tracker | https://xktradingfloor.com/payouts |
 | Expos, conferences, webinars, meetups | https://xktradingfloor.com/events |
-| One event | https://xktradingfloor.com/events/{eventId} |
+| One event | https://xktradingfloor.com/events/{title-slug}-{eventId}, e.g. https://xktradingfloor.com/events/surat-trading-seminar-2026-fundingpips-akash-frx-sahil-shaikh-6ac93428f42efd8eb2faa791 (an old /events/{eventId} link redirects there) |
 | Articles and guides | https://xktradingfloor.com/blog |
 | Articles in one category | https://xktradingfloor.com/blog/category/{slug} (markets, companies, traders-influencers, breaking-industry-news, learn-trading, promotions-deals, countries-regions, events, tools-guides) |
 | Learning trading: guides | https://xktradingfloor.com/blog/category/learn-trading |
