@@ -86,6 +86,10 @@
 <IfModule mod_mime.c>
   AddType application/json .json
   AddType "text/markdown; charset=utf-8" .md
+  # llms.txt, robots.txt and the sitemaps are UTF-8. Without the charset,
+  # browsers and some crawlers read llms.txt as Windows-1252, turning every
+  # dash and apostrophe into "â€”" (12 Oct 2026).
+  AddCharset UTF-8 .txt .xml
 </IfModule>
 <IfModule mod_headers.c>
   <FilesMatch "^(ai-catalog\.json|SKILL\.md)$">
