@@ -4,6 +4,30 @@ const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const { getPagination, getPaginationData, escapeRegex, isValidObjectId } = require("../utils/fn");
 const constants = require("../utils/constants");
 const r2 = require("../helpers/r2.helper");
+const { PUBLIC_USER_FIELDS, publicUser, plainExcerpt } = require("../utils/publicData");
+
+// Average rating and count per company in one aggregation, instead of loading
+// every review (and its user) just to average them (B4).
+async function ratingsFor(companyIds) {
+    if (!companyIds.length) return {};
+    const rows = await ReviewModel.aggregate([
+        { $match: { companyId: { $in: companyIds } } },
+        { $group: { _id: "$companyId", avg: { $avg: "$rating" }, count: { $sum: 1 } } },
+    ]);
+    return rows.reduce((acc, row) => {
+        acc[String(row._id)] = {
+            ratingsAggregate: parseFloat(row.avg.toFixed(1)),
+            totalReviews: row.count,
+        };
+        return acc;
+    }, {});
+}
+
+// Reviews as the public sees them: the reviewer reduced to id, name (never an
+// email) and photo.
+function publicReviews(reviews) {
+    return reviews.map((review) => ({ ...review, userId: publicUser(review.userId) }));
+}
 
 // Helper function to recalculate company rating
 async function recalculateCompanyRating(companyId) {
@@ -28,48 +52,33 @@ exports.getAllApprovedCompanies = async (req, res) => {
         if (category != "") query.category = category;
         query.status = 'approved';
 
+        // Search the name and short details, not the designed HTML review.
         if (searchTerm) {
             query.$or = [
                 { name: { $regex: searchTerm, $options: 'i' } },
-                { description: { $regex: searchTerm, $options: 'i' } },
                 { details: { $regex: searchTerm, $options: 'i' } }
             ];
         }
 
+        // Lists carry no full description (designed reviews are 25-30 KB
+        // each) and no people: a short plain-text excerpt is enough for cards.
         const companies = await CompanyModel.find(query)
-            .populate('addedBy', 'fullName email profileImage')
-            .populate('adminId', 'fullName email profileImage')
+            .select('-addedBy -adminId')
             .sort({ createdAt: -1 })
             .skip(offset)
             .limit(limit)
             .lean();
 
         const totalItems = await CompanyModel.countDocuments(query);
-
-        const reviews = await ReviewModel.find({
-            companyId: { $in: companies.map(c => c._id) }
-        }).populate("userId").lean();
-
-        const reviewsByCompany = reviews.reduce((acc, review) => {
-            if (!acc[review.companyId]) {
-                acc[review.companyId] = [];
-            }
-            acc[review.companyId].push(review);
-            return acc;
-        }, {});
+        const ratings = await ratingsFor(companies.map(c => c._id));
 
         const companiesWithRatings = companies.map(company => {
-            const companyReviews = reviewsByCompany[company._id] || [];
-            const reviewers = companyReviews.map(r => r.userId);
-            const totalReviews = companyReviews.length;
-            const ratingsAggregate = totalReviews > 0
-                ? parseFloat((companyReviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1))
-                : 0;
+            const { description, ...rest } = company;
             return {
-                ...company,
-                reviewers,
-                ratingsAggregate,
-                totalReviews
+                ...rest,
+                excerpt: plainExcerpt(description),
+                ratingsAggregate: ratings[String(company._id)]?.ratingsAggregate || 0,
+                totalReviews: ratings[String(company._id)]?.totalReviews || 0,
             };
         })
 
@@ -113,32 +122,13 @@ exports.getAllCompanies = async (req, res) => {
 
         const totalItems = await CompanyModel.countDocuments(query);
 
-        const reviews = await ReviewModel.find({
-            companyId: { $in: companies.map(c => c._id) }
-        }).populate("userId").lean();
+        const ratings = await ratingsFor(companies.map(c => c._id));
 
-        const reviewsByCompany = reviews.reduce((acc, review) => {
-            if (!acc[review.companyId]) {
-                acc[review.companyId] = [];
-            }
-            acc[review.companyId].push(review);
-            return acc;
-        }, {});
-
-        const companiesWithRatings = companies.map(company => {
-            const companyReviews = reviewsByCompany[company._id] || [];
-            // const reviewers = companyReviews.map(r => r.userId);
-            const totalReviews = companyReviews.length;
-            const ratingsAggregate = totalReviews > 0
-                ? parseFloat((companyReviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1))
-                : 0;
-            return {
-                ...company,
-                // reviewers,
-                ratingsAggregate,
-                totalReviews
-            };
-        })
+        const companiesWithRatings = companies.map(company => ({
+            ...company,
+            ratingsAggregate: ratings[String(company._id)]?.ratingsAggregate || 0,
+            totalReviews: ratings[String(company._id)]?.totalReviews || 0,
+        }));
 
         return sendSuccessResponse(res, getPaginationData(
             { count: totalItems, docs: companiesWithRatings },
@@ -154,16 +144,20 @@ exports.getAllCompanies = async (req, res) => {
 exports.getCompanyById = async (req, res) => {
     try {
         const { companyId } = req.params;
+        // Reached by any signed-in user (protected route) as well as admins,
+        // so people are reduced to their public fields.
         const company = await CompanyModel.findById(companyId)
-            .populate('addedBy', 'fullName email profileImage')
-            .populate('adminId', 'fullName email profileImage')
+            .populate('addedBy', PUBLIC_USER_FIELDS)
+            .populate('adminId', PUBLIC_USER_FIELDS)
             .lean();
 
         if (!company) {
             return sendErrorResponse(res, "Company not found", 404, true, true);
         }
 
-        const reviews = await ReviewModel.find({ companyId: company._id }).populate("userId").lean();
+        const reviews = publicReviews(
+            await ReviewModel.find({ companyId: company._id }).populate("userId", PUBLIC_USER_FIELDS).lean()
+        );
         const reviewers = reviews.map(r => r.userId);
         const totalReviews = reviews.length;
         const ratingsAggregate = totalReviews > 0
@@ -198,7 +192,9 @@ exports.getApprovedCompanyById = async (req, res) => {
             return sendErrorResponse(res, "Company not found", 404, true, true);
         }
 
-        const reviews = await ReviewModel.find({ companyId: company._id }).populate("userId").lean();
+        const reviews = publicReviews(
+            await ReviewModel.find({ companyId: company._id }).populate("userId", PUBLIC_USER_FIELDS).lean()
+        );
         const totalReviews = reviews.length;
         const ratingsAggregate = totalReviews > 0
             ? parseFloat((reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1))

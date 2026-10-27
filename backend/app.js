@@ -23,7 +23,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 // database connection
 database.connect();
 
-const { startSpreadCron } = require("./jobs/spreadCron");
+// backend/jobs/ was never committed, so requiring "./jobs/spreadCron" crashed
+// every deploy since July (B1). The service has always exported the cron.
+const { startSpreadCron } = require("./services/spreadScraper.service");
 startSpreadCron();
 
 app.use('/', indexRouter);

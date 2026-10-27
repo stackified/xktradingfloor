@@ -53,8 +53,7 @@ async function attachProofDownloadUrls(proofDocuments = []) {
             let downloadUrl = null;
             if (doc.storageKey) {
                 try {
-                    const pseudoUrl = `https://r2.local/${environment.r2.bucketName}/${doc.storageKey}`;
-                    downloadUrl = await r2.generatePresignedDownloadUrl(pseudoUrl, 3600);
+                    downloadUrl = await r2.signedPrivateUrl(doc.storageKey, 3600);
                 } catch (_) {
                     downloadUrl = null;
                 }

@@ -33,5 +33,6 @@ module.exports = {
         endpoint: process.env.R2_ENDPOINT,
         region: process.env.R2_REGION || "auto",
         publicDomain: process.env.R2_PUBLIC_DOMAIN,
+        privateBucketName: process.env.R2_PRIVATE_BUCKET_NAME,
     },
 };

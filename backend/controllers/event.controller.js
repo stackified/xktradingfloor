@@ -1,6 +1,6 @@
 const EventModel = require("../models/event.model");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
-const { getPagination, getPaginationData, escapeRegex } = require("../utils/fn");
+const { getPagination, getPaginationData, escapeRegex, isValidObjectId } = require("../utils/fn");
 const emailService = require("../services/email.service");
 const UserModel = require("../models/user.model");
 const environment = require("../utils/environment");
@@ -82,7 +82,9 @@ exports.createEvent = async (req, res) => {
             }
         })();
 
-        return sendSuccessResponse(res, { message: "Event created", data: saved }, 201);
+        const created = saved.toObject();
+        delete created.registrations;
+        return sendSuccessResponse(res, { message: "Event created", data: created }, 201);
     } catch (error) {
         return sendErrorResponse(res, error);
     }
@@ -96,7 +98,9 @@ exports.getAllEvents = async (req, res) => {
         const { limit, offset } = getPagination(page, size);
         const query = buildEventListQuery({ type, region, category, month, search });
 
+        // Registrations never leave the server on event responses (B4).
         const events = await EventModel.find(query)
+            .select("-registrations")
             .sort({ dateTime: 1, createdAt: -1 })
             .skip(offset)
             .limit(limit);
@@ -115,7 +119,10 @@ exports.getAllEvents = async (req, res) => {
 exports.getEventById = async (req, res) => {
     try {
         const { eventId } = req.params;
-        const event = await EventModel.findById(eventId);
+        if (!isValidObjectId(eventId)) {
+            return sendErrorResponse(res, "Event not found", 404, true, true);
+        }
+        const event = await EventModel.findById(eventId).select("-registrations");
         if (!event) {
             return sendErrorResponse(res, "Event not found", 404, true, true);
         }
@@ -151,7 +158,9 @@ exports.updateEvent = async (req, res) => {
         Object.assign(event, updateData);
         const updated = await event.save();
 
-        return sendSuccessResponse(res, { message: "Event updated", data: updated });
+        const result = updated.toObject();
+        delete result.registrations;
+        return sendSuccessResponse(res, { message: "Event updated", data: result });
     } catch (error) {
         return sendErrorResponse(res, error);
     }

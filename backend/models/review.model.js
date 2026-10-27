@@ -28,5 +28,8 @@ const ReviewSchema = new Schema(
     }
 );
 
+// Ratings and company pages look reviews up by company (B4).
+ReviewSchema.index({ companyId: 1, createdAt: -1 });
+
 const ReviewModel = mongoose.model('review', ReviewSchema);
 module.exports = ReviewModel;

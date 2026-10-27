@@ -51,6 +51,19 @@ const r2ClientObj = new S3Client({
     forcePathStyle: true, // Required for R2
 });
 
+// Private documents (verified-trader broker statements and payout proofs)
+// must never be reachable through the public bucket's domain (B5). They go to
+// R2_PRIVATE_BUCKET_NAME, a bucket with no public access, and are only read
+// through short-lived signed links. Until that bucket is configured they
+// stay in the main bucket, as before.
+const privateBucket = () => environment.r2.privateBucketName || environment.r2.bucketName;
+if (!environment.r2.privateBucketName) {
+    console.warn("WARNING: R2_PRIVATE_BUCKET_NAME is not set; private documents are stored in the public bucket.");
+}
+
+// Signed links are valid for at most 7 days (R2/S3 reject longer ones).
+const MAX_SIGNED_SECONDS = 7 * 24 * 60 * 60;
+
 // Helper function to construct R2 public URL
 // Note: R2 buckets are private by default. You need either:
 // 1. A custom domain configured in Cloudflare R2 for public access
@@ -69,7 +82,7 @@ const getR2PublicUrl = async (key, usePresigned = false) => {
                 Bucket: environment.r2.bucketName,
                 Key: key,
             });
-            const presignedUrl = await getSignedUrl(r2ClientObj, command, { expiresIn: 31536000 }); // 1 year
+            const presignedUrl = await getSignedUrl(r2ClientObj, command, { expiresIn: MAX_SIGNED_SECONDS });
             return presignedUrl;
         } catch (error) {
             console.error("Error generating presigned URL:", error);
@@ -139,7 +152,7 @@ const r2 = {    uploadPrivate: async (file, fileName, folder = "folderName") => 
             const fileContent = fs.readFileSync(file);
 
             const command = new PutObjectCommand({
-                Bucket: environment.r2.bucketName,
+                Bucket: privateBucket(),
                 Key: key,
                 Body: fileContent,
                 ContentType: contentTypeFor(fileName),
@@ -148,9 +161,6 @@ const r2 = {    uploadPrivate: async (file, fileName, folder = "folderName") => 
 
             await r2ClientObj.send(command);
 
-            // Return R2 public URL (with presigned URL if no custom domain)
-            const publicUrl = await getR2PublicUrl(key, true); // Use presigned URL for public access
-            
             // Delete file asynchronously with error handling
             if (fs.existsSync(file)) {
                 fs.unlink(file, (deleteErr) => {
@@ -160,7 +170,9 @@ const r2 = {    uploadPrivate: async (file, fileName, folder = "folderName") => 
                 });
             }
 
-            return publicUrl;
+            // Private files have no lasting link: callers keep the key and
+            // ask for a short-lived signed link when an admin needs it.
+            return key;
         } catch (error) {
             throw error;
         }
@@ -229,6 +241,14 @@ const r2 = {    uploadPrivate: async (file, fileName, folder = "folderName") => 
     },
 
     // Generate a presigned URL for downloading from R2
+    // Short-lived signed link to a private document, by its storage key.
+    signedPrivateUrl: async (key, expiresIn = 3600) => {
+        const command = new GetObjectCommand({ Bucket: privateBucket(), Key: key });
+        return getSignedUrl(r2ClientObj, command, { expiresIn: Math.min(expiresIn, MAX_SIGNED_SECONDS) });
+    },
+
+    privateBucketName: privateBucket,
+
     generatePresignedDownloadUrl: async (fileUrl, expiresIn = 3600) => {
         try {
             // Extract key from the URL
@@ -240,7 +260,7 @@ const r2 = {    uploadPrivate: async (file, fileName, folder = "folderName") => 
                 Key: key,
             });
 
-            const downloadUrl = await getSignedUrl(r2ClientObj, command, { expiresIn });
+            const downloadUrl = await getSignedUrl(r2ClientObj, command, { expiresIn: Math.min(expiresIn, MAX_SIGNED_SECONDS) });
             return downloadUrl;
         } catch (error) {
             throw error;

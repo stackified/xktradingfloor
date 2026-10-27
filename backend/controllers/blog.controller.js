@@ -4,9 +4,10 @@ const dayjs = require("dayjs");
 const crypto = require("crypto");
 const r2 = require("../helpers/r2.helper");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
-const { getPagination, getPaginationData, escapeRegex } = require("../utils/fn");
+const { getPagination, getPaginationData, escapeRegex, isValidObjectId } = require("../utils/fn");
 const emailService = require("../services/email.service");
 const environment = require("../utils/environment");
+const constants = require("../utils/constants");
 
 const slugify = (text) =>
     String(text || "")
@@ -60,8 +61,13 @@ const transformBlogForResponse = (blog) => {
         b.coverImage = b.featuredImage;
     }
     b.updatedAt = b.updatedAt || b.createdAt;
+    // Viewer identifiers are only used to count views; never send them.
+    delete b.viewedBy;
     return b;
 };
+
+const isStaff = (user) =>
+    Boolean(user) && [constants.roles.admin, constants.roles.operator].includes(user.role);
 
 // Whole minutes at ~220 words per minute, from stored HTML.
 const readingMinutes = (html) => {
@@ -352,8 +358,18 @@ exports.getAllBlogs = async (req, res) => {
 exports.getBlogById = async (req, res) => {
     try {
         const { blogid } = req.params;
-        const blog = await BlogModel.findOne({ _id: blogid, isDeleted: false })
-            .populate('author', 'fullName email profileImage');
+        if (!isValidObjectId(blogid)) {
+            return sendErrorResponse(res, "Blog post not found", 404, true, true);
+        }
+        // Public route (no req.user): published posts only. Signed-in users
+        // also see their own drafts; Admin/Operator see everything (B4).
+        const query = { _id: blogid, isDeleted: false };
+        if (!isStaff(req.user)) {
+            query.$or = [{ status: "published" }];
+            if (req.user?._id) query.$or.push({ author: req.user._id });
+        }
+        const blog = await BlogModel.findOne(query)
+            .populate('author', isStaff(req.user) ? 'fullName email profileImage' : 'fullName profileImage');
 
         if (!blog) {
             return sendErrorResponse(res, "Blog post not found", 404, true, true);
@@ -400,7 +416,7 @@ exports.getBlogBySlug = async (req, res) => {
             status: 'published',
             isDeleted: false
         })
-            .populate('author', 'fullName email profileImage');
+            .populate('author', 'fullName profileImage');
 
         if (!blog) {
             return sendErrorResponse(res, "Blog post not found", 404, true, true);
