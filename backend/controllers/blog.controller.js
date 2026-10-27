@@ -11,6 +11,8 @@ const environment = require("../utils/environment");
 const constants = require("../utils/constants");
 const { slugify, ensureUniqueSlug } = require("../utils/blogSlug");
 const { BLOG_CATEGORIES, findBlogCategory } = require("../utils/blogCategories");
+const { uploadOptionalPublic } = require("../utils/uploads");
+const { requestSiteRebuild } = require("../services/siteRebuild.service");
 
 // One category per post, from the agreed nine (B18): `category` holds the
 // display name and `categorySlug` the URL slug; `categories` mirrors it for
@@ -231,6 +233,8 @@ exports.createBlog = async (req, res) => {
 
         blogData.author = userId || null;
         blogData.featuredImage = featuredImage || blogData.featuredImage || null;
+        // B8: thumbnail made in the browser, stored with a new featured image.
+        blogData.imageThumb = featuredImage ? (await uploadOptionalPublic(req, "imageThumb", "Blogs")) || null : null;
         if (images.length > 0) {
             blogData.images = images;
         }
@@ -243,6 +247,7 @@ exports.createBlog = async (req, res) => {
 
         const blog = new BlogModel(blogData);
         const savedBlog = await blog.save();
+        if (savedBlog.status === 'published') requestSiteRebuild("blog published");
 
         // Send Notification to all active users if published
         if (savedBlog.status === 'published') {
@@ -497,6 +502,10 @@ exports.updateBlog = async (req, res) => {
             // Upload to Cloudflare R2
             const url = await r2.uploadPublic(featuredImage?.path, `${featuredImage?.filename}`, `Blogs`);
             updateData.featuredImage = url;
+            // A new image replaces (or clears) the old image's thumbnail (B8).
+            updateData.imageThumb = (await uploadOptionalPublic(req, "imageThumb", "Blogs")) || null;
+        } else {
+            delete updateData.imageThumb;
         }
 
         // Handle additional images
@@ -583,8 +592,12 @@ exports.updateBlog = async (req, res) => {
             );
         }
 
+        const previousStatus = blog.status;
         Object.assign(blog, updateData);
+        const wasPublished = previousStatus === 'published';
         const updatedBlog = await blog.save();
+        // A published post changed, or a post went in or out of published (B25).
+        if (updatedBlog.status === 'published' || wasPublished) requestSiteRebuild("blog updated");
 
         // Send Notification if status changed to published
         if (updateData.status === 'published' && blog.status !== 'published') {
@@ -637,6 +650,7 @@ exports.deleteBlog = async (req, res) => {
 
         blog.isDeleted = true;
         await blog.save();
+        if (blog.status === 'published') requestSiteRebuild("blog deleted");
 
         return sendSuccessResponse(res, {
             message: "Blog post deleted successfully"

@@ -13,8 +13,11 @@ function mapSpreadRow(row) {
     return {
         spread: row.spread,
         previousSpread: prev,
+        spreadMin: row.spreadMin ?? null,
+        spreadMax: row.spreadMax ?? null,
         source: row.source,
         manualOverride: row.manualOverride,
+        updatedAt: row.updatedAt || row.lastFetchedAt || null,
     };
 }
 
@@ -35,13 +38,16 @@ async function upsertSpread({ brokerId, pair, spread, source = "myfxbook", manua
         });
     }
 
-    if (existing.manualOverride && !manualOverride && source === "myfxbook") {
+    // The scraper never replaces a manual value or an admin's typical range (B31).
+    if ((existing.manualOverride || existing.source === "typical") && !manualOverride && source === "myfxbook") {
         return existing;
     }
 
     const previousSpread = existing.spread;
     existing.spread = spread;
     existing.source = source;
+    existing.spreadMin = null;
+    existing.spreadMax = null;
     existing.manualOverride = manualOverride;
     existing.lastFetchedAt = now;
     existing.spreadHistory = capHistory([...(existing.spreadHistory || []), historyEntry]);
@@ -84,7 +90,28 @@ async function getComparisonData(brokerIds = null) {
     return byBroker;
 }
 
+// B31: save a typical range for one pair. `spread` is set to the midpoint so
+// sorting by spread keeps working.
+async function setTypicalRange({ brokerId, pair, min, max }) {
+    const spread = Math.round(((min + max) / 2) * 1000) / 1000;
+    const now = new Date();
+    return SpreadModel.findOneAndUpdate(
+        { brokerId, pair },
+        {
+            $set: { spread, spreadMin: min, spreadMax: max, source: "typical", manualOverride: true, lastFetchedAt: now },
+            $push: { spreadHistory: { $each: [{ spread, fetchedAt: now }], $slice: -MAX_SPREAD_HISTORY } },
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+}
+
+async function removeSpread({ brokerId, pair }) {
+    return SpreadModel.deleteOne({ brokerId, pair });
+}
+
 module.exports = {
+    setTypicalRange,
+    removeSpread,
     upsertSpread,
     getBrokerSpreadMap,
     getComparisonData,

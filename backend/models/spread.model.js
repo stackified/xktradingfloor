@@ -13,11 +13,15 @@ const SpreadSchema = new Schema(
     {
         brokerId: { type: Schema.Types.ObjectId, ref: "company", required: true },
         pair: { type: String, required: true },
-        spread: { type: Number, required: true },
+        spread: { type: Number, required: true }, // midpoint for a typical range
+        // B31: "typical spread from X to Y" in pips, entered by an admin.
+        spreadMin: { type: Number, default: null },
+        spreadMax: { type: Number, default: null },
         spreadHistory: { type: [SpreadHistorySchema], default: [] },
         source: {
             type: String,
-            enum: ["myfxbook", "manual"],
+            // "feed" is reserved for live broker feeds later (F9).
+            enum: ["myfxbook", "manual", "typical", "feed"],
             default: "myfxbook",
         },
         manualOverride: { type: Boolean, default: false },

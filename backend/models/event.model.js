@@ -34,6 +34,7 @@ const EventSchema = new Schema(
         isFeatured: { type: Boolean, default: false },
         seats: { type: Number, default: 0 },
         featuredImage: String,
+        imageThumb: String, // B8: 640 px-wide thumbnail for cards
         freebiesIncluded: [String],
         adminId: { type: Schema.Types.ObjectId, ref: 'user' },
         // Legacy: leads now live in the EventRegistration collection (B16) and

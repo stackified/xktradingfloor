@@ -17,6 +17,7 @@ router.post(
         name: "logo",
         maxCount: 1,
       },
+      { name: "logoThumb", maxCount: 1 }, // B8 thumbnail from the browser
     ]
   ),
   companyController.createCompany
@@ -48,6 +49,7 @@ router.put(
         name: "logo",
         maxCount: 1,
       },
+      { name: "logoThumb", maxCount: 1 }, // B8 thumbnail from the browser
     ]
   ),
   companyController.updateCompany

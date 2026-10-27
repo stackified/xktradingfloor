@@ -13,6 +13,7 @@ router.post('/addblog',
             name: "featuredImage",
             maxCount: 1
         },
+      { name: "imageThumb", maxCount: 1 }, // B8 thumbnail from the browser
         {
             name: "images",
             maxCount: 4,
@@ -33,6 +34,7 @@ router.put('/:blogid/updateblog',
             name: "featuredImage",
             maxCount: 1
         },
+      { name: "imageThumb", maxCount: 1 }, // B8 thumbnail from the browser
         {
             name: "images",
             maxCount: 4,
