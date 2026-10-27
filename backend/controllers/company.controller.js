@@ -12,7 +12,7 @@ const { sanitizeHtml } = require("../utils/sanitizeHtml");
 async function ratingsFor(companyIds) {
     if (!companyIds.length) return {};
     const rows = await ReviewModel.aggregate([
-        { $match: { companyId: { $in: companyIds } } },
+        { $match: { companyId: { $in: companyIds }, isHidden: { $ne: true } } },
         { $group: { _id: "$companyId", avg: { $avg: "$rating" }, count: { $sum: 1 } } },
     ]);
     return rows.reduce((acc, row) => {
@@ -24,10 +24,40 @@ async function ratingsFor(companyIds) {
     }, {});
 }
 
-// Reviews as the public sees them: the reviewer reduced to id, name (never an
-// email) and photo.
-function publicReviews(reviews) {
-    return reviews.map((review) => ({ ...review, userId: publicUser(review.userId) }));
+const isStaffUser = (user) =>
+    Boolean(user) && [constants.roles.admin, constants.roles.operator].includes(user.role);
+
+// Reviews as a viewer may see them. Everyone: the reviewer reduced to id,
+// name (never an email) and photo; pinned reviews first, then newest (B11).
+// Non-staff: no hidden reviews (B11), no moderation fields, and no proof
+// screenshot except on their own review (B19).
+function publicReviews(reviews, viewer = null) {
+    const staff = isStaffUser(viewer);
+    return reviews
+        .filter((review) => staff || !review.isHidden)
+        .map((review) => {
+            const out = { ...review, userId: publicUser(review.userId) };
+            if (!staff) {
+                const own = viewer && String(review.userId?._id || review.userId) === String(viewer._id);
+                if (!own) delete out.screenshot;
+                delete out.reports;
+                delete out.flags;
+                delete out.verifiedBy;
+            }
+            return out;
+        })
+        .sort((a, b) => (Number(Boolean(b.isPinned)) - Number(Boolean(a.isPinned)))
+            || (new Date(b.createdAt || 0) - new Date(a.createdAt || 0)));
+}
+
+// Average of the reviews that count (hidden ones don't).
+function ratingOf(reviews) {
+    const counted = reviews.filter((r) => !r.isHidden);
+    const totalReviews = counted.length;
+    const ratingsAggregate = totalReviews > 0
+        ? parseFloat((counted.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1))
+        : 0;
+    return { ratingsAggregate, totalReviews };
 }
 
 // Helper function to recalculate company rating
@@ -157,13 +187,11 @@ exports.getCompanyById = async (req, res) => {
         }
 
         const reviews = publicReviews(
-            await ReviewModel.find({ companyId: company._id }).populate("userId", PUBLIC_USER_FIELDS).lean()
+            await ReviewModel.find({ companyId: company._id }).populate("userId", PUBLIC_USER_FIELDS).lean(),
+            req.user
         );
         const reviewers = reviews.map(r => r.userId);
-        const totalReviews = reviews.length;
-        const ratingsAggregate = totalReviews > 0
-            ? parseFloat((reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1))
-            : 0;
+        const { ratingsAggregate, totalReviews } = ratingOf(reviews);
 
         reviews.ratingsAggregate = ratingsAggregate;
         reviews.totalReviews = totalReviews;
@@ -196,10 +224,7 @@ exports.getApprovedCompanyById = async (req, res) => {
         const reviews = publicReviews(
             await ReviewModel.find({ companyId: company._id }).populate("userId", PUBLIC_USER_FIELDS).lean()
         );
-        const totalReviews = reviews.length;
-        const ratingsAggregate = totalReviews > 0
-            ? parseFloat((reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1))
-            : 0;
+        const { ratingsAggregate, totalReviews } = ratingOf(reviews);
 
         company.reviewsDetails = reviews;
         company.ratingsAggregate = ratingsAggregate;

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { addFormatFlag } = require('../utils/contentFormat');
 const Schema = mongoose.Schema;
 
 const BlogPostSchema = new Schema(
@@ -16,6 +17,7 @@ const BlogPostSchema = new Schema(
         images: [String],
         category: { type: String, trim: true },
         categories: [{ type: String, trim: true }],
+        categorySlug: { type: String, trim: true, index: true }, // B18
         tags: [{ type: String, trim: true }],
         status: {
             type: String,
@@ -47,6 +49,9 @@ const BlogPostSchema = new Schema(
         versionKey: false,
     }
 );
+
+// B14: "html" when content is a designed page.
+addFormatFlag(BlogPostSchema, "content", "contentFormat");
 
 const BlogPostModel = mongoose.model('blogpost', BlogPostSchema);
 module.exports = BlogPostModel;

@@ -8,6 +8,8 @@ const userRoutes = require('./user.routes');
 const eventRoutes = require('./event.routes.js');
 const spreadRoutes = require('./spread.routes.js');
 const eventRegistrationRoutes = require('./eventRegistration.routes.js');
+const contactController = require('../../../controllers/contact.controller');
+const traderReviewRoutes = require('./traderReview.routes.js');
 const constants = require('../../../utils/constants');
 const { authorization } = require('../../../middleware/authorization.middleware');
 
@@ -31,6 +33,7 @@ router.use('/company', companyRoutes);
 
 // Review Routes
 router.use('/review', reviewRoutes);
+router.use('/reviews', reviewRoutes); // same routes at the plural path (B19 spec)
 
 // Settings Routes
 router.use('/settings', settingRoutes);
@@ -50,6 +53,10 @@ router.use('/users', userRoutes);
 router.use('/event', eventRoutes);
 // Event registration leads: Admin only (B16)
 router.use('/event-registrations', authorization([constants.roles.admin]), eventRegistrationRoutes);
+// Contact form inbox: Admin only (B20)
+router.get('/contact-messages', authorization([constants.roles.admin]), contactController.listContactMessages);
+// Reviews of verified traders: moderation (B23)
+router.use('/trader-reviews', traderReviewRoutes);
 
 // Spread Routes
 router.use('/spreads', spreadRoutes);
