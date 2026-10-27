@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { addFormatFlag } = require('../utils/contentFormat');
 const Schema = mongoose.Schema;
 
 const CompanySchema = new Schema(
@@ -39,6 +40,9 @@ const CompanySchema = new Schema(
         versionKey: false,
     }
 );
+
+// B14: "html" when description is a designed page.
+addFormatFlag(CompanySchema, "description", "descriptionFormat");
 
 // Public lists filter on status and category, newest first (B4).
 CompanySchema.index({ status: 1, category: 1, createdAt: -1 });

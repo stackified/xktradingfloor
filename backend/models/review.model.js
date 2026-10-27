@@ -11,6 +11,9 @@ const ReviewSchema = new Schema(
         comment: String,
         screenshot: { type: String, default: null },
         isVerified: { type: Boolean, default: false },
+        // B19: set only after an admin has checked the evidence.
+        verifiedAt: { type: Date, default: null },
+        verifiedBy: { type: Schema.Types.ObjectId, ref: 'user', default: null },
         isHidden: { type: Boolean, default: false },
         isPinned: { type: Boolean, default: false },
         flags: [{ type: String }],

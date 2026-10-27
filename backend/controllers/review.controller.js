@@ -1,14 +1,15 @@
 const ReviewModel = require("../models/review.model");
 const CompanyModel = require("../models/company.model");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
-const { getPagination, getPaginationData } = require("../utils/fn");
+const { getPagination, getPaginationData, isValidObjectId } = require("../utils/fn");
 const emailService = require("../services/email.service");
 const environment = require("../utils/environment");
 const r2 = require("../helpers/r2.helper");
 
 // Helper to recalculate and persist company rating aggregates
+// Hidden reviews (B11) don't count.
 async function recalculateCompanyRating(companyId) {
-    const reviews = await ReviewModel.find({ companyId });
+    const reviews = await ReviewModel.find({ companyId, isHidden: { $ne: true } });
     if (reviews.length === 0) {
         await CompanyModel.findByIdAndUpdate(companyId, {
             ratingsAggregate: 0,
@@ -319,4 +320,49 @@ exports.deleteReview = async (req, res) => {
     }
 };
 
+// Admin/Operator moderation of company reviews. Each takes an optional
+// boolean in the body; without one it toggles the current value, which is
+// what the admin Hide / Pin buttons send.
+const readFlag = (body, key, current) => {
+    const value = body?.[key];
+    if (value === true || value === "true") return true;
+    if (value === false || value === "false") return false;
+    return !current;
+};
 
+async function setReviewFlag(req, res, { key, field, message }) {
+    try {
+        const { reviewId } = req.params;
+        if (!isValidObjectId(reviewId)) return sendErrorResponse(res, "Review not found", 404, true, true);
+        const review = await ReviewModel.findById(reviewId);
+        if (!review) return sendErrorResponse(res, "Review not found", 404, true, true);
+
+        const next = readFlag(req.body, key, review[field]);
+        review[field] = next;
+        if (field === "isVerified") {
+            review.verifiedAt = next ? new Date() : null;
+            review.verifiedBy = next ? req.user._id : null;
+        }
+        await review.save();
+        if (field === "isHidden") await recalculateCompanyRating(review.companyId);
+
+        const r = review.toObject();
+        r.id = r._id.toString();
+        return sendSuccessResponse(res, { message: message(next), data: r });
+    } catch (error) {
+        return sendErrorResponse(res, error);
+    }
+}
+
+// PATCH /api/admin/review/:reviewId/verify { verified } (B19): only after the
+// evidence has been checked.
+exports.verifyReview = (req, res) =>
+    setReviewFlag(req, res, { key: "verified", field: "isVerified", message: (v) => (v ? "Review marked verified" : "Review no longer verified") });
+
+// PATCH /api/admin/review/:reviewId/hide { hidden } (B11)
+exports.hideReview = (req, res) =>
+    setReviewFlag(req, res, { key: "hidden", field: "isHidden", message: (v) => (v ? "Review hidden" : "Review visible again") });
+
+// PATCH /api/admin/review/:reviewId/pin { pinned } (B11)
+exports.pinReview = (req, res) =>
+    setReviewFlag(req, res, { key: "pinned", field: "isPinned", message: (v) => (v ? "Review pinned" : "Review unpinned") });

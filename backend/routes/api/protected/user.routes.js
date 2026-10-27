@@ -13,11 +13,20 @@ router.patch(
 );
 router.post(
     "/verified-trader/apply",
-    fileUpload.fileUpload("verified-trader-proofs", ["pdf", "image"], [
+    // PDF, images, Excel and CSV, 10 MB each (B26).
+    fileUpload.fileUpload("verified-trader-proofs", ["pdf", "image", "excel", "csv"], [
         { name: "brokerStatements", maxCount: 5 },
         { name: "payoutProofs", maxCount: 5 },
     ]),
     userProfileController.applyForVerifiedTrader
+);
+// B23 point 4: a verified trader adds a payout with a private proof.
+router.post(
+    "/verified-trader/payouts",
+    fileUpload.fileUpload("verified-trader-payouts", ["pdf", "image"], [
+        { name: "proof", maxCount: 1 },
+    ]),
+    userProfileController.submitPayout
 );
 
 module.exports = router;

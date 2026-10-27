@@ -10,5 +10,9 @@ router.get('/:userId/getreviewsbyusers', reviewController.getReviewsByUserId);
 // router.put('/reviews/:id', reviewController.updateReview);
 // router.put('/reviews/:id/status', reviewController.updateReviewStatus);
 router.delete('/:reviewId/deletereview', reviewController.deleteReview);
+// Moderation (Admin/Operator): B19 verify, B11 hide and pin.
+router.patch('/:reviewId/verify', reviewController.verifyReview);
+router.patch('/:reviewId/hide', reviewController.hideReview);
+router.patch('/:reviewId/pin', reviewController.pinReview);
 
 module.exports = router;
