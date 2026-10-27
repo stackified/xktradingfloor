@@ -6,6 +6,9 @@ module.exports = {
     domain: process.env.DOMAIN,
     frontendUrl: process.env.FRONTEND_URL || process.env.SERVER,
     masterPassword: process.env.MASTER_PASSWORD,
+    // Inbox for new event registrations (B16) and contact messages (B20).
+    registrationNotifyEmail: process.env.REGISTRATION_NOTIFY_EMAIL || "info@xktradingfloor.com",
+    contactNotifyEmail: process.env.CONTACT_NOTIFY_EMAIL || "info@xktradingfloor.com",
     database: {
         uri: process.env.DB_URI,
     },
@@ -33,5 +36,6 @@ module.exports = {
         endpoint: process.env.R2_ENDPOINT,
         region: process.env.R2_REGION || "auto",
         publicDomain: process.env.R2_PUBLIC_DOMAIN,
+        privateBucketName: process.env.R2_PRIVATE_BUCKET_NAME,
     },
 };

@@ -29,7 +29,7 @@ class EmailService {
     /**
      * Send a single email (Transactional)
      */
-    async sendEmail({ to, subject, template, data, type = "transactional" }) {
+    async sendEmail({ to, subject, template, data, type = "transactional", replyTo }) {
         try {
             const html = await this.renderTemplate(template, {
                 ...data,
@@ -52,7 +52,7 @@ class EmailService {
             */
 
             // BREVO TRANSACTIONAL
-            await brevoService.sendEmail(to, subject, html);
+            await brevoService.sendEmail(to, subject, html, { replyTo });
 
             return log;
         } catch (error) {
@@ -69,6 +69,20 @@ class EmailService {
             throw error;
         }
     }
+    /**
+     * Internal alert to the XK inbox (new event registration, contact
+     * message). `rows` is a list of { label, value }.
+     */
+    async sendAdminNotification(to, { subject, heading, intro = "", rows = [], message = "", linkUrl = "", linkLabel = "", replyTo }) {
+        return this.sendEmail({
+            to,
+            subject,
+            template: "adminNotification.ejs",
+            data: { heading, intro, rows, message, linkUrl, linkLabel },
+            replyTo,
+        });
+    }
+
     /**
      * Send Welcome Email
      */

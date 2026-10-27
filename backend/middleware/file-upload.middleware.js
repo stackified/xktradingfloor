@@ -118,11 +118,34 @@ const fileFilter = (mimeTypeArray) => {
  * @example
  *  fileUpload('profile', ["image"], [{ name: "image", maxCount: 1 }])
  */
+// Text fields (designed HTML descriptions) up to 5 MB, files up to 10 MB
+// (B3, B26). Without limits multer cut text fields at 1 MB and let any file
+// size through.
+const LIMITS = { fieldSize: 5 * 1024 * 1024, fileSize: 10 * 1024 * 1024 };
+
+const LIMIT_MESSAGES = {
+    LIMIT_FILE_SIZE: "That file is too large. The limit is 10 MB per file.",
+    LIMIT_FIELD_VALUE: "That text is too long to save (5 MB limit).",
+    LIMIT_FILE_COUNT: "Too many files.",
+    LIMIT_UNEXPECTED_FILE: "Unexpected file field.",
+};
+
+// Run a multer middleware and answer its errors with a readable 400, instead
+// of letting them reach the generic 500 handler.
+const withReadableErrors = (upload) => (req, res, next) => {
+    upload(req, res, (err) => {
+        if (!err) return next();
+        const message = (err instanceof multer.MulterError && LIMIT_MESSAGES[err.code]) || err.message || "Upload failed.";
+        return res.status(400).json({ success: false, message });
+    });
+};
+
 exports.fileUpload = (destination, mimeTypesArray, fields) => {
-    return multer({
+    return withReadableErrors(multer({
         storage: dest(destination),
         fileFilter: fileFilter(mimeTypesArray),
-    }).fields(fields);
+        limits: LIMITS,
+    }).fields(fields));
 };
 
 exports.fileUploadArray = (field, subfield, allowedTypes, maxCount) => {

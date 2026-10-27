@@ -40,5 +40,8 @@ const CompanySchema = new Schema(
     }
 );
 
+// Public lists filter on status and category, newest first (B4).
+CompanySchema.index({ status: 1, category: 1, createdAt: -1 });
+
 const CompanyModel = mongoose.model('company', CompanySchema);
 module.exports = CompanyModel;

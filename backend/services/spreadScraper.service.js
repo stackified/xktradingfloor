@@ -1,6 +1,7 @@
 const cheerio = require("cheerio");
 const CompanyModel = require("../models/company.model");
 const spreadStore = require("./spreadStore.service");
+const { acquireLock } = require("../utils/jobLock");
 const {
     V1_PAIR_KEYS,
     normalizePairKey,
@@ -274,15 +275,25 @@ async function scrapeAndStore() {
     return summary;
 }
 
+// Only one server instance scrapes per round. The instance that takes the
+// lock keeps it until shortly before the next round (and renews it then), so
+// the others skip; if it stops, the lock expires and another takes over.
+const CRON_LOCK = "spread-cron";
+const CRON_LOCK_RUN_MS = 15 * 60 * 1000;
+const CRON_LOCK_HOLD_MS = FOUR_MINUTES_MS - 20 * 1000;
+
 function startSpreadCron() {
     if (process.env.SPREAD_CRON_ENABLED === "false") {
         console.log("[spread-cron] Disabled via SPREAD_CRON_ENABLED=false");
         return;
     }
+    if (cronIntervalId) return;
 
     const run = async () => {
         try {
+            if (!(await acquireLock(CRON_LOCK, CRON_LOCK_RUN_MS))) return;
             const summary = await scrapeAndStore();
+            await acquireLock(CRON_LOCK, CRON_LOCK_HOLD_MS);
             if (summary.skipped) return;
             console.log(
                 `[spread-cron] brokers=${summary.brokersProcessed} pairs=${summary.pairsUpserted} errors=${summary.errors.length}`
@@ -297,9 +308,15 @@ function startSpreadCron() {
     console.log("[spread-cron] Scheduled every 4 minutes");
 }
 
+function stopSpreadCron() {
+    if (cronIntervalId) clearInterval(cronIntervalId);
+    cronIntervalId = null;
+}
+
 module.exports = {
     scrapeAndStore,
     startSpreadCron,
+    stopSpreadCron,
     fetchBrokerSpreads,
     fetchComparisonSpreads,
     filterToV1Pairs,

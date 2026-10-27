@@ -14,8 +14,9 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 app.use(logger('dev'));
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: false }));
+// Designed HTML pages can be several MB (B3).
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ extended: false, limit: "5mb" }));
 app.use(cookieParser());
 app.use(middleware);
 app.use(express.static(path.join(__dirname, 'public')));
@@ -23,7 +24,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 // database connection
 database.connect();
 
-const { startSpreadCron } = require("./jobs/spreadCron");
+// backend/jobs/ was never committed, so requiring "./jobs/spreadCron" crashed
+// every deploy since July (B1). The service has always exported the cron.
+const { startSpreadCron } = require("./services/spreadScraper.service");
 startSpreadCron();
 
 app.use('/', indexRouter);
