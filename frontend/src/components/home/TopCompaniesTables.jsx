@@ -23,7 +23,7 @@ function Stars({ rating = 0 }) {
 
 function TrustPill({ ratingsAggregate, totalReviews, trustScore }) {
   const { score, label } = computeTrustScore(ratingsAggregate, totalReviews, trustScore);
-  if (label === "No Reviews" || label === "Not rated yet") {
+  if (label === "No Reviews") {
     return (
       <span className="text-xs text-gray-500 whitespace-nowrap">No reviews yet</span>
     );
