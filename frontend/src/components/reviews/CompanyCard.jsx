@@ -51,6 +51,16 @@ function CompanyCard({ company, user }) {
 
   const id = company.id || company._id;
   const rating = company.ratingsAggregate || 0;
+  // details first, then the API's excerpt; an old full description only as
+  // plain text (never raw designed HTML).
+  const summary =
+    company.details ||
+    company.excerpt ||
+    String(company.description || "")
+      .replace(/<(style|script)[^>]*>[\s\S]*?<\/\1>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   const reviewCount = company.totalReviews || 0;
   const isPropFirm = company.category === "PropFirm";
 
@@ -128,10 +138,11 @@ function CompanyCard({ company, user }) {
           </div>
         </div>
 
-        {/* Row 2: description */}
-        {(company.details || company.description) && (
+        {/* Row 2: short description. Lists carry a plain-text excerpt instead
+            of the full (often designed HTML) review since 27 Oct 2026 (B4). */}
+        {summary && (
           <p className="text-sm text-gray-400 line-clamp-2 mt-3">
-            {company.details || company.description}
+            {summary}
           </p>
         )}
 

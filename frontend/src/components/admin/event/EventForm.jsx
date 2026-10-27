@@ -12,6 +12,9 @@ import {
   DollarSign,
   Globe,
   Building2,
+  Plus,
+  Trash2,
+  Star,
 } from "lucide-react";
 import { createEvent, updateEvent, getEventById } from "../../../controllers/eventsController.js";
 import { useToast } from "../../../contexts/ToastContext.jsx";
@@ -23,6 +26,10 @@ import { EVENT_TIME_ZONES, zonedLocalToIso, isoToZonedLocal } from "../../../uti
 import { countryOptions } from "../../../utils/countries.js";
 import RichTextEditor from "../../shared/RichTextEditor.jsx";
 import { descriptionForEditor } from "../../../utils/eventDescription.js";
+import { EVENT_CURRENCIES, formatMoney } from "../../../utils/eventPricing.js";
+
+const MAX_TICKET_TIERS = 10;
+const emptyTier = () => ({ name: "", price: "", fullPrice: "", notes: "" });
 
 const EVENT_TYPES = ["online", "campus"];
 
@@ -54,6 +61,10 @@ const defaultState = {
   price: 0,
   seats: 0,
   freebiesIncluded: [],
+  // B30: the event's own currency and ticket types; B15: featured flag.
+  currency: "USD",
+  ticketTiers: [],
+  isFeatured: false,
 };
 
 function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
@@ -102,6 +113,16 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
               freebiesIncluded: Array.isArray(event.freebiesIncluded)
                 ? event.freebiesIncluded
                 : [],
+              currency: event.currency || "USD",
+              ticketTiers: Array.isArray(event.ticketTiers)
+                ? event.ticketTiers.map((t) => ({
+                    name: t.name || "",
+                    price: t.price ?? "",
+                    fullPrice: t.fullPrice ?? "",
+                    notes: t.notes || "",
+                  }))
+                : [],
+              isFeatured: Boolean(event.isFeatured),
             });
             if (event.featuredImage || event.image) {
               setFeaturedImagePreview(event.featuredImage || event.image);
@@ -186,6 +207,22 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
       return;
     }
 
+    // Ticket types: rows without a name are dropped; prices must be numbers.
+    const tiers = formState.ticketTiers.filter((t) => String(t.name).trim());
+    for (const t of tiers) {
+      const price = Number(t.price);
+      if (t.price === "" || !Number.isFinite(price) || price < 0) {
+        setLocalError(`Give "${t.name}" a price of 0 or more.`);
+        setLoading(false);
+        return;
+      }
+      if (t.fullPrice !== "" && (!Number.isFinite(Number(t.fullPrice)) || Number(t.fullPrice) < price)) {
+        setLocalError(`The full price of "${t.name}" must be at least its price.`);
+        setLoading(false);
+        return;
+      }
+    }
+
     if (!formState.dateTime) {
       setLocalError("Date and time is required.");
       setLoading(false);
@@ -224,7 +261,21 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
     payload.append("organizerName", formState.organizerName.trim());
     payload.append("externalUrl", formState.externalUrl.trim());
     payload.append("category", formState.category.trim());
+    // With ticket types the server sets price to the cheapest one.
     payload.append("price", formState.price.toString());
+    payload.append("currency", formState.currency);
+    payload.append(
+      "ticketTiers",
+      JSON.stringify(
+        tiers.map((t) => ({
+          name: String(t.name).trim(),
+          price: Number(t.price),
+          ...(t.fullPrice !== "" ? { fullPrice: Number(t.fullPrice) } : {}),
+          ...(String(t.notes).trim() ? { notes: String(t.notes).trim() } : {}),
+        }))
+      )
+    );
+    payload.append("isFeatured", formState.isFeatured ? "true" : "false");
     payload.append("seats", formState.seats.toString());
 
     // Append freebies as array
@@ -480,7 +531,12 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Price</label>
+              <label className="block text-sm font-medium mb-2">
+                Price ({formState.currency})
+                {formState.ticketTiers.some((t) => t.name) && (
+                  <span className="ml-1 text-xs font-normal text-gray-400">set by the cheapest ticket type</span>
+                )}
+              </label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                 <input
@@ -511,6 +567,91 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Tickets: currency and ticket types (B30) */}
+          <div className="rounded-xl border border-white/10 bg-gray-900/40 p-4 space-y-4">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold text-white">Tickets</h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  Prices show in the event&apos;s own currency. Add each pass the organiser sells; with ticket
+                  types, cards show &quot;From&quot; the cheapest one. Leave empty for a single price (above) or a free event.
+                </p>
+              </div>
+              <div className="w-40">
+                <label htmlFor="event-currency" className="block text-xs font-medium text-gray-300 mb-1">Currency</label>
+                <select
+                  id="event-currency"
+                  name="currency"
+                  value={formState.currency}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 rounded-lg bg-gray-900/70 border border-white/10 text-white focus:border-blue-500/50 focus:outline-none"
+                >
+                  {(EVENT_CURRENCIES.includes(formState.currency) ? EVENT_CURRENCIES : [formState.currency, ...EVENT_CURRENCIES]).map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {formState.ticketTiers.length > 0 && (
+              <div className="space-y-2">
+                <div className="hidden md:grid grid-cols-[1.4fr_0.8fr_0.8fr_1.4fr_auto] gap-2 text-xs text-gray-400 px-1">
+                  <span>Ticket type</span><span>Price</span><span>Full price (if on sale)</span><span>Notes</span><span />
+                </div>
+                {formState.ticketTiers.map((tier, i) => {
+                  const setTier = (key) => (e) =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      ticketTiers: prev.ticketTiers.map((t, j) => (j === i ? { ...t, [key]: e.target.value } : t)),
+                    }));
+                  const cell = "w-full px-3 py-2 rounded-lg bg-gray-900/70 border border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 focus:outline-none text-sm";
+                  return (
+                    <div key={i} className="grid grid-cols-2 md:grid-cols-[1.4fr_0.8fr_0.8fr_1.4fr_auto] gap-2">
+                      <input aria-label={`Ticket ${i + 1} name`} className={`${cell} col-span-2 md:col-span-1`} value={tier.name} onChange={setTier("name")} placeholder="e.g. Visitor" maxLength={60} />
+                      <input aria-label={`Ticket ${i + 1} price`} className={cell} type="number" min="0" step="0.01" value={tier.price} onChange={setTier("price")} placeholder="Price" />
+                      <input aria-label={`Ticket ${i + 1} full price`} className={cell} type="number" min="0" step="0.01" value={tier.fullPrice} onChange={setTier("fullPrice")} placeholder="Optional" />
+                      <input aria-label={`Ticket ${i + 1} notes`} className={`${cell} col-span-2 md:col-span-1`} value={tier.notes} onChange={setTier("notes")} placeholder="Optional, e.g. lounge access" maxLength={200} />
+                      <button
+                        type="button"
+                        onClick={() => setFormState((prev) => ({ ...prev, ticketTiers: prev.ticketTiers.filter((_, j) => j !== i) }))}
+                        className="col-span-2 md:col-span-1 inline-flex items-center justify-center gap-1 rounded-lg border border-white/10 px-3 py-2 text-sm text-gray-300 hover:border-red-500/50 hover:text-red-300"
+                        aria-label={`Remove ticket ${i + 1}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <button
+                type="button"
+                disabled={formState.ticketTiers.length >= MAX_TICKET_TIERS}
+                onClick={() => setFormState((prev) => ({ ...prev, ticketTiers: [...prev.ticketTiers, emptyTier()] }))}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-blue-500/40 px-3 py-2 text-sm text-blue-300 hover:bg-blue-500/10 disabled:opacity-40"
+              >
+                <Plus className="h-4 w-4" /> Add ticket type
+              </button>
+              {formState.ticketTiers.some((t) => t.name && t.price !== "") && (
+                <span className="text-xs text-gray-400">
+                  Cards will show: From{" "}
+                  {formatMoney(
+                    Math.min(...formState.ticketTiers.filter((t) => t.name && t.price !== "").map((t) => Number(t.price) || 0)),
+                    formState.currency
+                  )}
+                </span>
+              )}
+            </div>
+
+            <label className="flex items-center gap-2 text-sm text-gray-200">
+              <input type="checkbox" name="isFeatured" checked={formState.isFeatured} onChange={handleChange} className="h-4 w-4 rounded border-white/20 bg-gray-900" />
+              <Star className="h-4 w-4 text-amber-300" />
+              Feature this event in the Events page slider
+            </label>
           </div>
 
           {/* Region, Organizer, Category */}
