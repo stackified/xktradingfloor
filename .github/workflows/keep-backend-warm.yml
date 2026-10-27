@@ -37,7 +37,8 @@ jobs:
     steps:
       - name: Ping backend
         env:
-          URL: https://xktradingfloor-backend.onrender.com/api/settings/mock-mode
+          # /api/health (B6, live 27 Oct 2026): no login, no database.
+          URL: https://xktradingfloor-backend.onrender.com/api/health
         run: |
           # --retry covers the cold-start case: a sleeping instance can take
           # 30 s+ to answer the first request, which is exactly the scenario

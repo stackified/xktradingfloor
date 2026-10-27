@@ -126,7 +126,7 @@ function EventFeaturedSlider({ category = "" }) {
           <EventImage src={imageSrc} alt={current.title} />
         </Link>
         <div className="min-w-0">
-          <EventBadges evt={current} className="mb-3" />
+          <EventBadges evt={current} showPrice className="mb-3" />
           <p className="mb-2 flex items-center gap-1.5 text-sm text-gray-400">
             <CalendarDays className="h-4 w-4" aria-hidden="true" />
             {formatDate(current)}

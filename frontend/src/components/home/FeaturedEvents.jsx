@@ -13,13 +13,19 @@ function eventTime(evt) {
   return Number.isNaN(t) ? 0 : t;
 }
 
+// When the event is over: its end time, else its start (B17).
+function endTime(evt) {
+  const t = new Date(evt?.endDateTime || evt?.dateTime || evt?.date || 0).getTime();
+  return Number.isNaN(t) ? 0 : t;
+}
+
 // Upcoming events, soonest first. If nothing is upcoming, the most recent past
 // events instead (and the heading says so), so the section never shows an
 // event that is already over as if it were still to come.
 export function pickHomeEvents(events, now = Date.now(), limit = 4) {
   const list = Array.isArray(events) ? events : [];
   const upcoming = list
-    .filter((e) => eventTime(e) >= now)
+    .filter((e) => endTime(e) >= now)
     .sort((a, b) => eventTime(a) - eventTime(b));
   if (upcoming.length) return { mode: 'upcoming', items: upcoming.slice(0, limit) };
   const past = list.filter((e) => eventTime(e) > 0).sort((a, b) => eventTime(b) - eventTime(a));
@@ -44,7 +50,7 @@ function EventCard({ evt, onClick }) {
     <motion.div whileHover={{ y: -4 }} className="card overflow-hidden cursor-pointer" onClick={onClick}>
       <EventImage src={imageSrc} alt={evt.title} />
       <div className="card-body">
-        <EventBadges evt={evt} showRegion={false} className="mb-2" />
+        <EventBadges evt={evt} showRegion={false} showPrice className="mb-2" />
         <div className="text-xs sm:text-sm text-gray-400 mb-2">{evt.dateTime ? formatEventDate(evt) : formatDate(evt.date)}</div>
         <h3 className="font-display font-semibold text-base sm:text-lg tracking-tight mb-2">{evt.title}</h3>
         <div className="text-sm sm:text-base text-gray-300 line-clamp-2">{eventSummary(evt)}</div>
@@ -78,7 +84,10 @@ function FeaturedEvents() {
     let cancelled = false;
     (async () => {
       try {
-        const response = await getAllEvents({ size: 50 });
+        // Only what the strip shows (B13): the next few upcoming events, or
+        // the most recent past ones when nothing is coming up.
+        let response = await getAllEvents({ when: 'upcoming', size: 6 });
+        if (!(response.data || []).length) response = await getAllEvents({ when: 'past', size: 4 });
         if (!cancelled) setEvents(response.data || []);
       } catch (err) {
         // Homepage must still render if the backend is cold or down.

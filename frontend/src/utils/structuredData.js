@@ -148,13 +148,14 @@ export const eventJsonLd = (event) => {
     // Expos with an organiser link sell their own tickets, so their Offer
     // carries no price; any other event without a price is free (price 0).
     offers:
-      event.price || event.externalUrl
+      event.price || event.externalUrl || pricing.tiers.length
         ? {
             "@type": "Offer",
+            // The lowest ticket price, in the event's own currency (B30).
             ...(pricing.isPaid
-              ? { price: pricing.price, priceCurrency: "USD" }
+              ? { price: pricing.price, priceCurrency: pricing.currency }
               : pricing.isFree
-                ? { price: 0, priceCurrency: "USD" }
+                ? { price: 0, priceCurrency: pricing.currency }
                 : {}),
             availability: "https://schema.org/InStock",
             url:

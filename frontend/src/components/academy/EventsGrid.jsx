@@ -224,7 +224,7 @@ function EventCard({ evt, onRegister }) {
     >
       <EventImage src={imageSrc} alt={evt.title} />
       <div className="card-body">
-        <EventBadges evt={evt} className="mb-2" />
+        <EventBadges evt={evt} showPrice className="mb-2" />
         <h3 className="font-semibold text-base mb-2 line-clamp-2">
           {evt.title}
         </h3>
@@ -286,6 +286,7 @@ function EventsGrid({ onOpenRegister }) {
   const [categoryFilter, setCategoryFilter] = React.useState("");
   const [monthFilter, setMonthFilter] = React.useState("");
   const [mapModalOpen, setMapModalOpen] = React.useState(false);
+  const [categoryCounts, setCategoryCounts] = React.useState(null);
   const itemsPerPage = 6;
 
   // Server-supported filters. These reach the API so search/type/region/
@@ -297,8 +298,11 @@ function EventsGrid({ onOpenRegister }) {
       region: regionFilter || undefined,
       category: categoryFilter || undefined,
       month: monthFilter || undefined,
+      // Upcoming lasts until an event ends; filtered and sorted by the API
+      // (B15), so page 1 is never padded with past events.
+      when: timeFilter !== "all" ? timeFilter : undefined,
     }),
-    [query, typeFilter, regionFilter, categoryFilter, monthFilter]
+    [query, typeFilter, regionFilter, categoryFilter, monthFilter, timeFilter]
   );
 
   const loadEvents = React.useCallback(async (pageToLoad, filters = {}) => {
@@ -311,6 +315,7 @@ function EventsGrid({ onOpenRegister }) {
       });
       const newEvents = response.data || [];
       const pagination = response.pagination || {};
+      if (pageToLoad === 1 && response.categoryCounts) setCategoryCounts(response.categoryCounts);
 
       setEvents((prev) =>
         pageToLoad === 1 ? newEvents : [...prev, ...newEvents]
@@ -357,14 +362,15 @@ function EventsGrid({ onOpenRegister }) {
     setMonthFilter("");
   };
 
-  // Upcoming/past is not a server param yet, so it stays a client refinement
-  // on the server-filtered results. (Flagged to backend for a date-range param.)
+  // The API filters upcoming/past (B15); this repeats it on the loaded events
+  // as a safety net, using the end time so a multi-day expo stays upcoming.
   const now = Date.now();
   const filtered = React.useMemo(() => {
     if (timeFilter === "all") return events;
     return events.filter((evt) => {
-      if (!evt.dateTime) return true;
-      const ts = new Date(evt.dateTime).getTime();
+      const end = evt.endDateTime || evt.dateTime;
+      if (!end) return true;
+      const ts = new Date(end).getTime();
       if (timeFilter === "upcoming" && ts < now) return false;
       if (timeFilter === "past" && ts >= now) return false;
       return true;
@@ -436,9 +442,7 @@ function EventsGrid({ onOpenRegister }) {
 
         {/* Browse Events by Category — cards that drive the same server-side
             category filter as the dropdown below; clicking toggles the filter.
-            No per-category counts: the page only holds one page of events, so
-            any count computed here would be wrong. They come back once the API
-            returns real per-category totals. */}
+            Counts come from the API for the other filters in use (B15). */}
         <div className="mb-8">
           <h3 className="text-sm font-semibold text-gray-300 mb-3">
             Browse by Category
@@ -463,6 +467,11 @@ function EventsGrid({ onOpenRegister }) {
                 >
                   <CatIcon className={`h-5 w-5 ${active ? "text-blue-300" : "text-gray-400"}`} />
                   <span className="text-xs font-medium">{cat}</span>
+                  {categoryCounts && (
+                    <span className="text-[11px] text-gray-500">
+                      {categoryCounts[cat] || 0} {categoryCounts[cat] === 1 ? "event" : "events"}
+                    </span>
+                  )}
                 </button>
               );
             })}

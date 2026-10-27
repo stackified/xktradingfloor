@@ -31,7 +31,9 @@ async function isMockModeEnabled() {
 
 // Get all events
 // Backend endpoint: GET /api/events/getallevents
-// Query params: page, size, search, type, region, category, month
+// Query params: page, size, search, type, region, category, month, and since
+// B15 (27 Oct 2026) when=upcoming|past, featured=true, limit. The response
+// also carries categoryCounts for the same filters (ignoring category).
 export async function getAllEvents(filters = {}) {
   const mockMode = await isMockModeEnabled();
   let backendEvents = [];
@@ -39,8 +41,8 @@ export async function getAllEvents(filters = {}) {
   // Always try to fetch from backend first
   if (!mockMode) {
     try {
-      const { page, size, search, type, region, category, month } = filters;
-      const params = { page, size, search, type, region, category, month };
+      const { page, size, search, type, region, category, month, when, featured, limit } = filters;
+      const params = { page, size, search, type, region, category, month, when, featured, limit };
       Object.keys(params).forEach((key) => {
         if (params[key] === undefined || params[key] === "") {
           delete params[key];
@@ -82,7 +84,11 @@ export async function getAllEvents(filters = {}) {
         }
       }
 
-      return { data: backendEvents, pagination: paginationData };
+      return {
+        data: backendEvents,
+        pagination: paginationData,
+        categoryCounts: response.data?.categoryCounts || null,
+      };
 
     } catch (error) {
       // If backend fails and mock mode is OFF, return empty array
