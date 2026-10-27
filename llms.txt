@@ -27,6 +27,7 @@ Key facts:
 - [Contact](https://stackified.github.io/xktradingfloor/contact)
 
 ## Broker reviews
+- [Switch Markets review](https://stackified.github.io/xktradingfloor/reviews/6accdac72d4f218e79a152bd)
 - [Pipze review](https://stackified.github.io/xktradingfloor/reviews/6ab2240d36d015a5325b5e18)
 - [Elefin review](https://stackified.github.io/xktradingfloor/reviews/6a79bc7e2819c50d577ee323)
 - [Vantage review](https://stackified.github.io/xktradingfloor/reviews/69452ae0096d6a54e754281e)
