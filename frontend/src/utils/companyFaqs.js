@@ -5,7 +5,7 @@
 // ("What is the minimum deposit at Pipze?"). A question is only asked when
 // the data to answer it exists; nothing is guessed.
 
-import { computeTrustScore } from "./trustScore.js";
+import { companyTrustScore } from "./trustScore.js";
 
 const list = (value) => {
   if (!value) return [];
@@ -36,7 +36,7 @@ export function companyFaqs(company) {
   const reviews = Number(company.totalReviews) || 0;
   if (reviews > 0) {
     const avg = Number(company.ratingsAggregate) || 0;
-    const { score, label } = computeTrustScore(avg, reviews);
+    const { score, label } = companyTrustScore(company);
     faqs.push({
       question: `What do traders say about ${name}?`,
       answer: `${reviews} ${reviews === 1 ? "trader has" : "traders have"} reviewed ${name} on XK Trading Floor, with an average rating of ${avg.toFixed(1)} out of 5 (TrustScore ${score}/100, ${label}). The reviews are the opinions of the traders who wrote them.`,

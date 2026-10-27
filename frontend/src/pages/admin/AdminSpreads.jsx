@@ -6,11 +6,26 @@ import {
   getSpreadComparison,
   refreshSpreads,
   overrideSpreads,
+  setTypicalSpreads,
   spreadsToRow,
+  spreadsToRanges,
 } from "../../controllers/spreadsController.js";
 import { V1_PAIRS, formatSpread } from "../../utils/spreads.js";
 import CardLoader from "../../components/shared/CardLoader.jsx";
 import { useToast } from "../../contexts/ToastContext.jsx";
+
+// A cell holds one number (an exact override) or a typical range "0.1-0.3"
+// (B31). An empty cell that had a range removes it.
+const RANGE_RE = /^\s*(\d*\.?\d+)\s*[-–]\s*(\d*\.?\d+)\s*$/;
+
+// Rows for editing: ranges shown as "min-max", other pairs as the number.
+function spreadsToEditRow(pairs = {}) {
+  const row = spreadsToRow(pairs);
+  Object.entries(spreadsToRanges(pairs)).forEach(([pair, r]) => {
+    row[pair] = `${r.min}-${r.max}`;
+  });
+  return row;
+}
 
 // Row state helper — we track edits per-broker per-pair and only send fields
 // the admin actually changed.
@@ -50,7 +65,7 @@ export default function AdminSpreads() {
 
       const spreadMap = {};
       (spreadsRes.data?.brokers || []).forEach((entry) => {
-        spreadMap[entry.brokerId] = spreadsToRow(entry.pairs || {});
+        spreadMap[entry.brokerId] = spreadsToEditRow(entry.pairs || {});
       });
       setRows(spreadMap);
       setEdits(buildInitialEdits(brokerList, spreadMap));
@@ -101,26 +116,48 @@ export default function AdminSpreads() {
     const dirtyPairs = Array.from(dirty[brokerId] || []);
     if (dirtyPairs.length === 0) return;
 
-    // Build pairs payload only from changed pairs, parsing to numbers.
+    // Split changed pairs into exact overrides and typical ranges.
     const pairsPayload = {};
+    const rangesPayload = {};
+    const savedRow = {};
     for (const pair of dirtyPairs) {
-      const raw = edits[brokerId]?.[pair];
+      const raw = String(edits[brokerId]?.[pair] ?? "").trim();
+      const hadRange = RANGE_RE.test(String(rows[brokerId]?.[pair] ?? ""));
+      const range = raw.match(RANGE_RE);
+      if (range) {
+        const min = Number(range[1]);
+        const max = Number(range[2]);
+        if (max < min) {
+          toast?.error?.(`${pair}: the second number of a range must be the larger one.`);
+          return;
+        }
+        rangesPayload[pair] = { min, max };
+        savedRow[pair] = `${min}-${max}`;
+        continue;
+      }
+      if (raw === "" && hadRange) {
+        rangesPayload[pair] = {};
+        savedRow[pair] = undefined;
+        continue;
+      }
       const num = Number(raw);
-      if (raw === "" || raw == null || Number.isNaN(num) || num < 0) {
-        toast?.error?.(`Invalid value for ${pair}. Enter a positive number.`);
+      if (raw === "" || Number.isNaN(num) || num < 0) {
+        toast?.error?.(`Invalid value for ${pair}. Enter a number, or a range like 0.1-0.3.`);
         return;
       }
       pairsPayload[pair] = num;
+      savedRow[pair] = num;
     }
 
     setSaving((prev) => ({ ...prev, [brokerId]: true }));
     try {
-      await overrideSpreads(brokerId, pairsPayload);
-      toast?.success?.("Spread overrides saved");
+      if (Object.keys(pairsPayload).length) await overrideSpreads(brokerId, pairsPayload);
+      if (Object.keys(rangesPayload).length) await setTypicalSpreads(brokerId, rangesPayload);
+      toast?.success?.("Spreads saved");
       // Merge saved values back into the visible row + clear dirty state.
       setRows((prev) => ({
         ...prev,
-        [brokerId]: { ...(prev[brokerId] || {}), ...pairsPayload },
+        [brokerId]: { ...(prev[brokerId] || {}), ...savedRow },
       }));
       setDirty((prev) => {
         const next = { ...prev };
@@ -152,8 +189,9 @@ export default function AdminSpreads() {
             <h1 className="text-2xl sm:text-3xl font-bold">Live Spreads</h1>
             <p className="text-sm text-gray-400 mt-1">
               Trigger a manual scrape, or override specific pair spreads for any
-              broker. Manual overrides are flagged and won't be replaced by the
-              auto-scraper.
+              broker. Enter one number for an exact spread, or a typical range
+              such as 0.1-0.3 (shown on the site as &ldquo;0.10–0.30&rdquo;; clear the
+              cell to remove a range). Neither is replaced by the auto-scraper.
             </p>
             {lastFetchedAt && (
               <p className="text-xs text-gray-500 mt-2">
@@ -242,19 +280,19 @@ export default function AdminSpreads() {
                             return (
                               <td key={p.key} className="py-2 px-2 text-right">
                                 <input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
+                                  type="text"
+                                  inputMode="decimal"
+                                  aria-label={`${broker.name} ${p.key} spread`}
                                   value={editVal == null ? "" : editVal}
                                   placeholder={
-                                    savedVal != null
+                                    typeof savedVal === "number"
                                       ? formatSpread(savedVal, p.key)
-                                      : "—"
+                                      : savedVal || "—"
                                   }
                                   onChange={(e) =>
                                     handleEditChange(id, p.key, e.target.value)
                                   }
-                                  className={`w-20 text-right rounded-md bg-gray-900/70 border px-2 py-1 text-xs font-mono focus:outline-none focus:border-blue-500 ${
+                                  className={`w-24 text-right rounded-md bg-gray-900/70 border px-2 py-1 text-xs font-mono focus:outline-none focus:border-blue-500 ${
                                     cellDirty
                                       ? "border-yellow-500/50 text-yellow-200"
                                       : "border-gray-700"

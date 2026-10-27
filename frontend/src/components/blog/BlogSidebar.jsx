@@ -28,7 +28,7 @@ function BlogSidebar({
                 >
                   <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-[#05070D]">
                     <ImageWithFallback
-                      src={p.image}
+                      src={p.thumb || p.image}
                       fallback="/assets/placeholder.jpg"
                       alt=""
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"

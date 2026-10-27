@@ -44,3 +44,18 @@ export function formatSpread(value, pairKey) {
   const isLargeInstrument = pair && pair.baseline >= 5;
   return isLargeInstrument ? value.toFixed(1) : value.toFixed(2);
 }
+
+// A typical range set by the XK team (B31) reads "0.10–0.30"; anything else
+// is the single spread.
+export function formatSpreadCell(value, range, pairKey) {
+  if (range) return `${formatSpread(range.min, pairKey)}–${formatSpread(range.max, pairKey)}`;
+  return formatSpread(value, pairKey);
+}
+
+// Latest update among a broker's typical ranges, or null.
+export function latestRangeUpdate(ranges = {}) {
+  const times = Object.values(ranges)
+    .map((r) => (r.updatedAt ? new Date(r.updatedAt).getTime() : NaN))
+    .filter(Number.isFinite);
+  return times.length ? new Date(Math.max(...times)) : null;
+}

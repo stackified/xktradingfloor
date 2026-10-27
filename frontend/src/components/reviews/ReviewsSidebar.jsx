@@ -11,7 +11,7 @@ import {
 import StarRating from "./StarRating.jsx";
 import { reviewerName } from "../../utils/reviewerName.js";
 import CompanyLogo from "../shared/CompanyLogo.jsx";
-import { computeTrustScore } from "../../utils/trustScore.js";
+import { companyTrustScore } from "../../utils/trustScore.js";
 
 const whyChooseItems = [
   // Sahil approved this wording on 9 Oct: no "verified payouts" or "live
@@ -60,7 +60,7 @@ function SidebarSection({ title, viewAllLink, children }) {
 
 function CompanyListItem({ company, rank }) {
   const hasReviews = (company.totalReviews || 0) > 0;
-  const { score } = computeTrustScore(company.ratingsAggregate, company.totalReviews);
+  const { score } = companyTrustScore(company);
 
   const rankColors = [
     "bg-blue-500/20 text-blue-400",
@@ -82,7 +82,7 @@ function CompanyListItem({ company, rank }) {
           {String(rank).padStart(2, "0")}
         </span>
       )}
-      <CompanyLogo src={company.logo} name={company.name} size="xs" />
+      <CompanyLogo src={company.logoThumb || company.logo} name={company.name} size="xs" />
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-white group-hover:text-blue-300 transition-colors truncate">
           {company.name}

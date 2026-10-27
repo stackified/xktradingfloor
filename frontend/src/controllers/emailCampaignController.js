@@ -3,31 +3,24 @@ import api from "./api.js";
 /**
  * Email Campaign API Controller
  *
- * Talks to the backend's marketing router (backend/routes/api/marketing.routes.js).
- * That router exposes exactly three endpoints today:
+ * Talks to the backend's marketing router (backend/routes/api/marketing.routes.js):
  *
  *   POST /marketing/send-bulk-email   multipart { file, subject, message }
- *   POST /marketing/drafts            { subject, body }  -> { message, draft }
  *   GET  /marketing/campaign-history  -> EmailCampaign[]  (newest first)
- *
- * This file used to call a /admin/email-campaigns/* API that was never built,
- * so every draft/history action 404'd. The functions below are mapped onto
- * what exists; the ones the backend cannot serve yet fail fast with a message
- * the UI can show, instead of a bare 404. See `unsupported()`.
+ *   POST /marketing/drafts            { subject, body }  -> { message, draft }
+ *   GET|PUT|DELETE /marketing/drafts[/:id]          (B12, backend PR #151)
+ *   POST /marketing/recipients/upload multipart { file, name } -> { batchId, name, count }
+ *   GET  /marketing/recipients[?batchId=]           lists, or one list's recipients
+ *   POST /marketing/recipients/:batchId/send { subject, message }
  *
  * Field names differ between the two sides, so responses are normalised into
  * the shapes the components already render (EmailComposer, DraftManager,
  * CampaignHistory) rather than touching every component.
  */
 
-/**
- * Throw a consistent, user-readable error for a capability the backend has
- * not implemented. Components surface `error.message` in a toast or banner.
- */
-function unsupported(action) {
-  return new Error(
-    `${action} isn't available yet — the backend endpoint is still pending.`
-  );
+// The backend's message when it has one, so the UI's toast says why.
+function apiError(error, fallback) {
+  return new Error(error.response?.data?.message || error.message || fallback);
 }
 
 // EmailDraft document -> shape EmailComposer/DraftManager expect.
@@ -67,27 +60,46 @@ function normalizeCampaign(c) {
 }
 
 /**
- * Upload CSV file and parse user data.
- * No standalone upload endpoint exists — the recipient list is sent together
- * with the email in sendBulkEmail(). CSVUploader is not mounted anywhere.
+ * Upload an Excel/CSV recipient list to send to later.
+ * @returns {Promise<{data: {batchId, name, count}}>}
  */
-export async function uploadCSV() {
-  throw unsupported("Uploading a recipient list on its own");
+export async function uploadCSV(file, name) {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    if (name) formData.append("name", name);
+    const response = await api.post("/marketing/recipients/upload", formData);
+    return { data: response.data?.data };
+  } catch (error) {
+    throw apiError(error, "Failed to upload the recipient list");
+  }
 }
 
 /**
- * Get uploaded users with pagination.
+ * Saved recipient lists (newest first), or with `batchId` one list including
+ * its recipients.
  */
-export async function getUploadedUsers() {
-  throw unsupported("Browsing uploaded recipients");
+export async function getUploadedUsers({ batchId, page = 1, size = 25 } = {}) {
+  try {
+    const response = await api.get("/marketing/recipients", {
+      params: batchId ? { batchId } : { page, size },
+    });
+    return { data: response.data?.data, pagination: response.data?.pagination };
+  } catch (error) {
+    throw apiError(error, "Failed to load recipient lists");
+  }
 }
 
 /**
- * Send email to an uploaded batch. Superseded by sendBulkEmail(), which is
- * what the composer uses.
+ * Send an email to a previously uploaded list.
  */
-export async function sendEmail() {
-  throw unsupported("Sending to a previously uploaded batch");
+export async function sendEmail(batchId, { subject, message }) {
+  try {
+    const response = await api.post(`/marketing/recipients/${batchId}/send`, { subject, message });
+    return { data: response.data?.data, message: response.data?.message };
+  } catch (error) {
+    throw apiError(error, "Failed to send the campaign");
+  }
 }
 
 /**
@@ -112,31 +124,54 @@ export async function saveDraft(draftData) {
 }
 
 /**
- * Update an existing draft. The backend can only create drafts.
+ * Update a saved draft.
  */
-export async function updateDraft() {
-  throw unsupported("Updating a saved draft");
+export async function updateDraft(draftId, draftData) {
+  try {
+    const response = await api.put(`/marketing/drafts/${draftId}`, {
+      subject: draftData.subject,
+      body: draftData.content ?? draftData.body ?? draftData.message ?? "",
+    });
+    return { data: normalizeDraft(response.data?.data) };
+  } catch (error) {
+    throw apiError(error, "Failed to update draft");
+  }
 }
 
 /**
- * List drafts. The backend can only create drafts.
+ * Saved drafts, newest first.
  */
-export async function getDrafts() {
-  throw unsupported("Listing saved drafts");
+export async function getDrafts({ page = 1, size = 50 } = {}) {
+  try {
+    const response = await api.get("/marketing/drafts", { params: { page, size } });
+    return { data: (response.data?.data || []).map(normalizeDraft), pagination: response.data?.pagination };
+  } catch (error) {
+    throw apiError(error, "Failed to load drafts");
+  }
 }
 
 /**
- * Load one draft by id. The backend can only create drafts.
+ * Load one draft by id.
  */
-export async function getDraftById() {
-  throw unsupported("Loading a saved draft");
+export async function getDraftById(draftId) {
+  try {
+    const response = await api.get(`/marketing/drafts/${draftId}`);
+    return { data: normalizeDraft(response.data?.data) };
+  } catch (error) {
+    throw apiError(error, "Failed to load draft");
+  }
 }
 
 /**
- * Delete a draft. The backend can only create drafts.
+ * Delete a draft.
  */
-export async function deleteDraft() {
-  throw unsupported("Deleting a saved draft");
+export async function deleteDraft(draftId) {
+  try {
+    await api.delete(`/marketing/drafts/${draftId}`);
+    return { success: true };
+  } catch (error) {
+    throw apiError(error, "Failed to delete draft");
+  }
 }
 
 // campaign-history returns the full list; cache it briefly so the history

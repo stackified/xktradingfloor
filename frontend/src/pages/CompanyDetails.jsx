@@ -28,6 +28,7 @@ import CompanyReviewCard from "../components/reviews/CompanyReviewCard.jsx";
 import CompanyReviewForm from "../components/reviews/CompanyReviewForm.jsx";
 import CompanyProfileHeader from "../components/reviews/CompanyProfileHeader.jsx";
 import PayoutSummary from "../components/reviews/PayoutSummary.jsx";
+import CompanyFacts from "../components/reviews/CompanyFacts.jsx";
 import LiveSpreadTable from "../components/spreads/LiveSpreadTable.jsx";
 import ConfirmModal from "../components/shared/ConfirmModal.jsx";
 import { getUserCookie } from "../utils/cookies.js";
@@ -319,6 +320,9 @@ function CompanyDetails() {
         {company.category === "PropFirm" && (
           <PayoutSummary firmId={company._id} firmName={company.name} />
         )}
+
+        {/* Licences, accounts, challenges, pros and cons (B21/B22) */}
+        <CompanyFacts company={company} />
 
         {/* Promo Codes */}
         {validPromoCodes.length > 0 && (
