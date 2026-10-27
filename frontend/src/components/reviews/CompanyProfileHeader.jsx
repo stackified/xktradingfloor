@@ -7,6 +7,7 @@ import { ExternalLink, ShieldCheck, Wallet, Clock, Globe, Layers, Server, Trendi
 import { trackEvent } from "../../utils/analytics.js";
 import CompanyLogo from "../shared/CompanyLogo.jsx";
 import StarRating from "./StarRating.jsx";
+import { companyTrustScore } from "../../utils/trustScore.js";
 
 function csvOrArray(value) {
   if (!value) return [];
@@ -54,7 +55,12 @@ function CompanyProfileHeader({ company, reviewAction = null }) {
   const isPropFirm = company.category === "PropFirm";
   const assets = csvOrArray(company.assets);
   const platforms = csvOrArray(company.platforms);
-  const regulation = csvOrArray(company.regulation);
+  // Regulators from the structured licences (B22) when the team has added
+  // them, else the older free-text list.
+  const licenceRegulators = [...new Set((company.licences || []).map((l) => l.regulator).filter(Boolean))];
+  const regulation = licenceRegulators.length ? licenceRegulators : csvOrArray(company.regulation);
+  const trust = companyTrustScore(company);
+  const hasTrustScore = trust.score > 0;
 
   return (
     <motion.div
@@ -71,6 +77,12 @@ function CompanyProfileHeader({ company, reviewAction = null }) {
               <span className="text-xs sm:text-sm px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 font-semibold">
                 {isPropFirm ? "Prop Firm" : company.category || "Broker"}
               </span>
+              {company.trusted && (
+                <span className="inline-flex items-center gap-1 text-xs sm:text-sm px-2.5 py-0.5 rounded-full bg-green-500/15 text-green-300 border border-green-500/30 font-semibold">
+                  <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                  Trusted
+                </span>
+              )}
               {company.country && (
                 <span className="text-xs sm:text-sm text-gray-300">
                   {company.country}
@@ -96,6 +108,11 @@ function CompanyProfileHeader({ company, reviewAction = null }) {
                 ({company.totalReviews || 0}{" "}
                 {company.totalReviews === 1 ? "review" : "reviews"})
               </span>
+              {hasTrustScore && (
+                <span className="text-sm text-gray-300">
+                  TrustScore <span className="font-semibold text-white">{trust.score}</span>/100
+                </span>
+              )}
               <Link to="/how-we-rate#trustscore" className="text-xs text-blue-400 hover:text-blue-300">
                 How ratings work
               </Link>

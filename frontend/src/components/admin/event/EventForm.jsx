@@ -18,7 +18,7 @@ import { useToast } from "../../../contexts/ToastContext.jsx";
 import ChipInput from "../../shared/ChipInput.jsx";
 import CustomSelect from "../../shared/CustomSelect.jsx";
 import EventImage from "../../shared/EventImage.jsx";
-import { processEventImage } from "../../../utils/imageProcessing.js";
+import { processEventImage, makeThumbnail } from "../../../utils/imageProcessing.js";
 import { EVENT_TIME_ZONES, zonedLocalToIso, isoToZonedLocal } from "../../../utils/eventTime.js";
 import { countryOptions } from "../../../utils/countries.js";
 import RichTextEditor from "../../shared/RichTextEditor.jsx";
@@ -234,6 +234,9 @@ function EventForm({ redirectPath = "/admin/events", eventId: eventIdProp }) {
 
     if (featuredImageFile) {
       payload.append("featuredImage", featuredImageFile);
+      // 640 px copy for cards (B8).
+      const thumb = await makeThumbnail(featuredImageFile, 640);
+      if (thumb) payload.append("imageThumb", thumb);
     }
 
     try {

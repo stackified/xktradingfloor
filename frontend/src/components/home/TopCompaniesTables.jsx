@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { m as motion } from "framer-motion";
 import { Star, ArrowRight, Landmark, TrendingUp } from "lucide-react";
 import { getAllCompanies } from "../../controllers/companiesController.js";
-import { computeTrustScore } from "../../utils/trustScore.js";
+import { computeTrustScore, companyTrustScore } from "../../utils/trustScore.js";
 import CompanyLogo from "../shared/CompanyLogo.jsx";
 
 // Same 5-star rendering as the reviews list, kept tiny for a table row.
@@ -21,9 +21,9 @@ function Stars({ rating = 0 }) {
   );
 }
 
-function TrustPill({ ratingsAggregate, totalReviews }) {
-  const { score, label } = computeTrustScore(ratingsAggregate, totalReviews);
-  if (label === "No Reviews") {
+function TrustPill({ ratingsAggregate, totalReviews, trustScore }) {
+  const { score, label } = computeTrustScore(ratingsAggregate, totalReviews, trustScore);
+  if (label === "No Reviews" || label === "Not rated yet") {
     return (
       <span className="text-xs text-gray-500 whitespace-nowrap">No reviews yet</span>
     );
@@ -60,7 +60,7 @@ function CompanyRow({ company, index }) {
         {String(index + 1).padStart(2, "0")}
       </span>
       <div className="flex items-center gap-3 min-w-0">
-        <CompanyLogo src={company.logo} name={company.name} size="sm" />
+        <CompanyLogo src={company.logoThumb || company.logo} name={company.name} size="sm" />
         <div className="min-w-0">
           <div className="text-sm font-medium text-white truncate group-hover:text-blue-300 transition-colors">
             {company.name}
@@ -79,6 +79,7 @@ function CompanyRow({ company, index }) {
       <TrustPill
         ratingsAggregate={company.ratingsAggregate}
         totalReviews={company.totalReviews}
+        trustScore={company.trustScore}
       />
     </Link>
   );
@@ -147,8 +148,8 @@ function TableCard({ title, icon: Icon, iconTint, companies, loading, viewAllHre
 // firm with thousands of ratings averaging just under.
 function rankCompanies(list) {
   return [...list].sort((a, b) => {
-    const aScore = computeTrustScore(a.ratingsAggregate, a.totalReviews).score;
-    const bScore = computeTrustScore(b.ratingsAggregate, b.totalReviews).score;
+    const aScore = companyTrustScore(a).score;
+    const bScore = companyTrustScore(b).score;
     if (bScore !== aScore) return bScore - aScore;
     return (b.totalReviews || 0) - (a.totalReviews || 0);
   });

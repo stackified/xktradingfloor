@@ -5,8 +5,8 @@ import { Search, ArrowDown, ArrowUp, Minus, ExternalLink, Info } from "lucide-re
 import Seo from "../components/shared/Seo.jsx";
 import CardLoader from "../components/shared/CardLoader.jsx";
 import { getAllCompanies } from "../controllers/companiesController.js";
-import { getSpreadComparison, spreadsToRow } from "../controllers/spreadsController.js";
-import { V1_PAIRS, mockSpreadRow, formatSpread } from "../utils/spreads.js";
+import { getSpreadComparison, spreadsToRow, spreadsToRanges } from "../controllers/spreadsController.js";
+import { V1_PAIRS, mockSpreadRow, formatSpreadCell } from "../utils/spreads.js";
 
 const REFRESH_MS = 30000;
 
@@ -26,6 +26,8 @@ function LiveSpreads() {
   const [loading, setLoading] = React.useState(true);
   const [query, setQuery] = React.useState("");
   const [rows, setRows] = React.useState({});
+  // Typical ranges set by the XK team (B31), per broker and pair.
+  const [ranges, setRanges] = React.useState({});
   const prevRef = React.useRef({});
   const [sortPair, setSortPair] = React.useState(null);
   const [sortDir, setSortDir] = React.useState("asc");
@@ -38,13 +40,16 @@ function LiveSpreads() {
       const comparisonBrokers = data?.brokers || [];
       if (comparisonBrokers.length) {
         const next = {};
+        const nextRanges = {};
         comparisonBrokers.forEach((entry) => {
           const row = spreadsToRow(entry.pairs);
           if (Object.keys(row).length) {
             next[entry.brokerId] = row;
+            nextRanges[entry.brokerId] = spreadsToRanges(entry.pairs);
           }
         });
         if (Object.keys(next).length) {
+          setRanges(nextRanges);
           setRows((prev) => {
             prevRef.current = prev;
             return next;
@@ -129,7 +134,7 @@ function LiveSpreads() {
   const DirectionIcon = ({ brokerId, pairKey }) => {
     // Movement arrows are only meaningful against a real prior fetch. In sample
     // mode the numbers are illustrative, so never imply up/down movement.
-    if (usingMock) return <Minus className="h-2.5 w-2.5 text-gray-700" />;
+    if (usingMock || ranges[brokerId]?.[pairKey]) return <Minus className="h-2.5 w-2.5 text-gray-700" />;
     const now = rows[brokerId]?.[pairKey];
     const prev = prevRef.current[brokerId]?.[pairKey];
     if (now == null || prev == null || now === prev)
@@ -282,7 +287,7 @@ function LiveSpreads() {
                             >
                               <div className="inline-flex items-center gap-1.5">
                                 <DirectionIcon brokerId={id} pairKey={p.key} />
-                                <span>{formatSpread(row[p.key], p.key)}</span>
+                                <span>{formatSpreadCell(row[p.key], ranges[id]?.[p.key], p.key)}</span>
                               </div>
                             </td>
                           ))}
@@ -298,7 +303,7 @@ function LiveSpreads() {
                     "Illustrative sample figures · Click a pair to sort · Not live market data"
                   ) : (
                     <>
-                      Typical spread in pips · Click a pair to sort · Data by{" "}
+                      Typical spread in pips (a range where XK checked it) · Click a pair to sort · Data by{" "}
                       <a
                         href="https://www.myfxbook.com/forex-broker-spreads"
                         target="_blank"

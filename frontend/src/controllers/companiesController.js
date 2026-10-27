@@ -14,6 +14,10 @@ import { cachedRequest, clearCache } from "./responseCache.js";
  */
 function appendCompanyField(formData, key, value) {
   if (value === undefined || value === null) return;
+  if (value instanceof Blob) {
+    formData.append(key, value);
+    return;
+  }
   if (Array.isArray(value)) {
     const allPrimitive = value.every((v) => v === null || typeof v !== "object");
     if (allPrimitive) {

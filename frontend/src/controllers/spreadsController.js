@@ -16,6 +16,17 @@ export async function getSpreadComparison() {
   return { data: { pairs: [], brokers: [], lastFetchedAt: null } };
 }
 
+// Pairs with a typical range from the XK team (B31): { "EUR/USD": { min, max, updatedAt } }.
+export function spreadsToRanges(pairs = {}) {
+  const ranges = {};
+  Object.entries(pairs).forEach(([pair, value]) => {
+    if (value && typeof value === "object" && value.spreadMin != null && value.spreadMax != null) {
+      ranges[pair] = { min: value.spreadMin, max: value.spreadMax, updatedAt: value.updatedAt || null };
+    }
+  });
+  return ranges;
+}
+
 export function spreadsToRow(pairs = {}) {
   const row = {};
   Object.entries(pairs).forEach(([pair, value]) => {
@@ -34,6 +45,14 @@ export async function refreshSpreads() {
 // Admin-only: manually set one or more pair spreads for a broker. Body:
 // { brokerId, pairs: { "EUR/USD": 0.8, ... } }. Overrides are flagged as
 // manual so the auto-scrape doesn't stomp on them.
+// Admin/Operator: typical ranges in pips (B31). Body:
+// { pairs: { "EUR/USD": { min: 0.1, max: 0.3 } } }; {} for a pair removes it.
+// The auto-scrape leaves these rows alone.
+export async function setTypicalSpreads(brokerId, pairs) {
+  const response = await api.put(`/admin/spreads/${brokerId}/typical`, { pairs });
+  return response.data;
+}
+
 export async function overrideSpreads(brokerId, pairs) {
   const response = await api.put("/admin/spreads/override", {
     brokerId,

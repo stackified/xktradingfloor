@@ -1,4 +1,5 @@
 import React from "react";
+import { makeThumbnail } from "../../../utils/imageProcessing.js";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -305,6 +306,9 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
 
     if (featuredImageFile) {
       payload.append("featuredImage", featuredImageFile);
+      // 640 px copy for cards (B8).
+      const thumb = await makeThumbnail(featuredImageFile, 640);
+      if (thumb) payload.append("imageThumb", thumb);
     }
 
     try {

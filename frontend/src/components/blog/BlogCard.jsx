@@ -17,7 +17,7 @@ function BlogCard({ post, href, onClick, isLocked = false, onLockClick }) {
     <>
       <div className={BLOG_IMAGE_BOX}>
         <ImageWithFallback
-          src={post.image}
+          src={post.thumb || post.image}
           fallback="/assets/placeholder.jpg"
           alt={post.title}
           className={`${BLOG_IMAGE} transition-transform duration-500 ease-out ${

@@ -286,6 +286,7 @@ function BlogPost() {
           title: blog.title,
           excerpt: blog.excerpt,
           image: blog.coverImage || blog.featuredImage || blog.image,
+          thumb: blog.imageThumb || null, // B8: 640 px copy for cards
           category: firstCategory(blog),
           tags: blog.tags || [],
           date: formatDate(blog.publishedAt || blog.createdAt),

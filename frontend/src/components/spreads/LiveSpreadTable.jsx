@@ -1,9 +1,10 @@
 import React from "react";
 import { ArrowDown, ArrowUp, Minus } from "lucide-react";
-import { V1_PAIRS, mockSpreadRow, formatSpread } from "../../utils/spreads.js";
+import { V1_PAIRS, mockSpreadRow, formatSpreadCell, latestRangeUpdate } from "../../utils/spreads.js";
 import {
   getBrokerSpreads,
   spreadsToRow,
+  spreadsToRanges,
 } from "../../controllers/spreadsController.js";
 import { getUserCookie } from "../../utils/cookies.js";
 
@@ -13,6 +14,7 @@ function LiveSpreadTable({ brokerId, brokerName }) {
   const [spreads, setSpreads] = React.useState(() => mockSpreadRow(brokerId));
   const prevRef = React.useRef(spreads);
   const [usingMock, setUsingMock] = React.useState(true);
+  const [ranges, setRanges] = React.useState({});
 
   // GET /spreads needs a login. Signed-out visitors (most of them) got a 401
   // every 30 s, logged as a console error that cost the review pages
@@ -29,6 +31,7 @@ function LiveSpreadTable({ brokerId, brokerName }) {
           prevRef.current = prev;
           return row;
         });
+        setRanges(spreadsToRanges(data.pairs));
         setUsingMock(false);
         return;
       }
@@ -42,6 +45,7 @@ function LiveSpreadTable({ brokerId, brokerName }) {
       prevRef.current = prev;
       return mockSpreadRow(brokerId);
     });
+    setRanges({});
     setUsingMock(true);
   }, [brokerId]);
 
@@ -53,7 +57,7 @@ function LiveSpreadTable({ brokerId, brokerName }) {
 
   const DirectionIcon = ({ pairKey }) => {
     // Sample figures must never imply live up/down movement.
-    if (usingMock) return <Minus className="h-3 w-3 text-gray-600" />;
+    if (usingMock || ranges[pairKey]) return <Minus className="h-3 w-3 text-gray-600" />;
     const now = spreads[pairKey];
     const prev = prevRef.current[pairKey];
     if (now == null || prev == null || now === prev)
@@ -109,7 +113,7 @@ function LiveSpreadTable({ brokerId, brokerName }) {
                     {p.label}
                   </td>
                   <td className="py-3 px-4 sm:px-5 text-right font-mono text-white">
-                    {formatSpread(spreads[p.key], p.key)}
+                    {formatSpreadCell(spreads[p.key], ranges[p.key], p.key)}
                   </td>
                   <td className="py-3 px-4 sm:px-5 text-center">
                     <div className="inline-flex items-center justify-center">
@@ -138,6 +142,12 @@ function LiveSpreadTable({ brokerId, brokerName }) {
                   myfxbook
                 </a>
                 . Spreads shown are indicative and may vary.
+                {latestRangeUpdate(ranges) && (
+                  <>
+                    {" "}Ranges are typical spreads checked by XK, last updated{" "}
+                    {latestRangeUpdate(ranges).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}.
+                  </>
+                )}
               </>
             )}
           </p>
