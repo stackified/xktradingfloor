@@ -210,7 +210,8 @@ export default function CompanyDataFields({ value, onChange, category, isAdmin }
             <h3 className="text-sm font-semibold text-gray-200">TrustScore (Admin only)</h3>
             <p className="mt-1 text-xs text-gray-400">
               The score is calculated on save from these, the licences, reviews and platforms. Only the total is
-              shown on the site.
+              shown on the site. Until a broker has a licence (or a prop firm at least one score), the site shows
+              the review score instead.
             </p>
           </div>
           <label className="flex items-center gap-2 text-sm text-gray-200">
