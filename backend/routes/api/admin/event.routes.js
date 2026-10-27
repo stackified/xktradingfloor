@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const eventController = require('../../../controllers/event.controller');
+const registrationController = require('../../../controllers/eventRegistration.controller');
 const pdfUpload = require("../../../middleware/file-upload.middleware");
 
 router.post('/addevent',
@@ -25,6 +26,7 @@ router.put('/:eventId/updateEvent',
     ),
     eventController.updateEvent);
 router.delete('/:eventId/deleteEvent', eventController.deleteEvent);
-router.post('/:eventId/register', eventController.registerForEvent);
+// Older path for the same sign-up; leads are stored as in B16.
+router.post('/:eventId/register', registrationController.registerLead);
 
 module.exports = router;

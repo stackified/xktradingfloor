@@ -5,6 +5,7 @@ const { getPagination, getPaginationData, escapeRegex, isValidObjectId } = requi
 const constants = require("../utils/constants");
 const r2 = require("../helpers/r2.helper");
 const { PUBLIC_USER_FIELDS, publicUser, plainExcerpt } = require("../utils/publicData");
+const { sanitizeHtml } = require("../utils/sanitizeHtml");
 
 // Average rating and count per company in one aggregation, instead of loading
 // every review (and its user) just to average them (B4).
@@ -227,6 +228,7 @@ exports.createCompany = async (req, res) => {
 
         const companyData = {
             ...req.body,
+            description: sanitizeHtml(req.body.description),
             addedBy: userId,
             adminId: role === constants.roles.admin ? userId : undefined,
             status: role === constants.roles.admin ? 'approved' : 'pending',
@@ -272,14 +274,32 @@ exports.updateCompany = async (req, res) => {
             return sendErrorResponse(res, "You can only update your own companies", 403, true, true);
         }
 
+        const updates = { ...req.body };
+        // Ownership and ids never change through an edit.
+        delete updates._id;
+        delete updates.addedBy;
+        delete updates.adminId;
+
         // If rating fields are being updated, recalculate
-        if (req.body.ratingsAggregate !== undefined || req.body.totalReviews !== undefined) {
+        if (updates.ratingsAggregate !== undefined || updates.totalReviews !== undefined) {
             const ratingData = await recalculateCompanyRating(companyId);
-            req.body.ratingsAggregate = ratingData.ratingsAggregate;
-            req.body.totalReviews = ratingData.totalReviews;
+            updates.ratingsAggregate = ratingData.ratingsAggregate;
+            updates.totalReviews = ratingData.totalReviews;
         }
 
-        Object.assign(company, req.body);
+        // A new logo file replaces the logo (B27: the file used to be dropped
+        // and the old logo stayed). Without a file, an empty value never
+        // wipes the current logo.
+        if (req.files?.logo?.[0]) {
+            const logo = req.files.logo[0];
+            updates.logo = await r2.uploadPublic(logo.path.replace(/\\/g, "/"), `${logo.filename}`, "Companies");
+        } else if (!updates.logo) {
+            delete updates.logo;
+        }
+
+        if (updates.description !== undefined) updates.description = sanitizeHtml(updates.description);
+
+        Object.assign(company, updates);
         const updatedCompany = await company.save();
 
         // Populate user references
@@ -441,6 +461,7 @@ exports.requestCompanyAddition = async (req, res) => {
 
         const companyData = {
             ...req.body,
+            description: sanitizeHtml(req.body.description),
             addedBy: userId,
             status: 'pending',
             ratingsAggregate: 0,

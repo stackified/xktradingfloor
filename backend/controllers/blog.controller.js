@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const r2 = require("../helpers/r2.helper");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const { getPagination, getPaginationData, escapeRegex, isValidObjectId } = require("../utils/fn");
+const { sanitizeHtml } = require("../utils/sanitizeHtml");
 const emailService = require("../services/email.service");
 const environment = require("../utils/environment");
 const constants = require("../utils/constants");
@@ -69,9 +70,11 @@ const transformBlogForResponse = (blog) => {
 const isStaff = (user) =>
     Boolean(user) && [constants.roles.admin, constants.roles.operator].includes(user.role);
 
-// Whole minutes at ~220 words per minute, from stored HTML.
+// Whole minutes at ~220 words per minute, from stored HTML. <style> and
+// <script> blocks are dropped first so a designed post's CSS isn't counted.
 const readingMinutes = (html) => {
     const words = String(html || '')
+        .replace(/<(style|script)[^>]*>[\s\S]*?<\/\1>/gi, ' ')
         .replace(/<[^>]*>/g, ' ')
         .replace(/&[a-z#0-9]+;/gi, ' ')
         .split(/\s+/)
@@ -213,6 +216,7 @@ exports.createBlog = async (req, res) => {
 
         const blogData = normalizeCategoryFields({ ...req.body });
         syncCoverImage(blogData);
+        if (blogData.content !== undefined) blogData.content = sanitizeHtml(blogData.content);
 
         // For regular users, filter out restricted fields and enforce draft status
         if (role === "User") {
@@ -460,6 +464,7 @@ exports.updateBlog = async (req, res) => {
         const { blogid } = req.params;
         const { _id: userId, role } = req.user;
         const updateData = { ...req.body };
+        if (updateData.content !== undefined) updateData.content = sanitizeHtml(updateData.content);
 
         // Fetch blog first to check existence and for image merging
         const blog = await BlogModel.findOne({ _id: blogid, isDeleted: false });
@@ -505,11 +510,15 @@ exports.updateBlog = async (req, res) => {
                 return sendErrorResponse(res, "You are not authorized to update this blog post", 403, true, true);
             }
 
-            // Filter out restricted fields but allow status updates
+            // Filter out restricted fields. A User may take their own post
+            // back to draft, but only Admin/Operator publish (B3).
             const fieldsToRemove = RESTRICTED_FIELDS.filter(field => field !== 'status');
             fieldsToRemove.forEach(field => {
                 delete updateData[field];
             });
+            if (updateData.status !== undefined && updateData.status !== 'draft') {
+                delete updateData.status;
+            }
 
             // If user is publishing/unpublishing, handle publishedAt
             if (updateData.status === 'published' && blog.status !== 'published') {

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= subject %></title>
+</head>
+
+<!-- Internal alert to the XK inbox: a new event registration (B16) or a
+     contact-form message (B20). Every value is escaped by <%= %>. -->
+<body style="margin: 0; padding: 0; background-color: #020617; font-family: Helvetica, Arial, sans-serif;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #020617;">
+        <tr>
+            <td align="center" style="padding: 32px 12px;">
+                <table width="600" border="0" cellspacing="0" cellpadding="0"
+                    style="max-width: 600px; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; overflow: hidden;">
+                    <tr>
+                        <td style="padding: 32px 36px 8px 36px;">
+                            <img src="https://xktradingfloor.com/assets/navbar%20logo.png" width="160"
+                                alt="XK TRADING FLOOR" style="display: block; border: 0;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 16px 36px 8px 36px;">
+                            <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #ffffff;"><%= heading %></h1>
+                            <% if (intro) { %>
+                            <p style="margin: 12px 0 0 0; font-size: 15px; line-height: 1.6; color: #94a3b8;"><%= intro %></p>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 16px 36px 8px 36px;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0"
+                                style="border-collapse: collapse; font-size: 14px;">
+                                <% rows.forEach(function (row) { %>
+                                <tr>
+                                    <td style="padding: 8px 12px 8px 0; color: #94a3b8; vertical-align: top; width: 38%; border-bottom: 1px solid #1e293b;"><%= row.label %></td>
+                                    <td style="padding: 8px 0; color: #e2e8f0; vertical-align: top; border-bottom: 1px solid #1e293b; word-break: break-word;"><%= row.value %></td>
+                                </tr>
+                                <% }) %>
+                            </table>
+                        </td>
+                    </tr>
+                    <% if (message) { %>
+                    <tr>
+                        <td style="padding: 16px 36px 8px 36px;">
+                            <div style="padding: 16px; background-color: #020617; border: 1px solid #1e293b; border-radius: 8px; color: #e2e8f0; font-size: 14px; line-height: 1.6; white-space: pre-wrap;"><%= message %></div>
+                        </td>
+                    </tr>
+                    <% } %>
+                    <% if (linkUrl) { %>
+                    <tr>
+                        <td style="padding: 20px 36px 8px 36px;">
+                            <a href="<%= linkUrl %>"
+                                style="display: inline-block; padding: 12px 28px; background-color: #1d4ed8; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 14px;"><%= linkLabel %></a>
+                        </td>
+                    </tr>
+                    <% } %>
+                    <tr>
+                        <td style="padding: 24px 36px 32px 36px; font-size: 12px; color: #64748b;">
+                            Sent automatically by xktradingfloor.com.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

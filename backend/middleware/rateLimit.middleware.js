@@ -55,6 +55,20 @@ function rateLimit(keyPrefix, maxAttempts, windowMs, getKey) {
 
 module.exports = {
     getClientIp,
+    rateLimit,
+    // Public forms: 5 per IP per 10 minutes (B16 event sign-up, B20 contact).
+    eventRegistrationLimiter: rateLimit(
+        "event-register-ip",
+        5,
+        10 * 60 * 1000,
+        getClientIp
+    ),
+    contactLimiter: rateLimit(
+        "contact-ip",
+        5,
+        10 * 60 * 1000,
+        getClientIp
+    ),
     // Blog comments: per signed-in user, 6 per 10 minutes.
     commentLimiter: rateLimit(
         "blog-comment",

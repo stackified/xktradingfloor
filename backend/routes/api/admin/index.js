@@ -7,6 +7,9 @@ const settingRoutes = require('./setting.routes.js');
 const userRoutes = require('./user.routes');
 const eventRoutes = require('./event.routes.js');
 const spreadRoutes = require('./spread.routes.js');
+const eventRegistrationRoutes = require('./eventRegistration.routes.js');
+const constants = require('../../../utils/constants');
+const { authorization } = require('../../../middleware/authorization.middleware');
 
 // Controllers
 // const productController = require('../../../controllers/product.controller');
@@ -45,6 +48,8 @@ router.use('/users', userRoutes);
 
 // Event Routes
 router.use('/event', eventRoutes);
+// Event registration leads: Admin only (B16)
+router.use('/event-registrations', authorization([constants.roles.admin]), eventRegistrationRoutes);
 
 // Spread Routes
 router.use('/spreads', spreadRoutes);
