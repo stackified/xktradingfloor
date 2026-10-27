@@ -61,6 +61,9 @@ if (!environment.r2.privateBucketName) {
     console.warn("WARNING: R2_PRIVATE_BUCKET_NAME is not set; private documents are stored in the public bucket.");
 }
 
+// Public uploads never change under the same key (B8).
+const PUBLIC_CACHE_CONTROL = "public, max-age=31536000, immutable";
+
 // Signed links are valid for at most 7 days (R2/S3 reject longer ones).
 const MAX_SIGNED_SECONDS = 7 * 24 * 60 * 60;
 
@@ -193,6 +196,9 @@ const r2 = {    uploadPrivate: async (file, fileName, folder = "folderName") => 
                 Key: key,
                 Body: fileContent,
                 ContentType: contentTypeFor(fileName),
+                // Keys are unique per upload, so browsers may keep the file a
+                // year (B8: PageSpeed "efficient cache lifetimes").
+                CacheControl: PUBLIC_CACHE_CONTROL,
             });
 
             await r2ClientObj.send(command);
@@ -248,6 +254,8 @@ const r2 = {    uploadPrivate: async (file, fileName, folder = "folderName") => 
     },
 
     privateBucketName: privateBucket,
+
+    PUBLIC_CACHE_CONTROL,
 
     generatePresignedDownloadUrl: async (fileUrl, expiresIn = 3600) => {
         try {

@@ -11,7 +11,9 @@ router.post('/addevent',
         [{
             name: "featuredImage",
             maxCount: 1
-        },]
+        },
+        // B8: thumbnail made in the browser
+        { name: "imageThumb", maxCount: 1 }]
     ),
     eventController.createEvent);
 router.get('/:eventId/geteventbyid', eventController.getEventById);
@@ -22,7 +24,9 @@ router.put('/:eventId/updateEvent',
         [{
             name: "featuredImage",
             maxCount: 1
-        },]
+        },
+        // B8: thumbnail made in the browser
+        { name: "imageThumb", maxCount: 1 }]
     ),
     eventController.updateEvent);
 router.delete('/:eventId/deleteEvent', eventController.deleteEvent);

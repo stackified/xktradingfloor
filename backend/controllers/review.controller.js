@@ -7,26 +7,22 @@ const environment = require("../utils/environment");
 const r2 = require("../helpers/r2.helper");
 
 // Helper to recalculate and persist company rating aggregates
-// Hidden reviews (B11) don't count.
+// Hidden reviews (B11) don't count. Saved through the model so the
+// TrustScore follows the new rating (B32).
 async function recalculateCompanyRating(companyId) {
     const reviews = await ReviewModel.find({ companyId, isHidden: { $ne: true } });
-    if (reviews.length === 0) {
-        await CompanyModel.findByIdAndUpdate(companyId, {
-            ratingsAggregate: 0,
-            totalReviews: 0,
-        });
-        return { ratingsAggregate: 0, totalReviews: 0 };
+    const agg = reviews.length === 0
+        ? { ratingsAggregate: 0, totalReviews: 0 }
+        : {
+            ratingsAggregate: parseFloat((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)),
+            totalReviews: reviews.length,
+        };
+
+    const company = await CompanyModel.findById(companyId);
+    if (company) {
+        Object.assign(company, agg);
+        await company.save();
     }
-
-    const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
-    const ratingsAggregate = totalRating / reviews.length;
-
-    const agg = {
-        ratingsAggregate: parseFloat(ratingsAggregate.toFixed(1)),
-        totalReviews: reviews.length,
-    };
-
-    await CompanyModel.findByIdAndUpdate(companyId, agg);
     return agg;
 }
 
