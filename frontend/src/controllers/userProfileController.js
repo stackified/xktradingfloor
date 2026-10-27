@@ -107,3 +107,10 @@ export async function updateVerifiedTraderStats(userId, payload) {
   const response = await api.patch(`/admin/users/verified-trader/${userId}/stats`, payload);
   return response.data;
 }
+
+// Take an approved trader's Verified badge away (Admin only, backend B28).
+// The account and its private documents stay.
+export async function revokeVerifiedTrader(userId, reason = "") {
+  const response = await api.post(`/admin/users/verified-trader/${userId}/revoke`, { reason });
+  return response.data;
+}

@@ -16,21 +16,26 @@ import CustomSelect from "../components/shared/CustomSelect.jsx";
 import DiscordLink from "../components/shared/DiscordLink.jsx";
 import { trackEvent } from "../utils/analytics.js";
 import { CONTACT_EMAIL } from "../utils/contact.js";
+import api from "../controllers/api.js";
 
 
 function Contact() {
+  // ok: "sent" (stored and emailed to the team), "mailto" (fallback opened
+  // the visitor's email app), or false.
   const [ok, setOk] = React.useState(false);
+  const [sending, setSending] = React.useState(false);
+  const [error, setError] = React.useState("");
   const [form, setForm] = React.useState({
     name: "",
     email: "",
     type: "General Inquiry",
     message: "",
+    website: "", // honeypot: hidden from people, filled in by bots
   });
-  // There is no contact endpoint yet (backend deliverable B20), so the form
-  // opens the visitor's email app with the message written out, addressed to
-  // the team. Before this it showed "sent" and the message went nowhere.
-  function submit(e) {
-    e.preventDefault();
+
+  // Before the contact endpoint existed this opened the visitor's email app;
+  // it still does if the endpoint isn't there (404), so nothing is lost.
+  function openMailApp() {
     const subject = `${form.type}: ${form.name}`.slice(0, 120);
     const body = `${form.message}
 
@@ -39,9 +44,29 @@ Name: ${form.name}
 Email: ${form.email}
 Topic: ${form.type}
 Sent from xktradingfloor.com/contact`;
-    trackEvent("contact_submit", { topic: form.type });
     window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    setOk(true);
+    setOk("mailto");
+  }
+
+  // POST /api/contact (backend B20): stored and emailed to the team, with
+  // Reply-To set to the sender.
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    setSending(true);
+    trackEvent("contact_submit", { topic: form.type });
+    try {
+      await api.post("/contact", form);
+      setOk("sent");
+      setForm({ name: "", email: "", type: "General Inquiry", message: "", website: "" });
+    } catch (err) {
+      const status = err.response?.status;
+      if (status === 404) openMailApp();
+      else if (status === 429) setError("You've sent a few messages already. Please wait a few minutes and try again.");
+      else setError(err.response?.data?.message || `Your message couldn't be sent. Please email us at ${CONTACT_EMAIL}.`);
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -156,15 +181,32 @@ Sent from xktradingfloor.com/contact`;
                       }
                     />
                   </label>
+                  {/* Honeypot: off-screen and skipped by keyboard and screen readers. */}
+                  <input
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    value={form.website}
+                    onChange={(e) => setForm({ ...form, website: e.target.value })}
+                    style={{ position: "absolute", left: "-10000px", width: 1, height: 1, opacity: 0 }}
+                  />
+                  {error && (
+                    <p role="alert" className="text-sm text-red-300">
+                      {error}
+                    </p>
+                  )}
                   <button
                     type="submit"
-                    className="btn w-full rounded-full bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 px-6 py-3 font-medium"
+                    disabled={sending}
+                    className="btn w-full rounded-full bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20 px-6 py-3 font-medium disabled:opacity-60 disabled:hover:scale-100"
                     aria-label="Send message"
                   >
-                    Send Message
+                    {sending ? "Sending…" : "Send Message"}
                   </button>
                   <p className="text-center text-xs text-gray-400">
-                    Opens your email app, addressed to {CONTACT_EMAIL}.
+                    Goes straight to our team at {CONTACT_EMAIL}.
                   </p>
                 </div>
               </form>
@@ -290,14 +332,23 @@ Sent from xktradingfloor.com/contact`;
           className="fixed bottom-6 right-6 bg-gray-900/90 border border-blue-500/50 rounded-lg px-6 py-4 shadow-lg shadow-blue-500/20 z-50"
         >
           <div role="status" className="max-w-xs text-sm text-white">
-            <p className="font-medium">Your email app should open with your message ready to send.</p>
-            <p className="mt-1 text-gray-300">
-              Nothing opened? Email us at{" "}
-              <a href={`mailto:${CONTACT_EMAIL}`} className="text-blue-400 underline">
-                {CONTACT_EMAIL}
-              </a>
-              .
-            </p>
+            {ok === "sent" ? (
+              <>
+                <p className="font-medium">Thanks, your message has been sent.</p>
+                <p className="mt-1 text-gray-300">We usually reply within 1–2 business days.</p>
+              </>
+            ) : (
+              <>
+                <p className="font-medium">Your email app should open with your message ready to send.</p>
+                <p className="mt-1 text-gray-300">
+                  Nothing opened? Email us at{" "}
+                  <a href={`mailto:${CONTACT_EMAIL}`} className="text-blue-400 underline">
+                    {CONTACT_EMAIL}
+                  </a>
+                  .
+                </p>
+              </>
+            )}
             <button type="button" onClick={() => setOk(false)} className="mt-2 text-xs text-gray-400 hover:text-white">
               Close
             </button>

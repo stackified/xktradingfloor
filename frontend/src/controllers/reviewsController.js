@@ -4,11 +4,18 @@ import api from "./api.js";
 // Set to false to always use real data from database
 const FORCE_REAL_DATA_MODE = true;
 
-// Admin review moderation (hide / pin) has no backend yet: the routes in
-// backend/routes/api/admin/review.routes.js are commented out, so the PATCH
-// calls below 404 and the buttons just surfaced an error. The UI hides the
-// controls while this is false; flip it once the endpoints exist.
-export const REVIEW_MODERATION_ENABLED = false;
+// Admin review moderation: hide / pin (backend B11) and verify (B19), all
+// PATCH /api/admin/review/:id/<action>. Live with backend PR #150.
+export const REVIEW_MODERATION_ENABLED = true;
+
+const isStaffUser = (user) => Boolean(user) && ["admin", "operator"].includes(String(user.role || "").toLowerCase());
+
+// Mark a review verified (only after the evidence has been checked) or not.
+export async function verifyReview(reviewId, verified) {
+  const response = await api.patch(`/admin/review/${reviewId}/verify`, { verified: Boolean(verified) });
+  if (response.data?.success) return { data: response.data.data };
+  throw new Error(response.data?.message || "Couldn't update the review.");
+}
 
 // Helper to check if mock mode is enabled
 // Checks backend first, then falls back to localStorage (synced by Redux)
@@ -711,8 +718,8 @@ export async function hideReview(reviewId) {
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
-  if (!user || user.role !== "admin") {
-    throw new Error("Only admins can hide reviews");
+  if (!isStaffUser(user)) {
+    throw new Error("Only admins and operators can hide reviews");
   }
 
   if (!mockMode) {
@@ -751,8 +758,8 @@ export async function pinReview(reviewId) {
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
 
-  if (!user || user.role !== "admin") {
-    throw new Error("Only admins can pin reviews");
+  if (!isStaffUser(user)) {
+    throw new Error("Only admins and operators can pin reviews");
   }
 
   if (!mockMode) {
