@@ -51,7 +51,7 @@ const FAQS = [
   {
     question: "How is the XK TrustScore calculated?",
     answer:
-      "The TrustScore is a score from 0 to 100. For brokers it combines regulation (35 points), trader reviews (25), withdrawals (20), trading conditions (15) and platforms (5). For prop firms it combines trader reviews (30), payouts (30), rules (20), background (15) and platforms (5). Crypto platforms are scored on trader reviews only, as the average star rating multiplied by 20. 90 and above is Excellent, 80 to 89 Great, 70 to 79 Good, 60 to 69 Fair and below 60 Poor. A company with no data yet has no score.",
+      "The TrustScore is a score from 0 to 100. For brokers it combines regulation (35 points), trader reviews (25), withdrawals (20), trading conditions (15) and platforms (5). For prop firms it combines trader reviews (30), payouts (30), rules (20), background (15) and platforms (5). Crypto platforms are scored on trader reviews only, as the average star rating multiplied by 20. 90 and above is Excellent, 80 to 89 Great, 70 to 79 Good, 60 to 69 Fair and below 60 Poor. Until the XK team has checked a company (its licences for a broker, its scores for a prop firm), the TrustScore shown is the review score: the average star rating multiplied by 20.",
   },
   {
     question: "Who writes the reviews on XK Trading Floor?",
@@ -157,7 +157,12 @@ function HowWeRate() {
           ))}
           <ul className="list-disc space-y-1 pl-5">
             <li>Crypto platforms are scored on trader reviews only: the average star rating multiplied by 20.</li>
-            <li>A factor with no data yet adds no points. A company with no data at all has no score.</li>
+            <li>
+              Until the XK team has checked a company (its licences for a broker, its scores for a prop firm), the
+              TrustScore shown is the review score: the average star rating multiplied by 20. A company with no
+              reviews and no checks has no score.
+            </li>
+            <li>Once checked, a factor with no data yet adds no points.</li>
             <li>The XK team&rsquo;s scores are 1 to 5 and reviewed when the company&rsquo;s data is checked.</li>
             <li>Rankings such as &ldquo;Top Rated&rdquo; sort by TrustScore, then by number of reviews.</li>
           </ul>
