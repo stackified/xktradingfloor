@@ -1,5 +1,6 @@
 const EventModel = require("../models/event.model");
 const EventRegistrationModel = require("../models/EventRegistration.model");
+const UserModel = require("../models/user.model");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const { getPagination, getPaginationData, escapeRegex, isValidObjectId } = require("../utils/fn");
 const emailService = require("../services/email.service");
@@ -94,14 +95,24 @@ exports.registerLead = async (req, res) => {
         const details = { fullName, phone, country, company, consent };
         if (req.user?._id) details.userId = req.user._id;
 
-        // Same email + same event: update that lead instead of adding another.
+        // Same email + same event: no duplicate lead. Only the account that
+        // owns that email may change the existing details or consent;
+        // anyone else just gets the same success reply, so nobody can
+        // overwrite another person's sign-up by typing their email.
         let lead = await EventRegistrationModel.findOne({ eventId, email });
         let isNew = false;
-        if (lead) {
+        let ownsEmail = false;
+        if (lead && req.user?._id) {
+            const account = await UserModel.findById(req.user._id).select("email").lean();
+            ownsEmail = String(account?.email || "").toLowerCase() === email;
+        }
+        if (lead && ownsEmail) {
             if (consent && !lead.consent) lead.consentAt = new Date();
             if (!consent) lead.consentAt = null;
             Object.assign(lead, details);
             await lead.save();
+        } else if (lead) {
+            // Already registered: leave the stored lead as it is.
         } else {
             try {
                 lead = await EventRegistrationModel.create({
@@ -117,7 +128,7 @@ exports.registerLead = async (req, res) => {
             } catch (error) {
                 if (error?.code !== 11000) throw error;
                 // Two submissions at once: the other one created it.
-                lead = await EventRegistrationModel.findOneAndUpdate({ eventId, email }, { $set: details }, { new: true });
+                lead = await EventRegistrationModel.findOne({ eventId, email });
             }
         }
 

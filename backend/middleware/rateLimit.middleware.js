@@ -1,9 +1,18 @@
 const { sendErrorResponse } = require("../utils/response");
 const RateLimitModel = require("../models/RateLimit.model");
 
+// The visitor's IP for rate limits. Render sits behind Cloudflare, which sets
+// CF-Connecting-IP itself and overwrites any value a client sends. The first
+// X-Forwarded-For entry is client-controlled, so it is never used; without
+// Cloudflare the last entry (added by the nearest proxy) is.
 function getClientIp(req) {
+    const cf = req.headers["cf-connecting-ip"] || req.headers["true-client-ip"];
+    if (cf) return String(cf).trim();
     const forwarded = req.headers["x-forwarded-for"];
-    if (forwarded) return String(forwarded).split(",")[0].trim();
+    if (forwarded) {
+        const hops = String(forwarded).split(",").map((s) => s.trim()).filter(Boolean);
+        if (hops.length) return hops[hops.length - 1];
+    }
     return req.clientIp || req.ip || "unknown";
 }
 
