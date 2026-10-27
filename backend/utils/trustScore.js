@@ -38,7 +38,10 @@ function platformFamilies(platforms = [], companyName = "") {
 const part = (weight, fraction) => weight * Math.max(0, Math.min(1, fraction));
 const adminPart = (weight, score) => (Number.isFinite(score) && score >= 1 ? part(weight, score / 5) : 0);
 
-// 0-100, or null when there is no data at all.
+// 0-100, or null until the XK team has checked the company: a licence for a
+// broker, at least one 1-5 score for a prop firm. Missing factors count as
+// zero, so a score from reviews and platforms alone read "3/100, Poor"; until
+// then the site shows the review score (rating x 20) instead (Lavesh, 27 Oct).
 function computeTrustScore(company) {
     const category = company.category;
     const rating = Number(company.ratingsAggregate) || 0;
@@ -53,35 +56,28 @@ function computeTrustScore(company) {
     const w = WEIGHTS[category];
     const familyCount = platformFamilies(company.platforms, company.name);
     let score = 0;
-    let hasData = false;
+    let checked = false;
 
-    if (reviews > 0) {
-        score += part(w.reviews, rating / 5);
-        hasData = true;
-    }
-    if (familyCount > 0) {
-        score += part(w.platforms, familyCount / PLATFORM_FAMILIES_FOR_FULL);
-        hasData = true;
-    }
+    if (reviews > 0) score += part(w.reviews, rating / 5);
+    if (familyCount > 0) score += part(w.platforms, familyCount / PLATFORM_FAMILIES_FOR_FULL);
 
     if (category === "Broker") {
         const tiers = (company.licences || []).map((l) => LICENCE_TIER_VALUE[l?.tier]).filter((v) => v !== undefined);
         if (tiers.length) {
             score += part(w.licence, Math.max(...tiers));
-            hasData = true;
+            checked = true;
         }
         for (const key of ["payouts", "tradingConditions"]) {
-            if (Number.isFinite(inputs[key])) hasData = true;
             score += adminPart(w[key], inputs[key]);
         }
     } else {
         for (const key of ["payouts", "rules", "background"]) {
-            if (Number.isFinite(inputs[key])) hasData = true;
+            if (Number.isFinite(inputs[key])) checked = true;
             score += adminPart(w[key], inputs[key]);
         }
     }
 
-    return hasData ? Math.round(score) : null;
+    return checked ? Math.round(score) : null;
 }
 
 module.exports = { WEIGHTS, LICENCE_TIER_VALUE, LICENCE_TIERS, computeTrustScore, platformFamilies };
