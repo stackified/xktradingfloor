@@ -9,25 +9,44 @@ const { sanitizeHtml } = require("../utils/sanitizeHtml");
 const emailService = require("../services/email.service");
 const environment = require("../utils/environment");
 const constants = require("../utils/constants");
+const { slugify, ensureUniqueSlug } = require("../utils/blogSlug");
+const { BLOG_CATEGORIES, findBlogCategory } = require("../utils/blogCategories");
 
-const slugify = (text) =>
-    String(text || "")
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, "")
-        .replace(/[\s_-]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-
+// One category per post, from the agreed nine (B18): `category` holds the
+// display name and `categorySlug` the URL slug; `categories` mirrors it for
+// older readers. Returns an error message for a category outside the list.
 const normalizeCategoryFields = (data) => {
-    if (data.categories && !Array.isArray(data.categories)) {
-        data.categories = [data.categories].filter(Boolean);
+    const raw = data.category !== undefined
+        ? data.category
+        : (Array.isArray(data.categories) ? data.categories[0] : data.categories);
+    if (raw === undefined) return null;
+    if (raw === null || String(raw).trim() === "") {
+        delete data.category;
+        delete data.categories;
+        return null;
     }
-    if (data.category && !data.categories?.length) {
-        data.categories = [data.category];
-    } else if (data.categories?.length && !data.category) {
-        data.category = data.categories[0];
+    const category = findBlogCategory(raw);
+    if (!category) {
+        return `Category must be one of: ${BLOG_CATEGORIES.map((c) => c.name).join(", ")}.`;
     }
-    return data;
+    data.category = category.name;
+    data.categorySlug = category.slug;
+    data.categories = [category.name];
+    return null;
+};
+
+// ?category= accepts a slug or a name. Posts not yet migrated are matched on
+// their old free-text values too.
+const categoryClause = (value) => {
+    const category = findBlogCategory(value);
+    if (!category) return { $or: [{ category: value }, { categories: { $in: [value] } }] };
+    return {
+        $or: [
+            { categorySlug: category.slug },
+            { category: category.name },
+            { categories: { $in: [category.name] } },
+        ],
+    };
 };
 
 const syncCoverImage = (data) => {
@@ -39,22 +58,8 @@ const syncCoverImage = (data) => {
     return data;
 };
 
-const ensureUniqueSlug = async (title, slug, blogId) => {
-    let base = slugify(slug || title);
-    if (!base) base = `blog-${Date.now()}`;
-
-    let uniqueSlug = base;
-    let counter = 1;
-    const slugQuery = { slug: uniqueSlug };
-    if (blogId) slugQuery._id = { $ne: blogId };
-
-    while (await BlogModel.exists(slugQuery)) {
-        uniqueSlug = `${base}-${counter++}`;
-        slugQuery.slug = uniqueSlug;
-    }
-
-    return uniqueSlug;
-};
+// slugify and ensureUniqueSlug live in utils/blogSlug.js (shared with the
+// slug back-fill script, B10).
 
 const transformBlogForResponse = (blog) => {
     const b = blog?.toObject ? blog.toObject() : { ...blog };
@@ -90,9 +95,7 @@ const buildPublishedBlogQuery = ({ category, tag, search, featured }) => {
     const and = [];
 
     if (category) {
-        and.push({
-            $or: [{ category }, { categories: { $in: [category] } }],
-        });
+        and.push(categoryClause(category));
     }
     if (tag) {
         query.tags = { $in: [tag] };
@@ -130,9 +133,7 @@ const buildAdminBlogQuery = ({ status, category, tag, search, role, userId }) =>
         query.status = status;
     }
     if (category) {
-        and.push({
-            $or: [{ category }, { categories: { $in: [category] } }],
-        });
+        and.push(categoryClause(category));
     }
     if (tag) {
         query.tags = { $in: [tag] };
@@ -214,7 +215,9 @@ exports.createBlog = async (req, res) => {
             }
         }
 
-        const blogData = normalizeCategoryFields({ ...req.body });
+        const blogData = { ...req.body };
+        const categoryError = normalizeCategoryFields(blogData);
+        if (categoryError) return sendErrorResponse(res, categoryError, 400, true, true);
         syncCoverImage(blogData);
         if (blogData.content !== undefined) blogData.content = sanitizeHtml(blogData.content);
 
@@ -302,10 +305,21 @@ exports.getAllPublishedBlogs = async (req, res) => {
             return b;
         });
 
-        return sendSuccessResponse(
-            res,
-            getPaginationData({ count: totalItems, docs: transformed }, page, perPage)
-        );
+        // Published posts per category slug, for the category cards (B18).
+        const countRows = await BlogModel.aggregate([
+            { $match: { status: "published", isDeleted: false } },
+            { $group: { _id: "$category", count: { $sum: 1 } } },
+        ]);
+        const categoryCounts = Object.fromEntries(BLOG_CATEGORIES.map((c) => [c.slug, 0]));
+        for (const row of countRows) {
+            const category = findBlogCategory(row._id);
+            if (category) categoryCounts[category.slug] += row.count;
+        }
+
+        return sendSuccessResponse(res, {
+            ...getPaginationData({ count: totalItems, docs: transformed }, page, perPage),
+            categoryCounts,
+        });
     } catch (error) {
         return sendErrorResponse(res, error);
     }
@@ -558,7 +572,8 @@ exports.updateBlog = async (req, res) => {
             }
         }
 
-        normalizeCategoryFields(updateData);
+        const categoryError = normalizeCategoryFields(updateData);
+        if (categoryError) return sendErrorResponse(res, categoryError, 400, true, true);
         syncCoverImage(updateData);
         if (updateData.title || updateData.slug) {
             updateData.slug = await ensureUniqueSlug(

@@ -29,6 +29,11 @@ exports.addAdminUser = async (req, res) => {
             );
         };
 
+        const allowedRoles = [constants.roles.admin, constants.roles.operator, constants.roles.user];
+        if (role && !allowedRoles.includes(role)) {
+            return sendErrorResponse(res, "Invalid role", 400, true, true);
+        }
+
         const user = new UserModel({
             fullName: fullName,
             email,

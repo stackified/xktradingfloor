@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { addFormatFlag } = require('../utils/contentFormat');
 const Schema = mongoose.Schema;
 
 const EventSchema = new Schema(
@@ -50,6 +51,9 @@ const EventSchema = new Schema(
         versionKey: false,
     }
 );
+
+// B14: "html" when description is a designed page.
+addFormatFlag(EventSchema, "description", "descriptionFormat");
 
 EventSchema.index({ dateTime: 1 });
 EventSchema.index({ endDateTime: 1 });

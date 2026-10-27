@@ -8,12 +8,22 @@ const constants = require("../../utils/constants");
 const publicRoutes = require("./public/index");
 const protectedRoutes = require("./protected/index");
 const marketingRoutes = require("./marketing.routes");
+const contactController = require("../../controllers/contact.controller");
+const statsController = require("../../controllers/stats.controller");
+const optionalAuthentication = require("../../middleware/optionalAuthentication.middleware");
+const { contactLimiter } = require("../../middleware/rateLimit.middleware");
 
 // Auth APIs
 router.use("/auth", authRoutes);
 
 // Health check for the uptime monitor: no auth, no database (B6).
 router.get("/health", (req, res) => res.status(200).json({ ok: true }));
+
+// Contact page form: public, 5 per IP per 10 minutes (B20).
+router.post("/contact", contactLimiter, optionalAuthentication, contactController.sendContactMessage);
+
+// Site-wide counts, cached 10 minutes (B24).
+router.get("/stats", statsController.getStats);
 
 // Public routes
 router.use(publicRoutes);

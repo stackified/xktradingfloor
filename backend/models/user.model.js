@@ -74,16 +74,38 @@ const UserSchema = new Schema(
         bio: { type: String, default: "" },
         tradingStyles: { type: [String], default: [] },
         tradesWith: { type: [String], default: [] },
+        // B26: Verified Trader profile fields.
+        profileType: { type: String, enum: ["trader", "trader_influencer"], default: "trader" },
+        yearsOfExperience: { type: String, enum: ["", "0-1", "1-2", "2-5", "5-10", "10+"], default: "" },
+        primaryMarkets: { type: [String], default: [] },
         socialLinks: {
             youtube: { type: String, default: "" },
             twitter: { type: String, default: "" },
             instagram: { type: String, default: "" },
             website: { type: String, default: "" },
+            telegram: { type: String, default: "" }, // B26
+            tiktok: { type: String, default: "" }, // B26
+            myfxbook: { type: String, default: "" }, // B23: public Myfxbook account URL
+        },
+        // B23: typed by the trader.
+        socialFollowers: {
+            youtube: { type: Number, default: 0 },
+            twitter: { type: Number, default: 0 },
+            instagram: { type: Number, default: 0 },
+            telegram: { type: Number, default: 0 },
+            tiktok: { type: Number, default: 0 },
+        },
+        platforms: { type: [String], default: [] },
+        tradingSetup: {
+            riskPerTrade: { type: String, default: "" },
+            holdingTime: { type: String, default: "" },
+            sessions: { type: [String], default: [] },
+            instruments: { type: [String], default: [] },
         },
         verifiedTrader: {
             status: {
                 type: String,
-                enum: ["none", "invited", "pending", "scheduled", "approved", "rejected"],
+                enum: ["none", "invited", "pending", "scheduled", "approved", "rejected", "revoked"],
                 default: "none",
             },
             applicationNote: { type: String, default: "" },
@@ -94,9 +116,35 @@ const UserSchema = new Schema(
             invitedBy: { type: Schema.Types.ObjectId, ref: "user" },
             invitedAt: Date,
             rejectionReason: { type: String, default: "" },
+            revokedReason: { type: String, default: "" }, // B28
             pnl: Number,
             totalWithdrawals: Number,
             youtubeEmbedUrl: { type: String, default: "" },
+            // B23: entered by an admin from the trader's Myfxbook page or
+            // statements until the MetaApi sync (B29) fills them.
+            stats: {
+                winRate: Number, // percent
+                totalTrades: Number,
+                profitFactor: Number,
+                avgWin: Number, // USD
+                avgLoss: Number, // USD
+                maxDrawdownPct: Number,
+                lastUpdated: Date,
+            },
+            // B23 point 4: payouts the trader submits with a private proof;
+            // only approved ones are shown publicly (firm, amount, date).
+            payouts: [{
+                firm: { type: String, maxlength: 120 },
+                amount: Number,
+                currency: { type: String, default: "USD" },
+                date: Date,
+                proofKey: String, // private storage key
+                proofFileName: String,
+                status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
+                submittedAt: { type: Date, default: Date.now },
+                verifiedAt: Date,
+                verifiedBy: { type: Schema.Types.ObjectId, ref: "user" },
+            }],
             proofDocuments: [{
                 type: {
                     type: String,

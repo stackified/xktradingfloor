@@ -4,10 +4,12 @@ const companyRoutes = require('./company.routes');
 const blogRoutes = require('./blog.routes');
 const reviewRoutes = require('./review.routes');
 const userRoutes = require('./user.routes');
+const traderRoutes = require('./trader.routes');
 
 router.use('/company', companyRoutes);
 router.use('/blogs', blogRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/user', userRoutes);
+router.use('/traders', traderRoutes);
 
 module.exports = router;
