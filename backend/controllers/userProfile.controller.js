@@ -31,7 +31,8 @@ const EXPERIENCE_VALUES = ["", "0-1", "1-2", "2-5", "5-10", "10+"];
 const MARKETS = ["Forex", "Gold & Metals", "Indices", "Crypto", "Stocks", "Commodities"];
 const PLATFORMS = ["MT4", "MT5", "cTrader", "TradingView", "DXtrade", "Match-Trader", "NinjaTrader"];
 const SESSIONS = ["Asian", "London", "New York", "Sydney"];
-const MYFXBOOK_RE = /^https:\/\/(www\.)?myfxbook\.com\/members\/[^/]+\/[^/]+\/\d+/;
+const MYFXBOOK_HOSTS = new Set(["myfxbook.com", "www.myfxbook.com"]);
+const MYFXBOOK_PATH_RE = /^\/members\/[^/]+\/[^/]+\/\d+\/?$/;
 const MAX_FOLLOWERS = 1000000000;
 const PAYOUT_FOLDER = "VerifiedTraderPayouts";
 
@@ -112,7 +113,7 @@ function applyAdminTraderNumbers(verifiedTrader, body) {
         verifiedTrader[key] = n;
     }
     if (body.youtubeEmbedUrl !== undefined) {
-        verifiedTrader.youtubeEmbedUrl = String(body.youtubeEmbedUrl || "").trim().slice(0, 500);
+        verifiedTrader.youtubeEmbedUrl = normaliseLink(body.youtubeEmbedUrl, "YouTube");
     }
     if (body.stats !== undefined) {
         const current = verifiedTrader.stats?.toObject?.() || verifiedTrader.stats || {};
@@ -199,22 +200,53 @@ function parseStringList(value) {
     return [];
 }
 
+// A profile link is stored only as an http(s) URL, so it can never become a
+// javascript: or data: link on the public profile. A link typed without a
+// scheme ("youtube.com/@tara") gets https:// added; any other scheme is a 400.
+function normaliseLink(value, label) {
+    const raw = String(value ?? "").trim();
+    if (!raw) return "";
+    const withScheme = /^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : `https://${raw.replace(/^\/+/, "")}`;
+    let url;
+    try {
+        url = new URL(withScheme);
+    } catch (_) {
+        throw new ProfileInputError(`The ${label} link isn't a valid web address.`);
+    }
+    if (!["http:", "https:"].includes(url.protocol)) {
+        throw new ProfileInputError(`The ${label} link must start with https://.`);
+    }
+    const out = url.toString();
+    if (out.length > 500) throw new ProfileInputError(`The ${label} link is too long.`);
+    return out;
+}
+
 function sanitizeSocialLinks(links = {}) {
     const safe = {};
     ["youtube", "twitter", "instagram", "website", "telegram", "tiktok"].forEach((key) => {
         if (links[key] !== undefined && links[key] !== null) {
-            safe[key] = String(links[key]).trim().slice(0, 500);
+            safe[key] = normaliseLink(links[key], key);
         }
     });
     // B23: only a public Myfxbook account link; an empty string clears it.
     if (links.myfxbook !== undefined && links.myfxbook !== null) {
         const value = String(links.myfxbook).trim();
-        if (value && (value.length > 500 || !MYFXBOOK_RE.test(value))) {
-            throw new ProfileInputError(
-                "The Myfxbook link must be a public account link, like https://www.myfxbook.com/members/name/account/1234567."
-            );
+        if (value) {
+            let url = null;
+            try {
+                url = new URL(value);
+            } catch (_) {
+                url = null;
+            }
+            if (!url || url.protocol !== "https:" || !MYFXBOOK_HOSTS.has(url.hostname) || !MYFXBOOK_PATH_RE.test(url.pathname) || value.length > 500) {
+                throw new ProfileInputError(
+                    "The Myfxbook link must be a public account link, like https://www.myfxbook.com/members/name/account/1234567."
+                );
+            }
+            safe.myfxbook = `https://${url.hostname}${url.pathname}`;
+        } else {
+            safe.myfxbook = "";
         }
-        safe.myfxbook = value;
     }
     return safe;
 }
