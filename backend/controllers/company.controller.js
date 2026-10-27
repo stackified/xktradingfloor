@@ -350,8 +350,23 @@ exports.updateCompany = async (req, res) => {
         delete updates.addedBy;
         delete updates.adminId;
 
-        // If rating fields are being updated, recalculate
-        if (updates.ratingsAggregate !== undefined || updates.totalReviews !== undefined) {
+        // Approving, rejecting or un-publishing is an Admin decision. An
+        // Operator can edit their own company but not its status, so they
+        // can't approve a company they added themselves.
+        if (updates.status !== undefined && role !== constants.roles.admin) {
+            if (updates.status !== company.status) {
+                return sendErrorResponse(res, "Only an Admin can change a company's status.", 403, true, true);
+            }
+            delete updates.status;
+        }
+        if (updates.status !== undefined && !["pending", "approved", "rejected"].includes(updates.status)) {
+            return sendErrorResponse(res, "Status must be pending, approved or rejected.", 400, true, true);
+        }
+
+        // The stored rating always comes from the reviews, never the request.
+        delete updates.ratingsAggregate;
+        delete updates.totalReviews;
+        if (req.body.ratingsAggregate !== undefined || req.body.totalReviews !== undefined) {
             const ratingData = await recalculateCompanyRating(companyId);
             updates.ratingsAggregate = ratingData.ratingsAggregate;
             updates.totalReviews = ratingData.totalReviews;
