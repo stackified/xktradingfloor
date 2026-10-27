@@ -4,7 +4,9 @@
 // sent anywhere until the form is saved.
 //
 // The backend accepts JPEG/PNG (not WebP), so logos are saved as PNG (keeps
-// transparency) and event images as JPEG.
+// transparency) and event images as JPEG. SVGs are drawn to a PNG first: the
+// file host has served uploads without an image Content-Type, and browsers
+// refuse to show an SVG served that way (PNG/JPEG still render).
 
 const LOGO_SIZE = 512;
 const LOGO_PADDING = 0.1; // 10% breathing room on each side
@@ -36,6 +38,44 @@ function canvasToFile(canvas, type, quality, name) {
 
 function baseName(file) {
   return (file.name || "image").replace(/\.[^.]+$/, "").replace(/[^\w-]+/g, "_").slice(0, 60) || "image";
+}
+
+// SVG → transparent PNG whose longest side is `longest` px. The root's
+// width/height are rewritten to that size (keeping the viewBox), because an
+// SVG without them has no intrinsic size and some browsers draw it at 0×0.
+async function rasterizeSvg(file, longest) {
+  const doc = new DOMParser().parseFromString(await file.text(), "image/svg+xml");
+  const svg = doc.documentElement;
+  if (!svg || svg.nodeName.toLowerCase() !== "svg") throw new Error("This SVG file could not be read.");
+
+  const size = (attr) => {
+    const v = svg.getAttribute(attr) || "";
+    return /%/.test(v) ? NaN : parseFloat(v);
+  };
+  const vb = (svg.getAttribute("viewBox") || "").trim().split(/[\s,]+/).map(Number);
+  const hasViewBox = vb.length === 4 && vb.every(Number.isFinite) && vb[2] > 0 && vb[3] > 0;
+  let w = hasViewBox ? vb[2] : size("width");
+  let h = hasViewBox ? vb[3] : size("height");
+  if (!(w > 0) || !(h > 0)) w = h = 1;
+  if (!hasViewBox) svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+
+  const scale = longest / Math.max(w, h);
+  const outW = Math.max(1, Math.round(w * scale));
+  const outH = Math.max(1, Math.round(h * scale));
+  svg.setAttribute("width", String(outW));
+  svg.setAttribute("height", String(outH));
+
+  const blob = new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml" });
+  const { img, url } = await loadImage(blob);
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = outW;
+    canvas.height = outH;
+    canvas.getContext("2d").drawImage(img, 0, 0, outW, outH);
+    return await canvasToFile(canvas, "image/png", undefined, `${baseName(file)}.png`);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 // Find the box that holds the actual artwork: everything that differs from
@@ -104,12 +144,14 @@ function findContentBox(img) {
 /**
  * Logo → 512×512 square: empty borders trimmed, artwork centred with padding
  * on its own background colour (PNG if transparent, JPEG otherwise). SVGs are
- * left untouched — they already scale cleanly.
+ * drawn at 1024px first and then go through the same steps. GIFs are left
+ * untouched.
  * Returns { file, previewUrl, trimmed }.
  */
 export async function processLogo(file) {
   if (!file || !file.type?.startsWith("image/")) throw new Error("Please choose an image file.");
-  if (file.type === "image/svg+xml" || file.type === "image/gif") {
+  if (file.type === "image/svg+xml") return processLogo(await rasterizeSvg(file, LOGO_SIZE * 2));
+  if (file.type === "image/gif") {
     return { file, previewUrl: URL.createObjectURL(file), trimmed: false };
   }
 
@@ -150,12 +192,14 @@ export async function processLogo(file) {
 
 /**
  * Event image → JPEG no wider than 1600px, aspect ratio kept (the site shows
- * it in a 16:9 frame without cropping). GIFs are left untouched.
+ * it in a 16:9 frame without cropping). SVGs are drawn to an image first;
+ * GIFs are left untouched.
  * Returns { file, previewUrl }.
  */
 export async function processEventImage(file) {
   if (!file || !file.type?.startsWith("image/")) throw new Error("Please choose an image file.");
-  if (file.type === "image/gif" || file.type === "image/svg+xml") {
+  if (file.type === "image/svg+xml") return processEventImage(await rasterizeSvg(file, EVENT_MAX_WIDTH));
+  if (file.type === "image/gif") {
     return { file, previewUrl: URL.createObjectURL(file) };
   }
 
