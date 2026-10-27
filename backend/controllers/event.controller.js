@@ -6,6 +6,8 @@ const UserModel = require("../models/user.model");
 const environment = require("../utils/environment");
 const r2 = require("../helpers/r2.helper");
 const { sanitizeHtml } = require("../utils/sanitizeHtml");
+const { uploadOptionalPublic } = require("../utils/uploads");
+const { requestSiteRebuild } = require("../services/siteRebuild.service");
 
 // ISO 4217 codes accepted for event prices (B30).
 const CURRENCIES = new Set([
@@ -254,11 +256,15 @@ exports.createEvent = async (req, res) => {
         if (!eventData.title) throw new EventInputError("Title is required.");
 
         const featuredImage = await uploadFeaturedImage(req);
-        if (featuredImage) eventData.featuredImage = featuredImage;
+        if (featuredImage) {
+            eventData.featuredImage = featuredImage;
+            eventData.imageThumb = await uploadOptionalPublic(req, "imageThumb", "Events");
+        }
         eventData.adminId = adminId;
 
         const event = new EventModel(eventData);
         const saved = await event.save();
+        requestSiteRebuild("event added");
 
         // Send Notification to all active users
         (async () => {
@@ -352,10 +358,15 @@ exports.updateEvent = async (req, res) => {
 
         const updateData = readEventInput(req.body, event);
         const featuredImage = await uploadFeaturedImage(req);
-        if (featuredImage) updateData.featuredImage = featuredImage;
+        if (featuredImage) {
+            updateData.featuredImage = featuredImage;
+            // A new image replaces (or clears) the old image's thumbnail (B8).
+            updateData.imageThumb = await uploadOptionalPublic(req, "imageThumb", "Events");
+        }
 
         Object.assign(event, updateData);
         const updated = await event.save();
+        requestSiteRebuild("event updated");
 
         return sendSuccessResponse(res, { message: "Event updated", data: withoutRegistrations(updated) });
     } catch (error) {
@@ -371,6 +382,7 @@ exports.deleteEvent = async (req, res) => {
         if (!event) {
             return sendErrorResponse(res, "Event not found", 404, true, true);
         }
+        requestSiteRebuild("event deleted");
         return sendSuccessResponse(res, { message: "Event deleted" });
     } catch (error) {
         return sendErrorResponse(res, error);

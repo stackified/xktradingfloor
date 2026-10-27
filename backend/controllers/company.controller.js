@@ -6,6 +6,33 @@ const constants = require("../utils/constants");
 const r2 = require("../helpers/r2.helper");
 const { PUBLIC_USER_FIELDS, publicUser, plainExcerpt } = require("../utils/publicData");
 const { sanitizeHtml } = require("../utils/sanitizeHtml");
+const { CompanyInputError, readCompanyData, ADMIN_ONLY_FIELDS } = require("../utils/companyData");
+const { uploadOptionalPublic } = require("../utils/uploads");
+const { requestSiteRebuild } = require("../services/siteRebuild.service");
+
+// Sahil's 1-5 scores stay private: only the total TrustScore is public (B32).
+const withoutPrivateScores = (company) => {
+    if (!company) return company;
+    const { scoreInputs, ...rest } = company;
+    return rest;
+};
+
+const companyInputError = (res, error) =>
+    error instanceof CompanyInputError
+        ? sendErrorResponse(res, error.message, error.status || 400, true, true)
+        : sendErrorResponse(res, error);
+
+// Structured data from the body; `trusted` and `scoreInputs` only for Admins.
+function structuredInput(req, existing) {
+    const data = readCompanyData(req.body, existing || {});
+    const sentAdminOnly = ADMIN_ONLY_FIELDS.filter((key) => req.body?.[key] !== undefined);
+    if (sentAdminOnly.length && req.user?.role !== constants.roles.admin) {
+        const error = new CompanyInputError("Only an Admin can change the Trusted flag and the TrustScore scores.");
+        error.status = 403;
+        throw error;
+    }
+    return data;
+}
 
 // Average rating and count per company in one aggregation, instead of loading
 // every review (and its user) just to average them (B4).
@@ -77,11 +104,23 @@ exports.getAllApprovedCompanies = async (req, res) => {
         const { limit, offset } = getPagination(page, size);
         const searchTerm = escapeRegex(search);
         const { category = "" } = req.body;
+        const sort = req.query.sort || req.body.sort;
+        const accountSize = req.query.accountSize ?? req.body.accountSize;
+        const maxPrice = req.query.maxPrice ?? req.body.maxPrice;
 
         const query = {};
 
         if (category != "") query.category = category;
         query.status = 'approved';
+
+        // B21: prop firms with a challenge of this size, optionally at or under
+        // a price, for the comparison table.
+        if (accountSize !== undefined || maxPrice !== undefined) {
+            const match = {};
+            if (accountSize !== undefined && accountSize !== "") match.accountSize = Number(accountSize);
+            if (maxPrice !== undefined && maxPrice !== "") match.price = { $lte: Number(maxPrice) };
+            if (Object.keys(match).length) query.challenges = { $elemMatch: match };
+        }
 
         // Search the name and short details, not the designed HTML review.
         if (searchTerm) {
@@ -93,9 +132,11 @@ exports.getAllApprovedCompanies = async (req, res) => {
 
         // Lists carry no full description (designed reviews are 25-30 KB
         // each) and no people: a short plain-text excerpt is enough for cards.
+        // B32: ?sort=trustScore orders across pages (no score last).
+        const order = sort === "trustScore" ? { trustScore: -1, createdAt: -1 } : { createdAt: -1 };
         const companies = await CompanyModel.find(query)
-            .select('-addedBy -adminId')
-            .sort({ createdAt: -1 })
+            .select('-addedBy -adminId -scoreInputs')
+            .sort(order)
             .skip(offset)
             .limit(limit)
             .lean();
@@ -201,7 +242,7 @@ exports.getCompanyById = async (req, res) => {
         company.totalReviews = totalReviews;
         company.reviewers = reviewers;
 
-        return sendSuccessResponse(res, { data: company });
+        return sendSuccessResponse(res, { data: isStaffUser(req.user) ? company : withoutPrivateScores(company) });
     } catch (error) {
         return sendErrorResponse(res, error);
     }
@@ -215,7 +256,7 @@ exports.getApprovedCompanyById = async (req, res) => {
             return sendErrorResponse(res, "Company not found", 404, true, true);
         }
 
-        const company = await CompanyModel.findOne({ _id: companyId, status: 'approved' }).lean();
+        const company = await CompanyModel.findOne({ _id: companyId, status: 'approved' }).select('-scoreInputs').lean();
 
         if (!company) {
             return sendErrorResponse(res, "Company not found", 404, true, true);
@@ -251,8 +292,11 @@ exports.createCompany = async (req, res) => {
             logo = url;
         };
 
+        const logoThumb = logo ? await uploadOptionalPublic(req, "logoThumb", "Companies") : "";
         const companyData = {
             ...req.body,
+            ...structuredInput(req),
+            logoThumb,
             description: sanitizeHtml(req.body.description),
             addedBy: userId,
             adminId: role === constants.roles.admin ? userId : undefined,
@@ -265,6 +309,7 @@ exports.createCompany = async (req, res) => {
 
         const company = new CompanyModel(companyData);
         const savedCompany = await company.save();
+        if (savedCompany.status === 'approved') requestSiteRebuild("company added");
 
         // Populate user references
         await savedCompany.populate('addedBy', 'fullName email profileImage');
@@ -279,7 +324,7 @@ exports.createCompany = async (req, res) => {
             data: companyObj
         }, 201);
     } catch (error) {
-        return sendErrorResponse(res, error);
+        return companyInputError(res, error);
     }
 };
 
@@ -295,7 +340,7 @@ exports.updateCompany = async (req, res) => {
         }
 
         // Operators can only update their own companies (ownership check)
-        if (role === constants.roles.operator && company.adminId.toString() !== userId.toString()) {
+        if (role === constants.roles.operator && String(company.adminId || company.addedBy || "") !== String(userId)) {
             return sendErrorResponse(res, "You can only update your own companies", 403, true, true);
         }
 
@@ -318,14 +363,24 @@ exports.updateCompany = async (req, res) => {
         if (req.files?.logo?.[0]) {
             const logo = req.files.logo[0];
             updates.logo = await r2.uploadPublic(logo.path.replace(/\\/g, "/"), `${logo.filename}`, "Companies");
+            // A thumbnail of the old logo would be wrong, so it is replaced or cleared.
+            updates.logoThumb = await uploadOptionalPublic(req, "logoThumb", "Companies");
         } else if (!updates.logo) {
             delete updates.logo;
         }
+        if (!req.files?.logo?.[0]) delete updates.logoThumb;
 
         if (updates.description !== undefined) updates.description = sanitizeHtml(updates.description);
+        // Computed by the server; never taken from the request.
+        delete updates.trustScore;
+        Object.assign(updates, structuredInput(req, company));
 
+        const previousStatus = company.status;
         Object.assign(company, updates);
+        const wasApproved = previousStatus === 'approved';
         const updatedCompany = await company.save();
+        // An approved company changed, or one was approved or taken down (B25).
+        if (updatedCompany.status === 'approved' || wasApproved) requestSiteRebuild("company updated");
 
         // Populate user references
         await updatedCompany.populate('addedBy', 'fullName email profileImage');
@@ -338,7 +393,7 @@ exports.updateCompany = async (req, res) => {
             data: updatedCompany
         });
     } catch (error) {
-        return sendErrorResponse(res, error);
+        return companyInputError(res, error);
     }
 };
 
@@ -354,11 +409,12 @@ exports.deleteCompany = async (req, res) => {
         }
 
         // Operators can only delete their own companies (ownership check)
-        if (role === constants.roles.operator && company.adminId.toString() !== userId.toString()) {
+        if (role === constants.roles.operator && String(company.adminId || company.addedBy || "") !== String(userId)) {
             return sendErrorResponse(res, "You can only delete your own companies", 403, true, true);
         }
 
         await CompanyModel.findByIdAndDelete(companyId);
+        if (company.status === 'approved') requestSiteRebuild("company deleted");
         return sendSuccessResponse(res, {
             message: "Company deleted successfully"
         });
@@ -379,7 +435,7 @@ exports.addPromoCode = async (req, res) => {
         }
 
         // Operators can only add promo codes to their own companies (ownership check)
-        if (role === constants.roles.operator && company.adminId.toString() !== userId.toString()) {
+        if (role === constants.roles.operator && String(company.adminId || company.addedBy || "") !== String(userId)) {
             return sendErrorResponse(res, "You can only add promo codes to your own companies", 403, true, true);
         }
 
@@ -416,7 +472,7 @@ exports.updatePromoCode = async (req, res) => {
         }
 
         // Operators can only update promo codes for their own companies (ownership check)
-        if (role === constants.roles.operator && company.adminId.toString() !== userId.toString()) {
+        if (role === constants.roles.operator && String(company.adminId || company.addedBy || "") !== String(userId)) {
             return sendErrorResponse(res, "You can only update promo codes for your own companies", 403, true, true);
         }
 
@@ -452,7 +508,7 @@ exports.deletePromoCode = async (req, res) => {
         }
 
         // Operators can only delete promo codes from their own companies (ownership check)
-        if (role === constants.roles.operator && company.adminId.toString() !== userId.toString()) {
+        if (role === constants.roles.operator && String(company.adminId || company.addedBy || "") !== String(userId)) {
             return sendErrorResponse(res, "You can only delete promo codes from your own companies", 403, true, true);
         }
 
@@ -484,8 +540,11 @@ exports.requestCompanyAddition = async (req, res) => {
             logo = url;
         }
 
+        const { trusted, scoreInputs, trustScore, ...requestBody } = req.body || {};
+        const logoThumb = logo ? await uploadOptionalPublic(req, "logoThumb", "CompanyRequests") : "";
         const companyData = {
-            ...req.body,
+            ...requestBody,
+            logoThumb,
             description: sanitizeHtml(req.body.description),
             addedBy: userId,
             status: 'pending',

@@ -1,7 +1,7 @@
 const CompanyModel = require("../models/company.model");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const { isValidObjectId } = require("../utils/fn");
-const { V1_PAIR_KEYS } = require("../utils/spreadPairs");
+const { V1_PAIR_KEYS, normalizePairKey } = require("../utils/spreadPairs");
 const spreadStore = require("../services/spreadStore.service");
 const spreadScraper = require("../services/spreadScraper.service");
 
@@ -147,6 +147,49 @@ exports.overrideSpreads = async (req, res) => {
                 updatedPairs,
             },
         });
+    } catch (error) {
+        return sendErrorResponse(res, error);
+    }
+};
+
+// PUT /api/admin/spreads/:brokerId/typical (Admin/Operator, B31)
+// Body: { pairs: { "EUR/USD": { min: 0.1, max: 0.3 }, ... } } in pips.
+// An empty object for a pair removes that pair.
+exports.setTypicalSpreads = async (req, res) => {
+    try {
+        const { brokerId } = req.params;
+        const pairs = req.body?.pairs;
+        if (!isValidObjectId(brokerId)) return sendErrorResponse(res, "Broker not found", 404, true, true);
+        if (!pairs || typeof pairs !== "object" || Array.isArray(pairs)) {
+            return sendErrorResponse(res, "pairs must be an object like { \"EUR/USD\": { \"min\": 0.1, \"max\": 0.3 } }", 400, true, true);
+        }
+        const broker = await CompanyModel.findOne({ _id: brokerId, category: "Broker" }).select("_id").lean();
+        if (!broker) return sendErrorResponse(res, "Broker not found", 404, true, true);
+
+        // Validate everything before writing anything.
+        const changes = [];
+        for (const [rawPair, range] of Object.entries(pairs)) {
+            const pair = normalizePairKey(rawPair);
+            if (!pair) return sendErrorResponse(res, `Unknown pair ${rawPair}. Use one of: ${V1_PAIR_KEYS.join(", ")}.`, 400, true, true);
+            if (!range || typeof range !== "object" || Object.keys(range).length === 0) {
+                changes.push({ pair, remove: true });
+                continue;
+            }
+            const min = Number(range.min);
+            const max = Number(range.max);
+            if (!Number.isFinite(min) || !Number.isFinite(max) || min < 0 || max < min) {
+                return sendErrorResponse(res, `${pair}: min and max must be numbers of 0 or more, with max at least min.`, 400, true, true);
+            }
+            changes.push({ pair, min, max });
+        }
+
+        for (const change of changes) {
+            if (change.remove) await spreadStore.removeSpread({ brokerId, pair: change.pair });
+            else await spreadStore.setTypicalRange({ brokerId, ...change });
+        }
+
+        const spreadData = await spreadStore.getBrokerSpreadMap(brokerId);
+        return sendSuccessResponse(res, { message: "Typical spreads saved", data: spreadData });
     } catch (error) {
         return sendErrorResponse(res, error);
     }

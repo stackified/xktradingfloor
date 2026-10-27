@@ -53,5 +53,8 @@ const BlogPostSchema = new Schema(
 // B14: "html" when content is a designed page.
 addFormatFlag(BlogPostSchema, "content", "contentFormat");
 
+// B8: 640 px-wide thumbnail of the featured image, for cards.
+BlogPostSchema.add({ imageThumb: { type: String, default: null } });
+
 const BlogPostModel = mongoose.model('blogpost', BlogPostSchema);
 module.exports = BlogPostModel;
