@@ -1,4 +1,5 @@
 import React from "react";
+import { eventPricing } from "../../../utils/eventPricing.js";
 import {
   Edit,
   Loader2,
@@ -160,7 +161,7 @@ function EventList({
                       {event.price !== undefined && (
                         <span className="inline-flex items-center gap-1.5">
                           <DollarSign className="h-4 w-4" />
-                          {event.price === 0 ? "Free" : `$${event.price}`}
+                          {eventPricing(event).label || "Organiser tickets"}
                         </span>
                       )}
                     </div>

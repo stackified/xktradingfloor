@@ -10,7 +10,7 @@ import EventBadges from "../components/shared/EventBadges.jsx";
 import RegisterModal from "../components/academy/RegisterModal.jsx";
 import EventRegisterModal from "../components/academy/EventRegisterModal.jsx";
 import { formatEventWhen, formatEventPlace } from "../utils/eventTime.js";
-import { eventPricing } from "../utils/eventPricing.js";
+import { eventPricing, formatMoney } from "../utils/eventPricing.js";
 import { eventPath, eventIdFromParam } from "../utils/eventUrl.js";
 import { getUserCookie } from "../utils/cookies.js";
 import DesignedHtml from "../components/shared/DesignedHtml.jsx";
@@ -178,13 +178,34 @@ function EventDetails() {
             {(() => {
               // Expos with an organiser link sell their own tickets; any other
               // event without a price is free (utils/eventPricing.js).
-              const { isPaid, price: priceNum, ticketsAtOrganiser, externalUrl } = eventPricing(event);
+              const { isPaid, price: priceNum, currency, tiers, ticketsAtOrganiser, externalUrl } = eventPricing(event);
               return (
                 <>
                   <div className="text-center mb-4">
-                    {!ticketsAtOrganiser ? (
+                    {tiers.length > 0 ? (
+                      // Each ticket type in the event's own currency, with
+                      // the full price struck through when on sale (B30).
+                      <ul className="text-left divide-y divide-white/10 mb-2" aria-label="Ticket types">
+                        {tiers.map((tier) => (
+                          <li key={tier.name} className="py-2 flex items-start justify-between gap-3">
+                            <div>
+                              <div className="text-sm font-medium text-white">{tier.name}</div>
+                              {tier.notes && <div className="text-xs text-gray-400">{tier.notes}</div>}
+                            </div>
+                            <div className="text-right whitespace-nowrap">
+                              <span className="text-base font-semibold text-blue-400">
+                                {tier.price > 0 ? formatMoney(tier.price, currency) : "Free"}
+                              </span>
+                              {tier.fullPrice && (
+                                <s className="ml-2 text-xs text-gray-500">{formatMoney(tier.fullPrice, currency)}</s>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : !ticketsAtOrganiser ? (
                       <div className="text-2xl font-semibold text-blue-400 mb-1">
-                        {isPaid ? `$${priceNum}` : "Free Event"}
+                        {isPaid ? formatMoney(priceNum, currency) : "Free Event"}
                       </div>
                     ) : (
                       <div className="text-base font-semibold text-blue-300 mb-1">
