@@ -27,6 +27,7 @@ import {
   getReviewsByCompanyId,
   hideReview,
   pinReview,
+  verifyReview,
   deleteReview,
   REVIEW_MODERATION_ENABLED,
 } from "../../controllers/reviewsController.js";
@@ -121,6 +122,15 @@ function AdminCompanyDetailsContent() {
       await loadData();
     } catch (error) {
       console.error("Failed to pin/unpin review:", error);
+    }
+  }
+
+  async function handleVerifyReview(review) {
+    try {
+      await verifyReview(review.id, !review.isVerified);
+      await loadData();
+    } catch (error) {
+      console.error("Failed to verify review:", error);
     }
   }
 
@@ -391,6 +401,7 @@ function AdminCompanyDetailsContent() {
                         review={review}
                         onPin={() => handlePinReview(review.id)}
                         onHide={() => handleHideReview(review.id)}
+                        onVerify={() => handleVerifyReview(review)}
                         onDelete={() => handleDeleteReview(review.id)}
                       />
                     ))}
@@ -410,6 +421,7 @@ function AdminCompanyDetailsContent() {
                         review={review}
                         onPin={() => handlePinReview(review.id)}
                         onHide={() => handleHideReview(review.id)}
+                        onVerify={() => handleVerifyReview(review)}
                         onDelete={() => handleDeleteReview(review.id)}
                       />
                     ))}
@@ -744,7 +756,7 @@ function AdminCompanyDetailsContent() {
   );
 }
 
-function ReviewCard({ review, onPin, onHide, onDelete }) {
+function ReviewCard({ review, onPin, onHide, onVerify, onDelete }) {
   return (
     <div
       className={`p-4 rounded-lg border ${review.isPinned
@@ -787,6 +799,16 @@ function ReviewCard({ review, onPin, onHide, onDelete }) {
                 ) : (
                   <Pin className="h-3 w-3" />
                 )}
+              </button>
+              <button
+                onClick={onVerify}
+                className={`btn btn-xs btn-outline ${review.isVerified
+                  ? "border-emerald-500/40 text-emerald-300"
+                  : "border-white/20 text-white"
+                  }`}
+                title={review.isVerified ? "Remove the Verified mark" : "Mark verified after checking the evidence"}
+              >
+                {review.isVerified ? "Unverify" : "Verify"}
               </button>
               <button
                 onClick={onHide}

@@ -1,4 +1,5 @@
 import React from "react";
+import { getUserCookie } from "../../utils/cookies.js";
 import { Link } from "react-router-dom";
 import {
   BadgeCheck,
@@ -19,6 +20,7 @@ import {
   scheduleVerifiedTraderCall,
   decideVerifiedTraderApplication,
   updateVerifiedTraderStats,
+  revokeVerifiedTrader,
 } from "../../controllers/userProfileController.js";
 
 // Trading stats shown on the public trader profile (Sahil's design). Copied
@@ -113,6 +115,7 @@ const STATUS_LABELS = {
   scheduled: "Call scheduled",
   approved: "Approved",
   rejected: "Rejected",
+  revoked: "Badge removed",
 };
 
 const STATUS_COLORS = {
@@ -121,6 +124,7 @@ const STATUS_COLORS = {
   scheduled: "bg-purple-500/20 text-purple-300 border-purple-500/30",
   approved: "bg-green-500/20 text-green-300 border-green-500/30",
   rejected: "bg-red-500/20 text-red-300 border-red-500/30",
+  revoked: "bg-gray-500/20 text-gray-300 border-gray-500/30",
 };
 
 const PROOF_TYPE_LABELS = {
@@ -188,6 +192,10 @@ export default function AdminVerifiedTraders() {
   const [rejectModal, setRejectModal] = React.useState({ open: false, app: null });
   const [scheduledCallAt, setScheduledCallAt] = React.useState("");
   const [statsModal, setStatsModal] = React.useState({ open: false, app: null });
+  const [revokeModal, setRevokeModal] = React.useState({ open: false, app: null });
+  const [revokeReason, setRevokeReason] = React.useState("");
+  // Removing a badge is Admin only (the backend refuses Operators).
+  const isAdmin = String(getUserCookie()?.role || "").toLowerCase() === "admin";
   const [approveForm, setApproveForm] = React.useState(() => numbersForm());
   const [rejectionReason, setRejectionReason] = React.useState("");
   const [actionLoading, setActionLoading] = React.useState(false);
@@ -302,6 +310,25 @@ export default function AdminVerifiedTraders() {
     }
   }
 
+  async function handleRevoke() {
+    if (!revokeModal.app) return;
+
+    setActionLoading(true);
+    setError("");
+    setMessage("");
+    try {
+      await revokeVerifiedTrader(revokeModal.app.id, revokeReason.trim());
+      setRevokeModal({ open: false, app: null });
+      setRevokeReason("");
+      setMessage("Verified badge removed. The account itself is unchanged.");
+      fetchApplications();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to remove the badge");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   async function handleReject() {
     if (!rejectModal.app) return;
 
@@ -394,6 +421,7 @@ export default function AdminVerifiedTraders() {
                 { value: "scheduled", label: "Call scheduled" },
                 { value: "invited", label: "Invited" },
                 { value: "approved", label: "Approved" },
+                { value: "revoked", label: "Badge removed" },
                 { value: "rejected", label: "Rejected" },
               ]}
             />
@@ -605,12 +633,61 @@ export default function AdminVerifiedTraders() {
                       Edit stats
                     </button>
                   )}
+
+                  {isAdmin && selected.verifiedTrader?.status === "approved" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRevokeReason("");
+                        setRevokeModal({ open: true, app: selected });
+                      }}
+                      className="flex items-center justify-center gap-2 px-4 py-2 border border-red-500/40 text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                    >
+                      Remove badge
+                    </button>
+                  )}
                 </div>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={revokeModal.open}
+        onClose={() => setRevokeModal({ open: false, app: null })}
+        title={`Remove Verified badge: ${revokeModal.app?.fullName || ""}`}
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-300">
+            The trader leaves the public Verified Traders list and loses the badge. Their account, sign-in and
+            private documents stay as they are, and they can apply again later.
+          </p>
+          <label className="block text-sm">
+            <span className="text-gray-300">Reason (optional, kept for the record)</span>
+            <textarea
+              value={revokeReason}
+              onChange={(e) => setRevokeReason(e.target.value)}
+              rows={3}
+              maxLength={1000}
+              className="mt-1 w-full rounded-lg bg-gray-900/70 border border-white/10 p-2 text-white"
+            />
+          </label>
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={() => setRevokeModal({ open: false, app: null })} className="px-4 py-2 rounded-lg border border-white/10 text-gray-300">
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={actionLoading}
+              onClick={handleRevoke}
+              className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
+            >
+              {actionLoading ? "Removing…" : "Remove badge"}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       <Modal
         isOpen={scheduleModal.open}

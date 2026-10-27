@@ -1,4 +1,5 @@
 import React from "react";
+import TraderReviews from "../components/traders/TraderReviews.jsx";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import {
@@ -418,6 +419,29 @@ function UserProfile() {
               </Section>
             )}
 
+            {isVerified && (verified.payouts || []).length > 0 && (
+              // Payouts XK checked against the trader's proof (B23); the proof
+              // itself stays private.
+              <Section title="Verified payouts" icon={Layers}>
+                <ul className="space-y-2">
+                  {verified.payouts.slice(0, 8).map((p, i) => (
+                    <li key={`${p.firm}-${p.date}-${i}`} className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm">
+                      <div>
+                        <div className="font-medium text-white">{p.firm}</div>
+                        <div className="text-xs text-gray-400">
+                          {p.date ? new Date(p.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""}
+                        </div>
+                      </div>
+                      <div className="text-right font-semibold text-green-400">
+                        {new Intl.NumberFormat("en-US", { style: "currency", currency: p.currency === "USDT" ? "USD" : p.currency || "USD", maximumFractionDigits: 0 }).format(p.amount)}
+                        {p.currency === "USDT" ? " USDT" : ""}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Section>
+            )}
+
             {isVerified && proofs.length > 0 && (
               <Section title="Verified documents" icon={Layers}>
                 <ul className="space-y-3">
@@ -440,6 +464,10 @@ function UserProfile() {
             )}
           </aside>
         </div>
+
+        {isVerified && (
+          <TraderReviews traderId={profile.id || userId} traderName={profile.fullName} summary={profile.reviewsSummary} />
+        )}
       </div>
     </div>
   );

@@ -782,6 +782,18 @@ function AdminDashboard() {
           </div>
         </Link>
         <Link
+          to="/admin/trader-reviews"
+          className="card hover:border-cyan-500/50 transition-all hover:scale-105"
+        >
+          <div className="card-body">
+            <div className="font-semibold mb-1 flex items-center gap-2">
+              <BadgeCheck className="w-4 h-4" />
+              Trader Reviews
+            </div>
+            <div className="text-sm text-gray-400">Approve reviews of traders</div>
+          </div>
+        </Link>
+        <Link
           to="/admin/spreads"
           className="card hover:border-yellow-500/50 transition-all hover:scale-105"
         >
