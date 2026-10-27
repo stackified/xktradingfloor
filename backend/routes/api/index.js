@@ -12,14 +12,22 @@ const marketingRoutes = require("./marketing.routes");
 // Auth APIs
 router.use("/auth", authRoutes);
 
-// Motor Insurance Routes
-router.use(publicRoutes);
+// Health check for the uptime monitor: no auth, no database (B6).
+router.get("/health", (req, res) => res.status(200).json({ ok: true }));
 
-// Marketing Routes
-router.use("/marketing", marketingRoutes);
+// Public routes
+router.use(publicRoutes);
 
 // Middleware to check token
 router.use(authentication);
+
+// Marketing Routes: send bulk email, history and drafts are Admin/Operator
+// only. They were mounted before authentication and open to anyone (B2).
+router.use(
+  "/marketing",
+  authorization([constants.roles.admin, constants.roles.operator]),
+  marketingRoutes
+);
 
 // Protected Routes
 router.use(protectedRoutes);

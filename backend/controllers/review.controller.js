@@ -229,7 +229,13 @@ exports.updateReview = async (req, res) => {
         }
 
         const { reviewId } = req.params;
-        const updates = req.body || {};
+        // Only the review's own text and rating are editable by its author;
+        // flags like isVerified/isPinned/isHidden and ids are not.
+        const EDITABLE = ["rating", "title", "body", "comment"];
+        const updates = {};
+        for (const key of EDITABLE) {
+            if (req.body?.[key] !== undefined) updates[key] = req.body[key];
+        }
 
         const review = await ReviewModel.findById(reviewId);
         if (!review) {
@@ -255,7 +261,8 @@ exports.updateReview = async (req, res) => {
         if (updates.body && !updates.comment) {
             updates.comment = updates.body;
         }
-        updates.screenshot = screenshot;
+        // Keep the existing screenshot unless a new file was uploaded (B9).
+        if (screenshot) updates.screenshot = screenshot;
 
         Object.assign(review, updates);
         const updated = await review.save();

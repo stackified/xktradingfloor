@@ -21,7 +21,7 @@ class BrevoService {
     /**
      * Send transactional email
      */
-    async sendEmail(to, subject, html) {
+    async sendEmail(to, subject, html, { replyTo } = {}) {
         try {
             const response = await this.transactionalApi.sendTransacEmail({
                 sender: {
@@ -29,6 +29,7 @@ class BrevoService {
                     email: process.env.BREVO_FROM_EMAIL || "info@xktradingfloor.com",
                 },
                 to: [{ email: to }],
+                ...(replyTo ? { replyTo: { email: replyTo } } : {}),
                 subject,
                 htmlContent: html,
             });
