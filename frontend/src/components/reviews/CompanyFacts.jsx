@@ -21,6 +21,15 @@ const shortDate = (value) => {
     ? d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     : "";
 };
+// Only http(s) links are rendered (the backend checks this too).
+const safeUrl = (value) => {
+  try {
+    const u = new URL(value);
+    return u.protocol === "http:" || u.protocol === "https:" ? u.href : null;
+  } catch (_) {
+    return null;
+  }
+};
 const pct = (value) => (value === undefined || value === null ? "–" : `${value}%`);
 const money = (amount, currency = "USD") => {
   if (amount === undefined || amount === null) return "–";
@@ -115,9 +124,9 @@ function CompanyFacts({ company }) {
               l.country || "–",
               TIER_LABELS[l.tier] || "–",
               l.entity || "–",
-              l.registerUrl ? (
+              safeUrl(l.registerUrl) ? (
                 <a
-                  href={l.registerUrl}
+                  href={safeUrl(l.registerUrl)}
                   target="_blank"
                   rel="noopener noreferrer nofollow"
                   className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300"
