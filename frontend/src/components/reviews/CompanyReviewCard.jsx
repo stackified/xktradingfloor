@@ -1,5 +1,5 @@
 import React from "react";
-import { Flag } from "lucide-react";
+import { Flag, ShieldCheck } from "lucide-react";
 import StarRating from "./StarRating.jsx";
 import { deleteReview, reportReview, hideReview, pinReview, REVIEW_MODERATION_ENABLED } from "../../controllers/reviewsController.js";
 import { getAssetPath } from "../../utils/assets.js";
@@ -98,6 +98,16 @@ function CompanyReviewCard({ review, currentUserId, onUpdate, onDelete }) {
             <div>
               <div className="font-semibold flex items-center gap-2">
                 {reviewerName(review)}
+                {review.isVerified && (
+                  // Set only after XK checked the reviewer's evidence (B19).
+                  <span
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-1.5 rounded"
+                    title="XK checked this reviewer's evidence"
+                  >
+                    <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+                    Verified review
+                  </span>
+                )}
                 {review.isPinned && <span className="text-[10px] bg-accent/20 text-accent px-1.5 rounded uppercase font-bold tracking-wider">PINNED</span>}
                 {review.isHidden && <span className="text-[10px] bg-red-500/20 text-red-400 px-1.5 rounded uppercase font-bold tracking-wider">HIDDEN</span>}
               </div>
