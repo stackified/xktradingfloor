@@ -12,7 +12,8 @@ import { CONTACT_EMAIL } from "../utils/contact.js";
 // review site by whether it explains its methods and conflicts of interest;
 // in Oct 2026 Perplexity described XK as lacking exactly this. Every statement
 // here must stay true to the code and the team's process: the TrustScore
-// formula is utils/trustScore.js, review rules are the backend's.
+// formula is the backend's utils/trustScore.js (B32, Sahil's weights of
+// 9 Oct 2026); TRUST_FACTORS below must match its WEIGHTS.
 
 const TRUST_LEVELS = [
   ["90–100", "Excellent"],
@@ -22,11 +23,35 @@ const TRUST_LEVELS = [
   ["Below 60", "Poor"],
 ];
 
+// Points out of 100 per factor, from the backend's WEIGHTS.
+const TRUST_FACTORS = [
+  {
+    kind: "Brokers",
+    factors: [
+      ["Regulation", 35, "the strongest licence the broker holds, from top-tier regulators down to offshore or unverified"],
+      ["Trader reviews", 25, "the average star rating"],
+      ["Withdrawals", 20, "how reliably and quickly traders get paid, scored by the XK team"],
+      ["Trading conditions", 15, "spreads, fees and execution, scored by the XK team"],
+      ["Platforms", 5, "how many platform families are offered (MetaTrader, cTrader, TradeLocker, own platform)"],
+    ],
+  },
+  {
+    kind: "Prop firms",
+    factors: [
+      ["Trader reviews", 30, "the average star rating"],
+      ["Payouts", 30, "payout record and speed, scored by the XK team"],
+      ["Rules", 20, "how fair and clear the challenge and funded-account rules are, scored by the XK team"],
+      ["Background", 15, "company history, ownership and transparency, scored by the XK team"],
+      ["Platforms", 5, "how many platform families are offered"],
+    ],
+  },
+];
+
 const FAQS = [
   {
     question: "How is the XK TrustScore calculated?",
     answer:
-      "The TrustScore is the average star rating from trader reviews (1 to 5 stars) multiplied by 20, giving a score from 0 to 100. 90 and above is Excellent, 80 to 89 Great, 70 to 79 Good, 60 to 69 Fair and below 60 Poor. A company with no reviews has no score.",
+      "The TrustScore is a score from 0 to 100. For brokers it combines regulation (35 points), trader reviews (25), withdrawals (20), trading conditions (15) and platforms (5). For prop firms it combines trader reviews (30), payouts (30), rules (20), background (15) and platforms (5). Crypto platforms are scored on trader reviews only, as the average star rating multiplied by 20. 90 and above is Excellent, 80 to 89 Great, 70 to 79 Good, 60 to 69 Fair and below 60 Poor. A company with no data yet has no score.",
   },
   {
     question: "Who writes the reviews on XK Trading Floor?",
@@ -36,7 +61,7 @@ const FAQS = [
   {
     question: "Does XK Trading Floor get paid by brokers or prop firms?",
     answer:
-      "Yes. XK Trading Floor earns a commission when you open an account or buy a challenge through our links or promo codes, and can also earn from sponsored content and featured placements. Commissions and partnerships do not change a company's rating or TrustScore, which are calculated only from trader reviews.",
+      "Yes. XK Trading Floor earns a commission when you open an account or buy a challenge through our links or promo codes, and can also earn from sponsored content and featured placements. Commissions and partnerships do not change a company's rating or TrustScore, and no company can pay for a higher score.",
   },
   {
     question: "What does the Verified Trader badge mean?",
@@ -103,13 +128,37 @@ function HowWeRate() {
       <div className="mx-auto max-w-4xl space-y-6 px-4 pb-6 sm:px-6 lg:px-8">
         <Section icon={Star} id="trustscore" title="Ratings and the TrustScore">
           <p>
-            Every broker, prop firm and crypto platform on XK has a star rating and a TrustScore, both calculated only
-            from trader reviews.
+            Every broker, prop firm and crypto platform on XK has a star rating and a TrustScore. The star rating
+            is the average of all trader review ratings, from 1 to 5 stars. The TrustScore, from 0 to 100, adds
+            what the XK team checks itself:
           </p>
+          {TRUST_FACTORS.map(({ kind, factors }) => (
+            <div key={kind} className="overflow-x-auto">
+              <table className="mt-2 w-full text-left text-sm">
+                <caption className="pb-1 text-left font-semibold text-white">{kind}</caption>
+                <thead className="text-gray-400">
+                  <tr>
+                    <th scope="col" className="py-1 pr-4 font-medium">Factor</th>
+                    <th scope="col" className="py-1 pr-4 font-medium">Points</th>
+                    <th scope="col" className="py-1 font-medium">What it measures</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {factors.map(([factor, points, what]) => (
+                    <tr key={factor} className="border-t border-white/10">
+                      <td className="py-1.5 pr-4 whitespace-nowrap">{factor}</td>
+                      <td className="py-1.5 pr-4">{points}</td>
+                      <td className="py-1.5">{what}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
           <ul className="list-disc space-y-1 pl-5">
-            <li>The star rating is the average of all review ratings, from 1 to 5 stars.</li>
-            <li>The TrustScore is that average multiplied by 20, on a scale of 0 to 100.</li>
-            <li>A company with no reviews has no score and is listed after the rated ones.</li>
+            <li>Crypto platforms are scored on trader reviews only: the average star rating multiplied by 20.</li>
+            <li>A factor with no data yet adds no points. A company with no data at all has no score.</li>
+            <li>The XK team&rsquo;s scores are 1 to 5 and reviewed when the company&rsquo;s data is checked.</li>
             <li>Rankings such as &ldquo;Top Rated&rdquo; sort by TrustScore, then by number of reviews.</li>
           </ul>
           <div className="overflow-x-auto">
@@ -225,8 +274,8 @@ function HowWeRate() {
             ).
           </p>
           <p>
-            Commissions and partnerships do not change a company&rsquo;s star rating or TrustScore: those are
-            calculated only from trader reviews, by the formula above.
+            Commissions and partnerships do not change a company&rsquo;s star rating or TrustScore: both are
+            calculated by the method above, and no company can pay for a higher score.
           </p>
           <p>
             Nothing on XK Trading Floor is financial advice. Trading carries a high risk of losing money; do your own

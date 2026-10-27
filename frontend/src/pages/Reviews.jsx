@@ -17,7 +17,7 @@ import CardLoader from "../components/shared/CardLoader.jsx";
 import WriteToUsModal from "../components/reviews/WriteToUsModal.jsx";
 import RequireAuthModal from "../components/shared/RequireAuthModal.jsx";
 import { getUserCookie } from "../utils/cookies.js";
-import { computeTrustScore } from "../utils/trustScore.js";
+import { companyTrustScore } from "../utils/trustScore.js";
 
 const categoryMap = {
   broker: "Broker",
@@ -53,8 +53,8 @@ function sortCompanies(companies, sortBy) {
     case "trustScore":
     default:
       return sorted.sort((a, b) => {
-        const scoreA = computeTrustScore(a.ratingsAggregate, a.totalReviews).score;
-        const scoreB = computeTrustScore(b.ratingsAggregate, b.totalReviews).score;
+        const scoreA = companyTrustScore(a).score;
+        const scoreB = companyTrustScore(b).score;
         return scoreB - scoreA;
       });
   }

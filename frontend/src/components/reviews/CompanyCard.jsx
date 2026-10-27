@@ -66,7 +66,7 @@ function CompanyCard({ company, user }) {
             the previous flex-row layout did. */}
         <div className="flex items-start gap-4">
           <Link to={`/reviews/${id}`} className="flex-shrink-0">
-            <CompanyLogo src={company.logo} name={company.name} size="md" />
+            <CompanyLogo src={company.logoThumb || company.logo} name={company.name} size="md" />
           </Link>
 
           <div className="flex-1 min-w-0">
@@ -120,6 +120,7 @@ function CompanyCard({ company, user }) {
                 <TrustScoreGauge
                   ratingsAggregate={rating}
                   totalReviews={reviewCount}
+                  trustScore={company.trustScore}
                   size="sm"
                 />
               </div>
@@ -168,6 +169,7 @@ function CompanyCard({ company, user }) {
             <TrustScoreGauge
               ratingsAggregate={rating}
               totalReviews={reviewCount}
+              trustScore={company.trustScore}
               size="sm"
             />
           </div>

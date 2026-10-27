@@ -1,8 +1,9 @@
 import React from "react";
 import { computeTrustScore } from "../../utils/trustScore.js";
 
-function TrustScoreGauge({ ratingsAggregate = 0, totalReviews = 0, size = "md" }) {
-  const { score, label } = computeTrustScore(ratingsAggregate, totalReviews);
+// trustScore: the server's score (backend B32) when the response has it.
+function TrustScoreGauge({ ratingsAggregate = 0, totalReviews = 0, trustScore, size = "md" }) {
+  const { score, label } = computeTrustScore(ratingsAggregate, totalReviews, trustScore);
 
   const dimensions = {
     sm: { outer: 64, stroke: 5, fontSize: "text-lg", labelSize: "text-[10px]" },

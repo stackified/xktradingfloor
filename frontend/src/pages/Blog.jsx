@@ -39,6 +39,7 @@ function transformBlog(blog) {
     tags: blog.tags || [],
     author: authorDisplayName(blog.author),
     image: blog.coverImage || blog.featuredImage || blog.image,
+    thumb: blog.imageThumb || null, // B8: 640 px copy for cards
     date: new Date(blog.publishedAt || blog.createdAt).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",

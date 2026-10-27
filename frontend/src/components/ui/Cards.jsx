@@ -20,7 +20,7 @@ export function EventCard({ event, onView }) {
   return (
     <div className="card overflow-hidden">
       <ImageWithFallback
-        src={event.image}
+        src={event.imageThumb || event.image}
         fallback="/assets/placeholder.jpg"
         alt={event.title}
         className="h-40 w-full object-cover"
@@ -76,7 +76,7 @@ export function ReviewCard({ company, onView }) {
     <div className="card h-full">
       <div className="card-body">
         <div className="flex items-center gap-3 mb-3">
-          <CompanyLogo src={company.logo} name={company.name} size="sm" />
+          <CompanyLogo src={company.logoThumb || company.logo} name={company.name} size="sm" />
           <div>
             <div className="text-sm text-gray-400">{company.category}</div>
             <div className="font-semibold">{company.name}</div>

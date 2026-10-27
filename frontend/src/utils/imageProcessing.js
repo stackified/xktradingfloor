@@ -179,3 +179,38 @@ export async function processEventImage(file) {
     URL.revokeObjectURL(url);
   }
 }
+
+/**
+ * Small copy for cards and lists (B8): no wider than `width` px, aspect ratio
+ * kept; PNG stays PNG (transparency), anything else becomes JPEG. Sent with
+ * the full image as logoThumb / imageThumb. Returns null for SVG and GIF, or
+ * when it can't be made; the site then uses the full image.
+ */
+export async function makeThumbnail(file, width) {
+  if (!file || !file.type?.startsWith("image/")) return null;
+  if (file.type === "image/svg+xml" || file.type === "image/gif") return null;
+  try {
+    const { img, url } = await loadImage(file);
+    try {
+      const scale = Math.min(1, width / img.naturalWidth);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+      const ctx = canvas.getContext("2d");
+      ctx.imageSmoothingQuality = "high";
+      const png = file.type === "image/png";
+      if (!png) {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      return png
+        ? await canvasToFile(canvas, "image/png", undefined, `${baseName(file)}-thumb.png`)
+        : await canvasToFile(canvas, "image/jpeg", 0.85, `${baseName(file)}-thumb.jpg`);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  } catch (_) {
+    return null;
+  }
+}

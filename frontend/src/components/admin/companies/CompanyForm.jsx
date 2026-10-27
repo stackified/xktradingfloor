@@ -13,8 +13,13 @@ import {
 import { getUserCookie } from "../../../utils/cookies.js";
 import RichTextEditor from "../../shared/RichTextEditor.jsx";
 import CompanyLogo from "../../shared/CompanyLogo.jsx";
-import { processLogo } from "../../../utils/imageProcessing.js";
+import { processLogo, makeThumbnail } from "../../../utils/imageProcessing.js";
 import CustomSelect from "../../shared/CustomSelect.jsx";
+import CompanyDataFields, {
+  companyDataFromApi,
+  companyDataPayload,
+  emptyCompanyData,
+} from "./CompanyDataFields.jsx";
 
 const MAX_SHORT_DESCRIPTION = 150;
 
@@ -49,6 +54,9 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
     assets: [],
     platforms: [],
   });
+  // Licences, challenges, scores etc. (B21/B22/B32), kept apart from `form`
+  // because they are sent as JSON.
+  const [structured, setStructured] = React.useState(emptyCompanyData);
   const [logoFile, setLogoFile] = React.useState(null);
   const [logoPreview, setLogoPreview] = React.useState("");
   const [logoProcessing, setLogoProcessing] = React.useState(false);
@@ -100,6 +108,7 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
         assets: Array.isArray(data.assets) ? data.assets : [],
         platforms: Array.isArray(data.platforms) ? data.platforms : [],
       });
+      setStructured(companyDataFromApi(data));
       setLogoPreview(data.logo || "");
       setImages(data.images || []);
     } catch (error) {
@@ -197,19 +206,20 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
             .map((img) => img.file || img.url)
             .filter((img) => img instanceof File || typeof img === "string");
 
+      const { status, ...profileData } = companyData;
       const finalData = {
-        ...companyData,
+        ...profileData,
+        ...companyDataPayload(structured, { category: form.category, isAdmin }),
         logo: logoFile || form.logo,
+        // 128 px copy for cards and lists (B8), only with a new logo.
+        logoThumb: logoFile ? await makeThumbnail(logoFile, 128) : undefined,
         images: imagesToSend,
       };
 
       if (isEditing) {
-        // When updating, set status to pending (unless admin explicitly sets it)
-        const updateData = {
-          ...finalData,
-          // Always set to pending when editing, unless admin explicitly sets it
-          status: isAdmin ? (finalData.status || "pending") : "pending",
-        };
+        // Only an Admin changes status. The backend refuses (403) an Operator
+        // who sends a different one, so an Operator's save leaves it out.
+        const updateData = isAdmin ? { ...finalData, status: status || "pending" } : finalData;
         await updateCompany(companyId, updateData);
         // Navigate back - the AdminCompanies component will refresh on location change
         navigate(redirectPath);
@@ -217,7 +227,7 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
         // Create company - ensure status is pending by default
         const createData = {
           ...finalData,
-          status: isAdmin ? (finalData.status || "pending") : "pending",
+          status: isAdmin ? (status || "pending") : "pending",
         };
         const result = await createCompany(createData);
         // Backend returns: { success: true, message: "...", data: { _id, ... } }
@@ -622,6 +632,13 @@ export default function CompanyForm({ redirectPath = "/admin/companies" }) {
                 </p>
               </div>
             </div>
+
+            <CompanyDataFields
+              value={structured}
+              onChange={setStructured}
+              category={form.category}
+              isAdmin={isAdmin}
+            />
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300">
